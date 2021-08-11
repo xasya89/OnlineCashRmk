@@ -48,6 +48,7 @@ namespace OnlineCashRmk
             this.ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.button6 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -118,6 +119,7 @@ namespace OnlineCashRmk
             this.panel3.Controls.Add(this.button5);
             this.panel3.Controls.Add(this.labelSumAll);
             this.panel3.Controls.Add(this.label1);
+            this.panel3.Controls.Add(this.button6);
             this.panel3.Controls.Add(this.button2);
             this.panel3.Controls.Add(this.button1);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
@@ -163,7 +165,7 @@ namespace OnlineCashRmk
             // 
             this.button2.Image = global::OnlineCashRmk.Properties.Resources.credit_cart;
             this.button2.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button2.Location = new System.Drawing.Point(9, 225);
+            this.button2.Location = new System.Drawing.Point(9, 168);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(132, 73);
             this.button2.TabIndex = 0;
@@ -176,7 +178,7 @@ namespace OnlineCashRmk
             // 
             this.button1.Image = global::OnlineCashRmk.Properties.Resources.money;
             this.button1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button1.Location = new System.Drawing.Point(9, 130);
+            this.button1.Location = new System.Drawing.Point(9, 89);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(132, 73);
             this.button1.TabIndex = 0;
@@ -245,6 +247,19 @@ namespace OnlineCashRmk
             this.ColumnSum.Name = "ColumnSum";
             this.ColumnSum.ReadOnly = true;
             // 
+            // button6
+            // 
+            this.button6.Image = global::OnlineCashRmk.Properties.Resources.purchasing_64;
+            this.button6.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.button6.Location = new System.Drawing.Point(9, 247);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(132, 73);
+            this.button6.TabIndex = 0;
+            this.button6.Text = "Кредит\r\nF7   ";
+            this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -290,6 +305,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Button button6;
     }
 }
 

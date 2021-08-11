@@ -136,9 +136,14 @@ namespace OnlineCashRmk
                 if (progId.ToLower().IndexOf("firefox") > -1)
                     browser = BrowserApplication.Firefox;
             }
-            MessageBox.Show(browser.ToString());
             //System.Diagnostics.Process.Start("explorer.exe", $"{serverName}/Arrivals/Create?ShopId={idShop}");
             System.Diagnostics.Process.Start(new ProcessStartInfo($"{serverName}/Arrivals/Create?ShopId={idShop}") { UseShellExecute = true } );
+        }
+
+        //Инверторизация
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo($"{serverName}/Stocktaking/Create?idShop={idShop}") { UseShellExecute = true });
         }
     }
 }

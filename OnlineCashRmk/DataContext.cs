@@ -15,6 +15,10 @@ namespace OnlineCashRmk
         public DbSet<CheckSell> CheckSells { get; set; }
         public DbSet<CheckGood> CheckGoods { get; set; }
 
+        public DbSet<Credit> Credits { get; set; }
+        public DbSet<CreditGood> CreditGoods { get; set; }
+        public DbSet<CreditPayment> CreditPayments { get; set; }
+
         public DataContext() { }
         public DataContext(DbContextOptions options) : base(options) { }
 
@@ -42,6 +46,15 @@ namespace OnlineCashRmk
                 .HasOne(s => s.Shift)
                 .WithMany(s => s.CheckSells)
                 .HasForeignKey(s => s.ShiftId);
+
+            modelBuilder.Entity<CreditGood>()
+                .HasOne(ch => ch.Credit)
+                .WithMany(c => c.CreditGoods)
+                .HasForeignKey(ch => ch.CreditId);
+            modelBuilder.Entity<CreditPayment>()
+                .HasOne(p => p.Credit)
+                .WithMany(c => c.CreditPayments)
+                .HasForeignKey(p => p.CreditId);
         }
     }
 }

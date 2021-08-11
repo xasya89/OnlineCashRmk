@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210811171429_AlterCreditPayment")]
+    partial class AlterCreditPayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,12 +33,17 @@ namespace OnlineCashRmk.Migrations
                     b.Property<double>("Count")
                         .HasColumnType("REAL");
 
+                    b.Property<int>("CreditId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("GoodId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CheckSellId");
+
+                    b.HasIndex("CreditId");
 
                     b.HasIndex("GoodId");
 
@@ -104,33 +111,6 @@ namespace OnlineCashRmk.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Credits");
-                });
-
-            modelBuilder.Entity("OnlineCashRmk.Models.CreditGood", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Cost")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("Count")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("CreditId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreditId");
-
-                    b.HasIndex("GoodId");
-
-                    b.ToTable("CreditGoods");
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.CreditPayment", b =>
@@ -233,6 +213,12 @@ namespace OnlineCashRmk.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OnlineCashRmk.Models.Credit", "Credit")
+                        .WithMany("CheckGoods")
+                        .HasForeignKey("CreditId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("OnlineCashRmk.Models.Good", "Good")
                         .WithMany("CheckGoods")
                         .HasForeignKey("GoodId")
@@ -240,6 +226,8 @@ namespace OnlineCashRmk.Migrations
                         .IsRequired();
 
                     b.Navigation("CheckSell");
+
+                    b.Navigation("Credit");
 
                     b.Navigation("Good");
                 });
@@ -253,25 +241,6 @@ namespace OnlineCashRmk.Migrations
                         .IsRequired();
 
                     b.Navigation("Shift");
-                });
-
-            modelBuilder.Entity("OnlineCashRmk.Models.CreditGood", b =>
-                {
-                    b.HasOne("OnlineCashRmk.Models.Credit", "Credit")
-                        .WithMany("CreditGoods")
-                        .HasForeignKey("CreditId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OnlineCashRmk.Models.Good", "Good")
-                        .WithMany()
-                        .HasForeignKey("GoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Credit");
-
-                    b.Navigation("Good");
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.CreditPayment", b =>
@@ -292,7 +261,7 @@ namespace OnlineCashRmk.Migrations
 
             modelBuilder.Entity("OnlineCashRmk.Models.Credit", b =>
                 {
-                    b.Navigation("CreditGoods");
+                    b.Navigation("CheckGoods");
 
                     b.Navigation("CreditPayments");
                 });

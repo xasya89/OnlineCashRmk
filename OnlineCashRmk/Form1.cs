@@ -476,5 +476,73 @@ namespace OnlineCashRmk
         {
             dataGridView1.Rows.Clear();
         }
+        //Выдача кредита
+        private void button6_Click(object sender, EventArgs e)
+        {
+            DataContext db = new DataContext();
+            FormCreditAdd fr = new FormCreditAdd();
+            List<CreditGood> creditgoods = new List<CreditGood>();
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                int goodId = Convert.ToInt32(row.Cells["ColumnId"].Value);
+                var good = db.Goods.Where(g => g.Id == goodId).FirstOrDefault();
+                double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
+                decimal price = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
+                CreditGood creditgood = new CreditGood
+                {
+                    Good = good,
+                    Count = count,
+                    Cost = price
+                };
+                creditgoods.Add(creditgood);
+            };
+            var sumpayment = creditgoods.Sum(ch => ch.Cost * (decimal)ch.Count);
+            fr.SumPayment.Text = sumpayment.ToString();
+            if (fr.ShowDialog() == DialogResult.OK)
+            {
+                if (fr.SumCredit.Text == "")
+                    fr.SumCredit.Text = fr.SumPayment.Text;
+                decimal sumcredit = 0;
+                decimal.TryParse(fr.SumCredit.Text, out sumcredit);
+                if (sumcredit == 0)
+                    MessageBox.Show("Не заполнена сумма кредита", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var credit = new Credit
+                            {
+                                Creditor = fr.Creditor.Text,
+                                DateCreate = DateTime.Now,
+                                Sum = sumpayment,
+                                SumDiscont = 0,
+                                SumAll = sumpayment,
+                                SumCredit = sumcredit,
+                                isSynch = false
+                            };
+                            await db.AddAsync(credit);
+                            
+                            if (sumpayment - sumcredit > 0)
+                            {
+                                var creitpayment = new CreditPayment
+                                {
+                                    Credit = credit,
+                                    DatePayment = DateTime.Now,
+                                    Sum = sumpayment - sumcredit
+                                };
+                                await db.AddAsync(creitpayment);
+                            };
+                            foreach (var ch in creditgoods)
+                                ch.Credit = credit;
+                            await db.AddRangeAsync(creditgoods);
+                            await db.SaveChangesAsync();
+                        }
+                        catch(SystemException ex)
+                        {
+                        }
+                    });
+            }
+        }
     }
 }
