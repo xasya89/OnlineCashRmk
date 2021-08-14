@@ -498,6 +498,7 @@ namespace OnlineCashRmk
             };
             var sumpayment = creditgoods.Sum(ch => ch.Cost * (decimal)ch.Count);
             fr.SumPayment.Text = sumpayment.ToString();
+            fr.SumCredit.Text = sumpayment.ToString();
             if (fr.ShowDialog() == DialogResult.OK)
             {
                 if (fr.SumCredit.Text == "")

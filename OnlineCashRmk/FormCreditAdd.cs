@@ -21,5 +21,21 @@ namespace OnlineCashRmk
         {
             SumCredit.Text = SumPayment.Text;
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            SumCredit.Text = "";
+        }
+
+        private void FormCreditAdd_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            //MessageBox.Show(e.KeyValue.ToString());
+        }
+
+        private void Creditor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                DialogResult = DialogResult.OK;
+        }
     }
 }

@@ -145,5 +145,14 @@ namespace OnlineCashRmk
         {
             Process.Start(new ProcessStartInfo($"{serverName}/Stocktaking/Create?idShop={idShop}") { UseShellExecute = true });
         }
+
+        //Кредиты
+        private void button5_Click(object sender, EventArgs e)
+        {
+            FormCreditList fr = new FormCreditList();
+            //fr.TopMost = true;
+            fr.Show();
+            Close();
+        }
     }
 }
