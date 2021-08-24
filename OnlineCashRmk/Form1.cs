@@ -22,11 +22,16 @@ using ToastNotifications;
 using ToastNotifications.Position;
 using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
+using System.Collections.ObjectModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace OnlineCashRmk
 {
     public partial class Form1 : Form
     {
+        ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
+        ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
+        List<Good> goods = new List<Good>();
         IConfiguration configuration;
         string serverName = "";
         int idShop = 1;
@@ -42,12 +47,44 @@ namespace OnlineCashRmk
             idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
+
+            DataContext db = new DataContext();
+            goods = db.Goods.OrderBy(g=>g.Name).ToList();
+
             InitializeComponent();
             dataGridView1.Select();
-            foreach (Panel p in new Panel[] { panel1, panel2, panel3 })
+            foreach (Panel p in new Panel[] { panel2, panel3 })
                 foreach (Control c in p.Controls)
                     if (c is Button && c.Name != button4.Name)
                         c.Click += (sender, e) => { dataGridView1.Focus(); dataGridView1.Select(); };
+            BindingSource binding = new BindingSource();
+            findGoods.CollectionChanged += (sender, e) =>
+            {
+                binding.ResetBindings(false);
+            };
+            binding.DataSource = findGoods;
+            findListBox.DataSource = binding;
+            findListBox.DisplayMember = nameof(Good.Name);
+            BindingSource bindingCheckGoods = new BindingSource();
+            checkGoods.CollectionChanged += (s, e) =>
+            {
+                bindingCheckGoods.ResetBindings(false);
+                labelSumAll.Text = Math.Round(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
+            };
+            bindingCheckGoods.DataSource = checkGoods;
+            dataGridView1.AutoGenerateColumns = false;
+            dataGridView1.DataSource = bindingCheckGoods;
+            ColumnId.DataPropertyName = nameof(CheckGoodModel.GoodId);
+            ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
+            ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
+            ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
+            ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
+            ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
+        }
+
+        private void FindGoods_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         Fptr fptr=new Fptr();
@@ -169,83 +206,99 @@ namespace OnlineCashRmk
         string barcodeScan = "";
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.KeyCode)
+            if (!findTextBox.Focused)
             {
-                case Keys.NumPad0: case Keys.D0:
-                    barcodeScan = barcodeScan + "0";
-                    break;
-                case Keys.NumPad1: case Keys.D1:
-                    barcodeScan = barcodeScan + "1";
-                    break;
-                case Keys.NumPad2: case Keys.D2:
-                    barcodeScan = barcodeScan + "2";
-                    break;
-                case Keys.NumPad3: case Keys.D3:
-                    barcodeScan = barcodeScan + "3";
-                    break;
-                case Keys.NumPad4: case Keys.D4:
-                    barcodeScan = barcodeScan + "4";
-                    break;
-                case Keys.NumPad5: case Keys.D5:
-                    barcodeScan = barcodeScan + "5";
-                    break;
-                case Keys.NumPad6: case Keys.D6:
-                    barcodeScan = barcodeScan + "6";
-                    break;
-                case Keys.NumPad7: case Keys.D7:
-                    barcodeScan = barcodeScan + "7";
-                    break;
-                case Keys.NumPad8: case Keys.D8:
-                    barcodeScan = barcodeScan + "8";
-                    break;
-                case Keys.NumPad9: case Keys.D9:
-                    barcodeScan = barcodeScan + "9";
-                    break;
-            }
-            if (e.KeyCode == Keys.Enter)
-                Task.Run(async () =>
+                switch (e.KeyCode)
                 {
-                    DataContext db = new DataContext();
-                    var good = await db.Goods.Where(g => g.BarCode == barcodeScan).FirstOrDefaultAsync();
-                    if (good == null)
+                    case Keys.NumPad0:
+                    case Keys.D0:
+                        barcodeScan = barcodeScan + "0";
+                        break;
+                    case Keys.NumPad1:
+                    case Keys.D1:
+                        barcodeScan = barcodeScan + "1";
+                        break;
+                    case Keys.NumPad2:
+                    case Keys.D2:
+                        barcodeScan = barcodeScan + "2";
+                        break;
+                    case Keys.NumPad3:
+                    case Keys.D3:
+                        barcodeScan = barcodeScan + "3";
+                        break;
+                    case Keys.NumPad4:
+                    case Keys.D4:
+                        barcodeScan = barcodeScan + "4";
+                        break;
+                    case Keys.NumPad5:
+                    case Keys.D5:
+                        barcodeScan = barcodeScan + "5";
+                        break;
+                    case Keys.NumPad6:
+                    case Keys.D6:
+                        barcodeScan = barcodeScan + "6";
+                        break;
+                    case Keys.NumPad7:
+                    case Keys.D7:
+                        barcodeScan = barcodeScan + "7";
+                        break;
+                    case Keys.NumPad8:
+                    case Keys.D8:
+                        barcodeScan = barcodeScan + "8";
+                        break;
+                    case Keys.NumPad9:
+                    case Keys.D9:
+                        barcodeScan = barcodeScan + "9";
+                        break;
+                }
+                if (e.KeyCode == Keys.Enter)
+                    AddGood(goods.Where(g => g.BarCode == barcodeScan).FirstOrDefault());
+                    /*
+                    Task.Run(async () =>
                     {
-                        var resp = await new HttpClient().GetAsync(@$"https://barcode-list.ru/barcode/RU/%D0%9F%D0%BE%D0%B8%D1%81%D0%BA.htm?barcode={barcodeScan}");
-                        var str = await resp.Content.ReadAsStringAsync();
-                        Regex regex = new Regex(@"<title>[\s\S]+?</title>");
-                        MatchCollection matches = regex.Matches(str);
-                        string goodName = "";
-                        foreach (Match match in matches)
-                            goodName = match.Value;
-                        if (goodName.IndexOf("Поиск")==-1)
+                        DataContext db = new DataContext();
+                        var good = await db.Goods.Where(g => g.BarCode == barcodeScan).FirstOrDefaultAsync();
+                        if (good == null)
                         {
-                            goodName = goodName.Replace("<title>", "").Replace("</title>", "");
-                            regex = new Regex(@".+?(?=Штрих-код)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
-                            var mc = regex.Matches(goodName);
-                            var match = mc.Cast<Match>().FirstOrDefault();
-                            goodName = match.Value.Replace(" - ", "");
-                            FormPrice frPrice = new FormPrice();
-                            if (frPrice.ShowDialog() == DialogResult.OK && frPrice.textBoxPrice.Text != "")
+                            var resp = await new HttpClient().GetAsync(@$"https://barcode-list.ru/barcode/RU/%D0%9F%D0%BE%D0%B8%D1%81%D0%BA.htm?barcode={barcodeScan}");
+                            var str = await resp.Content.ReadAsStringAsync();
+                            Regex regex = new Regex(@"<title>[\s\S]+?</title>");
+                            MatchCollection matches = regex.Matches(str);
+                            string goodName = "";
+                            foreach (Match match in matches)
+                                goodName = match.Value;
+                            if (goodName.IndexOf("Поиск") == -1)
                             {
-                                decimal price = 0;
-                                frPrice.textBoxPrice.Text = frPrice.textBoxPrice.Text.Replace(".", ",");
-                                decimal.TryParse(frPrice.textBoxPrice.Text, out price);
-                                good = new Good
+                                goodName = goodName.Replace("<title>", "").Replace("</title>", "");
+                                regex = new Regex(@".+?(?=Штрих-код)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
+                                var mc = regex.Matches(goodName);
+                                var match = mc.Cast<Match>().FirstOrDefault();
+                                goodName = match.Value.Replace(" - ", "");
+                                FormPrice frPrice = new FormPrice();
+                                if (frPrice.ShowDialog() == DialogResult.OK && frPrice.textBoxPrice.Text != "")
                                 {
-                                    Name = goodName,
-                                    Article = "",
-                                    Unit = Units.PCE,
-                                    Price = price,
-                                    BarCode = barcodeScan
-                                };
-                                db.Goods.Add(good);
-                                await db.SaveChangesAsync();
+                                    decimal price = 0;
+                                    frPrice.textBoxPrice.Text = frPrice.textBoxPrice.Text.Replace(".", ",");
+                                    decimal.TryParse(frPrice.textBoxPrice.Text, out price);
+                                    good = new Good
+                                    {
+                                        Name = goodName,
+                                        Article = "",
+                                        Unit = Units.PCE,
+                                        Price = price,
+                                        BarCode = barcodeScan
+                                    };
+                                    db.Goods.Add(good);
+                                    await db.SaveChangesAsync();
+                                }
                             }
                         }
-                    }
-                    barcodeScan = "";
-                    if (good != null)
-                        AddGood(good);
-                });
+                        barcodeScan = "";
+                        if (good != null)
+                            AddGood(good);
+                    });
+                    */
+            };
             if (e.KeyCode == Keys.F2 && dataGridView1.SelectedRows.Count > 0)
                 EditGood(dataGridView1.SelectedRows[0]);
             if(e.KeyCode==Keys.Delete && dataGridView1.SelectedRows.Count>0)
@@ -267,9 +320,32 @@ namespace OnlineCashRmk
 
         void AddGood(Good good)
         {
-
-            bool flagAdd = true;
-            double count = 1;
+            if (good != null)
+            {
+                double count = 1;
+                if (good.Unit != Units.PCE)
+                {
+                    FormEditCount frCountEdit = new FormEditCount();
+                    if (frCountEdit.ShowDialog() == DialogResult.OK)
+                    {
+                        frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
+                        double.TryParse(frCountEdit.textBoxCount.Text, out count);
+                    }
+                }
+                if (checkGoods.Count(g => g.GoodId == good.Id) == 0)
+                    checkGoods.Add(new CheckGoodModel { GoodId = good.Id, Good = good, Count = count, Cost = good.Price });
+                else
+                {
+                    var checkgood = checkGoods.FirstOrDefault(g => g.GoodId == good.Id);
+                    if (good.Unit == Units.PCE)
+                        checkgood.Count += count;
+                    else
+                        checkgood.Count = count;
+                    ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                }
+            }
+            /*
+                bool flagAdd = true;
             foreach (DataGridViewRow row in dataGridView1.Rows)
                 if (Convert.ToInt32(row.Cells["ColumnId"].Value) == good.Id)
                 {
@@ -310,11 +386,27 @@ namespace OnlineCashRmk
                 };
                 Invoke(dtadd);
             }
-            CalcSumAll();
+            */
         }
 
         void EditGood(DataGridViewRow row)
         {
+            int goodId = Convert.ToInt32(row.Cells[ColumnId.Name].Value);
+            var checkGood = checkGoods.Where(c => c.GoodId == goodId).FirstOrDefault();
+            if (checkGood != null)
+            {
+                FormEditCount fr = new FormEditCount();
+                fr.labelGoodName.Text = checkGood.Good.Name;
+                if (fr.ShowDialog() == DialogResult.OK)
+                {
+                    double count = 0;
+                    double.TryParse(fr.textBoxCount.Text.Replace(".", ","), out count);
+                    checkGood.Count = count;
+                    ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                    labelSumAll.Text =Math.Round(checkGoods.Sum(c => c.Sum)).ToString();
+                }
+            }
+            /*
             string goodName = row.Cells["ColumnName"].Value.ToString();
             double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
             decimal price = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
@@ -327,6 +419,7 @@ namespace OnlineCashRmk
                 row.Cells["ColumnSum"].Value = (decimal)count * price;
                 CalcSumAll();
             }
+            */
         }
 
         List<Good> GoodList = new List<Good>();
@@ -374,79 +467,69 @@ namespace OnlineCashRmk
 
         public void CheckPrint(bool isElectron)
         {
-            Task.Run(async () =>
+            DataContext db = new DataContext();
+            var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
+            if (shift == null)
+                MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+            if (checkGoods.Count > 0)
             {
-                DataContext db = new DataContext();
-                var shift = await db.Shifts.Where(s => s.Stop == null).FirstOrDefaultAsync();
-                if (shift == null)
-                    MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                else
-                if (dataGridView1.RowCount > 0)
+                //Открытие чека
+                fptr.setParam(1021, cashierName);
+                fptr.setParam(1203, cashierInn);
+                fptr.operatorLogin();
+                fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL);
+                fptr.openReceipt();
+                //Регистрация позиций
+                foreach (var check in checkGoods)
                 {
-                    double sumAll = 0;
-                    //Открытие чека
-                    fptr.setParam(1021, cashierName);
-                    fptr.setParam(1203, cashierInn);
-                    fptr.operatorLogin();
-                    fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL);
-                    fptr.openReceipt();
-                    //Регистрация позиций
-                    foreach(DataGridViewRow row in dataGridView1.Rows)
+                    string goodname = check.Good.Name;
+                    double price = (double)check.Cost;
+                    double count = check.Count;
+                    fptr.setParam(Constants.LIBFPTR_PARAM_COMMODITY_NAME, goodname);
+                    fptr.setParam(Constants.LIBFPTR_PARAM_PRICE, price);
+                    fptr.setParam(Constants.LIBFPTR_PARAM_QUANTITY, count);
+                    fptr.setParam(Constants.LIBFPTR_PARAM_TAX_TYPE, Constants.LIBFPTR_TAX_NO);
+                    fptr.registration();
+                };
+                double sumAll = (double)checkGoods.Sum(c => c.Sum);
+                //Оплата чека
+                if (isElectron)
+                    fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_ELECTRONICALLY);
+                else
+                    fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_CASH);
+                fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, sumAll);
+                fptr.payment();
+                //Итог чека
+                fptr.setParam(Constants.LIBFPTR_PARAM_SUM, sumAll);
+                fptr.receiptTotal();
+                fptr.closeReceipt();
+                CheckSell checkSell = new CheckSell
+                {
+                    IsElectron = isElectron,
+                    DateCreate = DateTime.Now,
+                    Shift = shift,
+                    Sum = (decimal)sumAll,
+                    SumDiscont = 0,
+                    SumAll = (decimal)sumAll
+                };
+                db.CheckSells.Add(checkSell);
+                var chgoods = new List<CheckGood>();
+                foreach (var chgood in checkGoods)
+                {
+                    var check = new CheckGood
                     {
-                        string goodname = row.Cells["ColumnName"].Value.ToString();
-                        double price = Convert.ToDouble(row.Cells["ColumnPrice"].Value);
-                        double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
-                        fptr.setParam(Constants.LIBFPTR_PARAM_COMMODITY_NAME, goodname);
-                        fptr.setParam(Constants.LIBFPTR_PARAM_PRICE, price);
-                        fptr.setParam(Constants.LIBFPTR_PARAM_QUANTITY, count);
-                        fptr.setParam(Constants.LIBFPTR_PARAM_TAX_TYPE, Constants.LIBFPTR_TAX_NO);
-                        fptr.registration();
-                        sumAll += price * count;
+                        CheckSell = checkSell,
+                        Good = db.Goods.Where(g => g.Id == chgood.GoodId).FirstOrDefault(),
+                        Count = chgood.Count,
+                        Cost = chgood.Cost
                     };
-                    //Оплата чека
-                    if (isElectron)
-                        fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_ELECTRONICALLY);
-                    else
-                        fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_CASH);
-                    fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, sumAll);
-                        fptr.payment();
-                    //Итог чека
-                    fptr.setParam(Constants.LIBFPTR_PARAM_SUM, sumAll);
-                    fptr.receiptTotal();
-                    fptr.closeReceipt();
-
-                    List<CheckGood> chgoods = new List<CheckGood>();
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
-                    {
-                        int goodId = Convert.ToInt32(row.Cells["ColumnId"].Value);
-                        var good = await db.Goods.Where(g => g.Id == goodId).FirstOrDefaultAsync();
-                        double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
-                        decimal price = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
-                        CheckGood chgood = new CheckGood
-                        {
-                            Good = good,
-                            Count = count,
-                            Cost = price
-                        };
-                        chgoods.Add(chgood);
-                    }
-                    CheckSell checkSell = new CheckSell
-                    {
-                        IsElectron = isElectron,
-                        DateCreate = DateTime.Now,
-                        Shift = shift,
-                        Sum = (decimal)chgoods.Sum(c => (double)c.Cost * c.Count),
-                        SumDiscont = 0,
-                        SumAll = (decimal)chgoods.Sum(c => (double)c.Cost * c.Count)
-                    };
-                    await db.CheckSells.AddAsync(checkSell);
-                    foreach (var chgood in chgoods)
-                        chgood.CheckSell = checkSell;
-                    await db.CheckGoods.AddRangeAsync(chgoods);
-                    await db.SaveChangesAsync();
-                    dataGridView1.Rows.Clear();
+                    db.CheckGoods.Add(check);
                 }
-            });
+                db.SaveChanges();
+                checkGoods.Clear();
+                ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+            }
         }
 
         private void button2_Click_1(object sender, EventArgs e)
@@ -474,7 +557,8 @@ namespace OnlineCashRmk
         //Отменить весь чек
         private void button5_Click(object sender, EventArgs e)
         {
-            dataGridView1.Rows.Clear();
+            checkGoods.Clear();
+            ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
         }
         //Выдача кредита
         private void button6_Click(object sender, EventArgs e)
@@ -538,12 +622,56 @@ namespace OnlineCashRmk
                                 ch.Credit = credit;
                             await db.AddRangeAsync(creditgoods);
                             await db.SaveChangesAsync();
+                            dataGridView1.Rows.Clear();
                         }
                         catch(SystemException ex)
                         {
                         }
                     });
             }
+        }
+        //поиск товара
+        private void findTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (findTextBox.Text != "")
+            {
+                findGoods.Clear();
+                DataContext db = new DataContext();
+                //var goods = db.Goods.Where(g => EF.Functions.Like(g.Name.ToLower(), $"%{findTextBox.Text.ToLower()}%") || g.BarCode == findTextBox.Text).ToList();
+                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1 || g.BarCode==findTextBox.Text).ToList())
+                    findGoods.Add(good);
+            }
+        }
+
+        private void findTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (findTextBox.Text != "")
+                switch (e.KeyCode)
+                {
+                    case Keys.Enter:
+                        var good = (Good)findListBox.SelectedItem;
+                        if (good != null)
+                            AddGood(good);
+                        findTextBox.Text = "";
+                        findGoods.Clear();
+                        break;
+                    case Keys.Down:
+                        int cursor = findListBox.SelectedIndex;
+                        int itemcount = findListBox.Items.Count;
+                        if (cursor + 1 < itemcount)
+                            findListBox.SelectedIndex = cursor + 1;
+                        else
+                            findListBox.SelectedIndex = 0;
+                        break;
+                    case Keys.Up:
+                        int cursor1 = findListBox.SelectedIndex;
+                        int itemcount1 = findListBox.Items.Count;
+                        if (cursor1 == 0)
+                            findListBox.SelectedIndex = itemcount1 - 1;
+                        else
+                            findListBox.SelectedIndex = cursor1 - 1;
+                        break;
+                }
         }
     }
 }

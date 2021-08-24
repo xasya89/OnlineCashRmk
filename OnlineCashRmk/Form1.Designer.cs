@@ -29,7 +29,6 @@ namespace OnlineCashRmk
         /// </summary>
         private void InitializeComponent()
         {
-            this.panel1 = new System.Windows.Forms.Panel();
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.button3 = new System.Windows.Forms.Button();
@@ -39,6 +38,7 @@ namespace OnlineCashRmk
             this.button5 = new System.Windows.Forms.Button();
             this.labelSumAll = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.button6 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -48,33 +48,32 @@ namespace OnlineCashRmk
             this.ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.button6 = new System.Windows.Forms.Button();
-            this.panel1.SuspendLayout();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.findListBox = new System.Windows.Forms.ListBox();
+            this.findTextBox = new System.Windows.Forms.TextBox();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.button4);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 466);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1008, 95);
-            this.panel1.TabIndex = 2;
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(921, 11);
+            this.button4.Location = new System.Drawing.Point(802, 0);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 52);
+            this.button4.Size = new System.Drawing.Size(75, 21);
             this.button4.TabIndex = 1;
             this.button4.Text = "button4";
             this.button4.UseVisualStyleBackColor = true;
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.button4);
             this.panel2.Controls.Add(this.button3);
             this.panel2.Controls.Add(this.buttonMenu);
             this.panel2.Controls.Add(this.buttonShift);
@@ -125,7 +124,7 @@ namespace OnlineCashRmk
             this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel3.Location = new System.Drawing.Point(855, 42);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(153, 424);
+            this.panel3.Size = new System.Drawing.Size(153, 519);
             this.panel3.TabIndex = 4;
             // 
             // button5
@@ -160,6 +159,19 @@ namespace OnlineCashRmk
             this.label1.Size = new System.Drawing.Size(75, 21);
             this.label1.TabIndex = 1;
             this.label1.Text = "К оплате:";
+            // 
+            // button6
+            // 
+            this.button6.Image = global::OnlineCashRmk.Properties.Resources.purchasing_64;
+            this.button6.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.button6.Location = new System.Drawing.Point(9, 247);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(132, 73);
+            this.button6.TabIndex = 0;
+            this.button6.Text = "Кредит\r\nF7   ";
+            this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // button2
             // 
@@ -201,12 +213,12 @@ namespace OnlineCashRmk
             this.ColumnSum});
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.dataGridView1.Location = new System.Drawing.Point(0, 42);
+            this.dataGridView1.Location = new System.Drawing.Point(0, 0);
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowTemplate.Height = 25;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(855, 424);
+            this.dataGridView1.Size = new System.Drawing.Size(853, 320);
             this.dataGridView1.TabIndex = 5;
             this.dataGridView1.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellLeave);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
@@ -247,28 +259,67 @@ namespace OnlineCashRmk
             this.ColumnSum.Name = "ColumnSum";
             this.ColumnSum.ReadOnly = true;
             // 
-            // button6
+            // splitContainer1
             // 
-            this.button6.Image = global::OnlineCashRmk.Properties.Resources.purchasing_64;
-            this.button6.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button6.Location = new System.Drawing.Point(9, 247);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(132, 73);
-            this.button6.TabIndex = 0;
-            this.button6.Text = "Кредит\r\nF7   ";
-            this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button6.UseVisualStyleBackColor = true;
-            this.button6.Click += new System.EventHandler(this.button6_Click);
+            this.splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 42);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.dataGridView1);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.groupBox1);
+            this.splitContainer1.Size = new System.Drawing.Size(855, 519);
+            this.splitContainer1.SplitterDistance = 322;
+            this.splitContainer1.TabIndex = 6;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.findListBox);
+            this.groupBox1.Controls.Add(this.findTextBox);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox1.Location = new System.Drawing.Point(0, 0);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(853, 191);
+            this.groupBox1.TabIndex = 0;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Поиск товара";
+            // 
+            // findListBox
+            // 
+            this.findListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.findListBox.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.findListBox.FormattingEnabled = true;
+            this.findListBox.ItemHeight = 21;
+            this.findListBox.Location = new System.Drawing.Point(3, 52);
+            this.findListBox.Name = "findListBox";
+            this.findListBox.Size = new System.Drawing.Size(847, 136);
+            this.findListBox.TabIndex = 1;
+            // 
+            // findTextBox
+            // 
+            this.findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.findTextBox.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.findTextBox.Location = new System.Drawing.Point(3, 19);
+            this.findTextBox.Name = "findTextBox";
+            this.findTextBox.Size = new System.Drawing.Size(847, 33);
+            this.findTextBox.TabIndex = 0;
+            this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
+            this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1008, 561);
-            this.Controls.Add(this.dataGridView1);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
             this.KeyPreview = true;
             this.Name = "Form1";
             this.Text = "Form1";
@@ -276,17 +327,21 @@ namespace OnlineCashRmk
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.Form1_PreviewKeyDown);
-            this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
-        private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button buttonMenu;
         private System.Windows.Forms.Button buttonShift;
@@ -306,6 +361,10 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.ListBox findListBox;
+        private System.Windows.Forms.TextBox findTextBox;
     }
 }
 

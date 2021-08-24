@@ -71,6 +71,9 @@ namespace OnlineCashRmk
                             credit.isSynch = false;
                             credit.SumCredit -= sumPay;
                             db.SaveChanges();
+                            row.Cells[ColumnSum.Name].Value = credit.SumCredit;
+                            if (credit.SumCredit == 0)
+                                creditTable.Rows.Remove(row);
                         }
                     }
             }
