@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210825114241_AddForgeinKey_Credit_Shift")]
+    partial class AddForgeinKey_Credit_Shift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -210,16 +212,7 @@ namespace OnlineCashRmk.Migrations
                     b.Property<decimal>("SumAll")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("SumCredit")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("SumElectron")
-                        .HasColumnType("TEXT");
-
                     b.Property<decimal>("SumIncome")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("SumNoElectron")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("SumOutcome")

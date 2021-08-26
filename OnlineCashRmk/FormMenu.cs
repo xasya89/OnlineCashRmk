@@ -138,12 +138,14 @@ namespace OnlineCashRmk
             }
             //System.Diagnostics.Process.Start("explorer.exe", $"{serverName}/Arrivals/Create?ShopId={idShop}");
             System.Diagnostics.Process.Start(new ProcessStartInfo($"{serverName}/Arrivals/Create?ShopId={idShop}") { UseShellExecute = true } );
+            Close();
         }
 
         //Инверторизация
         private void button4_Click(object sender, EventArgs e)
         {
             Process.Start(new ProcessStartInfo($"{serverName}/Stocktaking/Create?idShop={idShop}") { UseShellExecute = true });
+            Close();
         }
 
         //Кредиты

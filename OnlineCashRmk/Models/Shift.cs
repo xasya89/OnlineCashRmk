@@ -11,14 +11,18 @@ namespace OnlineCashRmk.Models
         public int Id { get; set; }
         public DateTime Start { get; set; }
         public DateTime? Stop { get; set; }
-        public decimal SumAll { get; set; } = 0;
+        public decimal SumNoElectron { get; set; } = 0;
+        public decimal SumElectron { get; set; } = 0;
         public decimal SumSell { get; set; } = 0;
         public decimal SummReturn { get; set; } = 0;
         public decimal SumIncome { get; set; } = 0;
         public decimal SumOutcome { get; set; } = 0;
+        public decimal SumCredit { get; set; } = 0;
+        public decimal SumAll { get; set; } = 0;
         public int ShopId { get; set; }
         public int CashierId { get; set; }
         public bool isSynch { get; set; } = false;
         public List<CheckSell> CheckSells { get; set; }
+        public List<Credit> Credits { get; set; }
     }
 }

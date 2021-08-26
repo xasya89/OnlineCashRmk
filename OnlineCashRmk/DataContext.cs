@@ -55,6 +55,10 @@ namespace OnlineCashRmk
                 .HasOne(p => p.Credit)
                 .WithMany(c => c.CreditPayments)
                 .HasForeignKey(p => p.CreditId);
+            modelBuilder.Entity<Credit>()
+                .HasOne(c => c.Shift)
+                .WithMany(s => s.Credits)
+                .HasForeignKey(c => c.ShiftId);
         }
     }
 }

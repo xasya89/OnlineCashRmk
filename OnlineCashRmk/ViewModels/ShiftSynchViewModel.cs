@@ -33,8 +33,9 @@ namespace OnlineCashRmk.ViewModels
             if (await PostNewGood() == false)
                 return false;
             DataContext db = new DataContext();
-            List<Shift> shifts = await db.Shifts.Include(s => s.CheckSells).ThenInclude(c => c.CheckGoods).ThenInclude(cg => cg.Good).Where(s => s.Stop != null & s.isSynch!=true).ToListAsync();
+            List<Shift> shifts = await db.Shifts.Include(s => s.CheckSells).ThenInclude(c => c.CheckGoods).ThenInclude(cg => cg.Good).Where(s => s.Stop != null & !s.isSynch).ToListAsync();
             foreach(var shift in shifts)
+                if(!shift.isSynch)
             {
                 string str = JsonSerializer.Serialize(shift);
                 var context = new StringContent(str, Encoding.UTF8, "application/json");

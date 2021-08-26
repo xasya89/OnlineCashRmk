@@ -18,6 +18,8 @@ namespace OnlineCashRmk.Models
         public decimal SumCredit { get; set; }
         public List<CreditGood> CreditGoods { get; set; } = new List<CreditGood>();
         public List<CreditPayment> CreditPayments { get; set; } = new List<CreditPayment>();
+        public int? ShiftId { get; set; }
+        public Shift Shift { get; set; }
         public bool isSynch { get; set; }
     }
 }

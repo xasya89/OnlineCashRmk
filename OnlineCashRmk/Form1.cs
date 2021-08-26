@@ -29,9 +29,9 @@ namespace OnlineCashRmk
 {
     public partial class Form1 : Form
     {
+        DataContext db = new DataContext();
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
-        List<Good> goods = new List<Good>();
         IConfiguration configuration;
         string serverName = "";
         int idShop = 1;
@@ -47,9 +47,6 @@ namespace OnlineCashRmk
             idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
-
-            DataContext db = new DataContext();
-            goods = db.Goods.OrderBy(g=>g.Name).ToList();
 
             InitializeComponent();
             dataGridView1.Select();
@@ -91,7 +88,6 @@ namespace OnlineCashRmk
 
         private void button1_Click(object sender, EventArgs e)
         {
-            DataContext db = new DataContext();
             if (db.Shifts.Where(s => s.Stop == null).Count() == 0)
             {
                 fptr.openShift();
@@ -108,10 +104,16 @@ namespace OnlineCashRmk
                 var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
                 shift.Stop = DateTime.Now;
                 var checklist = db.CheckSells.Where(c=>c.ShiftId==shift.Id).ToList();
+                shift.SumNoElectron = checklist.Where(s => !s.IsElectron).Sum(s => s.SumAll);
+                shift.SumElectron = checklist.Where(s => s.IsElectron).Sum(s => s.SumAll);
                 shift.SumSell = checklist.Sum(c => c.SumAll);
                 shift.SumAll = shift.SumIncome + shift.SumSell - shift.SumOutcome - shift.SummReturn;
+                if(db.Credits.Where(c=>c.ShiftId==shift.Id).Count()>0)
+                    shift.SumCredit = db.Credits.Where(c=>c.ShiftId==shift.Id).ToList().Sum(c => c.SumCredit);
                 db.SaveChanges();
                 buttonShift.Text = "Открыть смену";
+                //Вывод итогов смены
+                MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
                 //Синхронизация смен
                 Task.Run(async () =>
                 {
@@ -127,7 +129,6 @@ namespace OnlineCashRmk
         {
             fptr.showProperties(Constants.LIBFPTR_GUI_PARENT_NATIVE, this.Handle);
             fptr.open();
-            DataContext db = new DataContext();
             var shiftOpen = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shiftOpen != null)
                 buttonShift.Text = "Закрыть смену";
@@ -141,7 +142,6 @@ namespace OnlineCashRmk
 
         private void button2_Click(object sender, EventArgs e)
         {
-            DataContext db = new DataContext();
             MessageBox.Show(db.Shifts.Count().ToString());
         }
 
@@ -152,7 +152,6 @@ namespace OnlineCashRmk
         {
             Task.Run(async () =>
             {
-                DataContext db = new DataContext();
                 var str = await new HttpClient().GetAsync($"{serverName}/api/Goodssynchnew/" + 2).Result.Content.ReadAsStringAsync();
                 List<Good> goods = JsonSerializer.Deserialize<List<Good>>(str);
                 foreach (var good in goods)
@@ -252,61 +251,19 @@ namespace OnlineCashRmk
                         break;
                 }
                 if (e.KeyCode == Keys.Enter)
-                    AddGood(goods.Where(g => g.BarCode == barcodeScan).FirstOrDefault());
-                    /*
-                    Task.Run(async () =>
-                    {
-                        DataContext db = new DataContext();
-                        var good = await db.Goods.Where(g => g.BarCode == barcodeScan).FirstOrDefaultAsync();
-                        if (good == null)
-                        {
-                            var resp = await new HttpClient().GetAsync(@$"https://barcode-list.ru/barcode/RU/%D0%9F%D0%BE%D0%B8%D1%81%D0%BA.htm?barcode={barcodeScan}");
-                            var str = await resp.Content.ReadAsStringAsync();
-                            Regex regex = new Regex(@"<title>[\s\S]+?</title>");
-                            MatchCollection matches = regex.Matches(str);
-                            string goodName = "";
-                            foreach (Match match in matches)
-                                goodName = match.Value;
-                            if (goodName.IndexOf("Поиск") == -1)
-                            {
-                                goodName = goodName.Replace("<title>", "").Replace("</title>", "");
-                                regex = new Regex(@".+?(?=Штрих-код)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
-                                var mc = regex.Matches(goodName);
-                                var match = mc.Cast<Match>().FirstOrDefault();
-                                goodName = match.Value.Replace(" - ", "");
-                                FormPrice frPrice = new FormPrice();
-                                if (frPrice.ShowDialog() == DialogResult.OK && frPrice.textBoxPrice.Text != "")
-                                {
-                                    decimal price = 0;
-                                    frPrice.textBoxPrice.Text = frPrice.textBoxPrice.Text.Replace(".", ",");
-                                    decimal.TryParse(frPrice.textBoxPrice.Text, out price);
-                                    good = new Good
-                                    {
-                                        Name = goodName,
-                                        Article = "",
-                                        Unit = Units.PCE,
-                                        Price = price,
-                                        BarCode = barcodeScan
-                                    };
-                                    db.Goods.Add(good);
-                                    await db.SaveChangesAsync();
-                                }
-                            }
-                        }
-                        barcodeScan = "";
-                        if (good != null)
-                            AddGood(good);
-                    });
-                    */
+                {
+                    AddGood(db.Goods.Where(g => g.BarCode == barcodeScan).FirstOrDefault());
+                    barcodeScan = "";
+                }    
             };
             if (e.KeyCode == Keys.F2 && dataGridView1.SelectedRows.Count > 0)
                 EditGood(dataGridView1.SelectedRows[0]);
             if(e.KeyCode==Keys.Delete && dataGridView1.SelectedRows.Count>0)
             {
-                dataGridView1.Rows.RemoveAt(dataGridView1.SelectedRows[0].Index);
-                CalcSumAll();
+                int pos = dataGridView1.SelectedRows[0].Index;
+                checkGoods.RemoveAt(pos);
             }
-            if (e.KeyCode == Keys.F4)
+            if (e.KeyCode == Keys.F4 & !e.Alt)
                 FindGood();
             //Наличная оплата
             if (e.KeyCode == Keys.F5)
@@ -315,7 +272,7 @@ namespace OnlineCashRmk
                 CheckPrint(true);
             //Очистить чек
             if (e.KeyCode == Keys.Escape)
-                dataGridView1.Rows.Clear();
+                checkGoods.Clear();
         }
 
         void AddGood(Good good)
@@ -344,49 +301,6 @@ namespace OnlineCashRmk
                     ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
                 }
             }
-            /*
-                bool flagAdd = true;
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-                if (Convert.ToInt32(row.Cells["ColumnId"].Value) == good.Id)
-                {
-                    double countTmp = 0;
-                    double.TryParse(row.Cells["ColumnCount"].Value.ToString(), out countTmp);
-                    count = countTmp + 1;
-                }
-            if (good.Unit != Units.PCE)
-            {
-                FormEditCount frCountEdit = new FormEditCount();
-                if (frCountEdit.ShowDialog() == DialogResult.OK)
-                {
-                    frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
-                    double.TryParse(frCountEdit.textBoxCount.Text, out count);
-                }
-            }
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-                if (Convert.ToInt32(row.Cells["ColumnId"].Value) == good.Id)
-                {
-                    row.Cells["ColumnCount"].Value = count;
-                    decimal price = 0;
-                    decimal.TryParse(row.Cells["ColumnPrice"].Value.ToString(), out price);
-                    row.Cells["ColumnSum"].Value = count * (double)price;
-                    flagAdd = false;
-                }
-            if (flagAdd)
-            {
-                Action dtadd = () =>
-                {
-                    dataGridView1.Rows.Add(
-                        good.Id,
-                        good.Name,
-                        good.Unit.DisplayName(),
-                        count,
-                        good.Price,
-                        Math.Round(count * (double)good.Price, 2)
-                        ) ;
-                };
-                Invoke(dtadd);
-            }
-            */
         }
 
         void EditGood(DataGridViewRow row)
@@ -406,20 +320,6 @@ namespace OnlineCashRmk
                     labelSumAll.Text =Math.Round(checkGoods.Sum(c => c.Sum)).ToString();
                 }
             }
-            /*
-            string goodName = row.Cells["ColumnName"].Value.ToString();
-            double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
-            decimal price = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
-            FormEditCount fr = new FormEditCount();
-            fr.labelGoodName.Text = goodName;
-            if(fr.ShowDialog()==DialogResult.OK)
-            {
-                double.TryParse(fr.textBoxCount.Text.Replace(".",","), out count);
-                row.Cells["ColumnCount"].Value = count;
-                row.Cells["ColumnSum"].Value = (decimal)count * price;
-                CalcSumAll();
-            }
-            */
         }
 
         List<Good> GoodList = new List<Good>();
@@ -427,7 +327,6 @@ namespace OnlineCashRmk
         {
             Task.Run(async () =>
             {
-                DataContext db = new DataContext();
                 GoodList = await db.Goods.ToListAsync();
             });
         }
@@ -441,25 +340,6 @@ namespace OnlineCashRmk
             }
         }
 
-        /// <summary>
-        /// Пересчетаем итоговую сумму
-        /// </summary>
-        void CalcSumAll()
-        {
-            decimal sumAll = 0;
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-            {
-                decimal priceRow = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
-                decimal countRow = Convert.ToDecimal(row.Cells["ColumnCount"].Value);
-                sumAll += priceRow * countRow;
-            }
-            Action action = () =>
-            {
-                labelSumAll.Text = Math.Round(sumAll).ToString();
-            };
-            Invoke(action);
-        }
-
         private void button1_Click_1(object sender, EventArgs e)
         {
             CheckPrint(false);
@@ -467,7 +347,6 @@ namespace OnlineCashRmk
 
         public void CheckPrint(bool isElectron)
         {
-            DataContext db = new DataContext();
             var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shift == null)
                 MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -563,71 +442,64 @@ namespace OnlineCashRmk
         //Выдача кредита
         private void button6_Click(object sender, EventArgs e)
         {
-            DataContext db = new DataContext();
-            FormCreditAdd fr = new FormCreditAdd();
-            List<CreditGood> creditgoods = new List<CreditGood>();
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
+            if (shift == null)
+                MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+            if (checkGoods.Count > 0)
             {
-                int goodId = Convert.ToInt32(row.Cells["ColumnId"].Value);
-                var good = db.Goods.Where(g => g.Id == goodId).FirstOrDefault();
-                double count = Convert.ToDouble(row.Cells["ColumnCount"].Value);
-                decimal price = Convert.ToDecimal(row.Cells["ColumnPrice"].Value);
-                CreditGood creditgood = new CreditGood
+                decimal sumpayment = checkGoods.Sum(c => c.Sum);
+                FormCreditAdd fr = new FormCreditAdd();
+                fr.SumPayment.Text = Math.Round(sumpayment).ToString();
+                fr.SumCredit.Text = Math.Round(sumpayment).ToString();
+                if (fr.ShowDialog() == DialogResult.OK)
                 {
-                    Good = good,
-                    Count = count,
-                    Cost = price
-                };
-                creditgoods.Add(creditgood);
-            };
-            var sumpayment = creditgoods.Sum(ch => ch.Cost * (decimal)ch.Count);
-            fr.SumPayment.Text = sumpayment.ToString();
-            fr.SumCredit.Text = sumpayment.ToString();
-            if (fr.ShowDialog() == DialogResult.OK)
-            {
-                if (fr.SumCredit.Text == "")
-                    fr.SumCredit.Text = fr.SumPayment.Text;
-                decimal sumcredit = 0;
-                decimal.TryParse(fr.SumCredit.Text, out sumcredit);
-                if (sumcredit == 0)
-                    MessageBox.Show("Не заполнена сумма кредита", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                else
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            var credit = new Credit
+                    if (fr.SumCredit.Text == "")
+                        fr.SumCredit.Text = fr.SumPayment.Text;
+                    decimal sumcredit = 0;
+                    decimal.TryParse(fr.SumCredit.Text, out sumcredit);
+                    if (sumcredit == 0)
+                        MessageBox.Show("Не заполнена сумма кредита", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else
+                            try
                             {
-                                Creditor = fr.Creditor.Text,
-                                DateCreate = DateTime.Now,
-                                Sum = sumpayment,
-                                SumDiscont = 0,
-                                SumAll = sumpayment,
-                                SumCredit = sumcredit,
-                                isSynch = false
-                            };
-                            await db.AddAsync(credit);
-                            
-                            if (sumpayment - sumcredit > 0)
-                            {
-                                var creitpayment = new CreditPayment
+                                var credit = new Credit
                                 {
-                                    Credit = credit,
-                                    DatePayment = DateTime.Now,
-                                    Sum = sumpayment - sumcredit
+                                    Shift=shift,
+                                    Creditor = fr.Creditor.Text,
+                                    DateCreate = DateTime.Now,
+                                    Sum = sumpayment,
+                                    SumDiscont = 0,
+                                    SumAll = sumpayment,
+                                    SumCredit = sumcredit,
+                                    isSynch = false
                                 };
-                                await db.AddAsync(creitpayment);
-                            };
-                            foreach (var ch in creditgoods)
-                                ch.Credit = credit;
-                            await db.AddRangeAsync(creditgoods);
-                            await db.SaveChangesAsync();
-                            dataGridView1.Rows.Clear();
-                        }
-                        catch(SystemException ex)
-                        {
-                        }
-                    });
+                                db.Add(credit);
+
+                                if (sumpayment - sumcredit > 0)
+                                {
+                                    var creitpayment = new CreditPayment
+                                    {
+                                        Credit = credit,
+                                        DatePayment = DateTime.Now,
+                                        Sum = sumpayment - sumcredit
+                                    };
+                                    db.Add(creitpayment);
+                                };
+                            foreach (var ch in checkGoods)
+                                db.CreditGoods.Add(new CreditGood { 
+                                    Credit=credit,
+                                    Good=ch.Good,
+                                    Cost=ch.Cost,
+                                    Count=ch.Count,
+                                });
+                                db.SaveChanges();
+                            checkGoods.Clear();
+                            }
+                            catch (SystemException ex)
+                            {
+                            }
+                }
             }
         }
         //поиск товара
@@ -636,8 +508,7 @@ namespace OnlineCashRmk
             if (findTextBox.Text != "")
             {
                 findGoods.Clear();
-                DataContext db = new DataContext();
-                //var goods = db.Goods.Where(g => EF.Functions.Like(g.Name.ToLower(), $"%{findTextBox.Text.ToLower()}%") || g.BarCode == findTextBox.Text).ToList();
+                var goods = db.Goods.OrderBy(g => g.Name).ToList();
                 foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1 || g.BarCode==findTextBox.Text).ToList())
                     findGoods.Add(good);
             }
