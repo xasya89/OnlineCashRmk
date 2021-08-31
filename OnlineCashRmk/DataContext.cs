@@ -12,6 +12,7 @@ namespace OnlineCashRmk
     {
         public DbSet<Shift> Shifts { get; set; }
         public DbSet<Good> Goods { get; set; }
+        public DbSet<BarCode> BarCodes { get; set; }
         public DbSet<CheckSell> CheckSells { get; set; }
         public DbSet<CheckGood> CheckGoods { get; set; }
 
@@ -31,6 +32,10 @@ namespace OnlineCashRmk
         {
             modelBuilder.Entity<Shift>().ToTable("Shifts");
             modelBuilder.Entity<Good>().ToTable("Goods");
+            modelBuilder.Entity<BarCode>()
+                .HasOne(b => b.Good)
+                .WithMany(g => g.BarCodes)
+                .HasForeignKey(b => b.GoodId);
             modelBuilder.Entity<CheckGood>().ToTable("CheckGoods");
             modelBuilder.Entity<CheckSell>().ToTable("CheckSells");
 

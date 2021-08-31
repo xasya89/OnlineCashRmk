@@ -24,5 +24,7 @@ namespace OnlineCashRmk.Models
         public decimal Price { get; set; }
         [JsonIgnore]
         public List<CheckGood> CheckGoods { get; set; }
+        [JsonPropertyName("barCodes")]
+        public List<BarCode> BarCodes { get; set; } = new List<BarCode>();
     }
 }

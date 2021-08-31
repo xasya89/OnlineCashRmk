@@ -59,13 +59,14 @@ namespace OnlineCashRmk.ViewModels
             try
             {
                 DataContext db = new DataContext();
-                var goods = await db.Goods.Where(g => g.Uuid == Guid.Parse("00000000-0000-0000-0000-000000000000") ).ToListAsync();
+                var goods = await db.Goods.Include(b=>b.BarCodes).Where(g => g.Uuid == Guid.Parse("00000000-0000-0000-0000-000000000000") ).ToListAsync();
+                
                 if(goods.Count>0)
                 {
                     try
                     {
                         foreach(var good in goods)
-                        {
+                        {       
                             string str = JsonSerializer.Serialize(good);
                             var context = new StringContent(str, Encoding.UTF8, "application/json");
                             var resp = await new HttpClient().PostAsync($"{serverName}/api/GoodsSynchNew/", context);

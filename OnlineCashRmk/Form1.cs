@@ -96,6 +96,8 @@ namespace OnlineCashRmk
                 db.Shifts.Add(shift);
                 db.SaveChanges();
                 buttonShift.Text = "Закрыть смену";
+                labelStatusShift.Text = "Открыта";
+                labelStatusShift.BackColor = Color.LightGreen;
             }
             else
             {
@@ -112,6 +114,8 @@ namespace OnlineCashRmk
                     shift.SumCredit = db.Credits.Where(c=>c.ShiftId==shift.Id).ToList().Sum(c => c.SumCredit);
                 db.SaveChanges();
                 buttonShift.Text = "Открыть смену";
+                labelStatusShift.Text = "Закрыта";
+                labelStatusShift.BackColor = Color.LightPink;
                 //Вывод итогов смены
                 MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
                 //Синхронизация смен
@@ -131,7 +135,17 @@ namespace OnlineCashRmk
             fptr.open();
             var shiftOpen = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shiftOpen != null)
+            {
                 buttonShift.Text = "Закрыть смену";
+                labelStatusShift.Text = "Открыта";
+                labelStatusShift.BackColor = Color.LightGreen;
+            }
+            else
+            {
+                buttonShift.Text = "Открыть смену";
+                labelStatusShift.Text = "Закрыта";
+                labelStatusShift.BackColor = Color.LightPink;
+            }
             LoadGoods();
         }
 
@@ -252,7 +266,7 @@ namespace OnlineCashRmk
                 }
                 if (e.KeyCode == Keys.Enter)
                 {
-                    AddGood(db.Goods.Where(g => g.BarCode == barcodeScan).FirstOrDefault());
+                    AddGood(db.BarCodes.Include(b=>b.Good).Where(b => b.Code == barcodeScan).FirstOrDefault()?.Good);
                     barcodeScan = "";
                 }    
             };
@@ -264,8 +278,19 @@ namespace OnlineCashRmk
                 checkGoods.RemoveAt(pos);
             }
             if (e.KeyCode == Keys.F4 & !e.Alt)
+                if (!findTextBox.Focused)
+                {
+                    findTextBox.Focus();
+                    findTextBox.BackColor = Color.LightBlue;
+                }
+                else
+                {
+                    dataGridView1.Select();
+                    findTextBox.BackColor = SystemColors.Window;
+                }
+            if(e.Control & e.KeyCode==Keys.F4)
                 FindGood();
-            //Наличная оплата
+                //Наличная оплата
             if (e.KeyCode == Keys.F5)
                 CheckPrint(false);
             if (e.KeyCode == Keys.F6)
@@ -509,8 +534,10 @@ namespace OnlineCashRmk
             {
                 findGoods.Clear();
                 var goods = db.Goods.OrderBy(g => g.Name).ToList();
-                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1 || g.BarCode==findTextBox.Text).ToList())
+                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1).ToList())
                     findGoods.Add(good);
+                foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
+                    findGoods.Add(barcode.Good);
             }
         }
 
@@ -543,6 +570,29 @@ namespace OnlineCashRmk
                             findListBox.SelectedIndex = cursor1 - 1;
                         break;
                 }
+        }
+
+        private void findListBox_DoubleClick(object sender, EventArgs e)
+        {
+            if (findListBox.SelectedItems.Count > 0)
+            {
+                var good = (Good)findListBox.SelectedItem;
+                AddGood(good);
+                findGoods.Clear();
+                findTextBox.Text = "";
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //Синхронизация смен
+            Task.Run(async () =>
+            {
+                if (await ShiftSynchViewModel.SynchAsync())
+                    buttonShift.BackColor = Color.LightGreen;
+                else
+                    buttonShift.BackColor = Color.LightPink;
+            });
         }
     }
 }

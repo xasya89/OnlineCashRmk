@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
+using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 
 namespace OnlineCashRmk
@@ -57,10 +58,10 @@ namespace OnlineCashRmk
                     List<Good> goods = JsonSerializer.Deserialize<List<Good>>(str);
                     foreach (var good in goods)
                     {
-                        var goodDb = db.Goods.Where(g => g.Uuid == good.Uuid).FirstOrDefault();
+                        var goodDb = db.Goods.Include(g=>g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
                         if (goodDb == null)
                         {
-                            db.Goods.Add(new Good
+                            var newgood = new Good
                             {
                                 Uuid = good.Uuid,
                                 Name = good.Name,
@@ -68,13 +69,29 @@ namespace OnlineCashRmk
                                 BarCode = good.BarCode,
                                 Unit = good.Unit,
                                 Price = good.Price
-                            });
+                            };
+                            db.Goods.Add(newgood);
+                            //добавление штрих кодов
+                            foreach (var barcode in good.BarCodes)
+                                db.BarCodes.Add(new BarCode
+                                {
+                                    Good = newgood,
+                                    Code = barcode.Code
+                                });
                         }
                         else
                         {
                             goodDb.Name = good.Name;
                             goodDb.BarCode = good.BarCode;
                             goodDb.Price = good.Price;
+                            //добавление новых или измененных штрих кодов
+                            foreach (var barcode in good.BarCodes)
+                                if (goodDb.BarCodes.Count(b => b.Code == barcode.Code) == 0)
+                                    db.BarCodes.Add(new BarCode { Good = goodDb, Code = barcode.Code });
+                            //Удаление не зарегестрированных на сервере штрихкодов
+                            foreach (var barcodeDb in goodDb.BarCodes)
+                                if (good.BarCodes.Count(b => b.Code == barcodeDb.Code) == 0)
+                                    db.BarCodes.Remove(barcodeDb);
                         }
                     };
                     await db.SaveChangesAsync();
