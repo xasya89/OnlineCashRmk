@@ -300,12 +300,11 @@ namespace OnlineCashRmk
                 checkGoods.Clear();
         }
 
-        void AddGood(Good good)
+        void AddGood(Good good, double count=1)
         {
             if (good != null)
             {
-                double count = 1;
-                if (good.Unit != Units.PCE)
+                if (good.Unit != Units.PCE & good.SpecialType!=SpecialTypes.Beer)
                 {
                     FormEditCount frCountEdit = new FormEditCount();
                     if (frCountEdit.ShowDialog() == DialogResult.OK)
@@ -314,16 +313,28 @@ namespace OnlineCashRmk
                         double.TryParse(frCountEdit.textBoxCount.Text, out count);
                     }
                 }
+                if(good.SpecialType==SpecialTypes.Beer)
+                {
+                    FormBuyBeer frBuy = new FormBuyBeer(good);
+                    if (frBuy.ShowDialog() == DialogResult.OK)
+                    {
+                        var goodButtle = (Good)frBuy.BottleListBox.SelectedItem;
+                        double.TryParse(frBuy.CountTextBox.Text, out count);
+                        AddGood(goodButtle, count);
+                        count = Math.Round((goodButtle.VPackage==null ? 0 : (double)goodButtle.VPackage) * count,2);
+                    }
+                }
                 if (checkGoods.Count(g => g.GoodId == good.Id) == 0)
                     checkGoods.Add(new CheckGoodModel { GoodId = good.Id, Good = good, Count = count, Cost = good.Price });
                 else
                 {
                     var checkgood = checkGoods.FirstOrDefault(g => g.GoodId == good.Id);
-                    if (good.Unit == Units.PCE)
+                    if (good.Unit == Units.PCE || good.SpecialType==SpecialTypes.Beer)
                         checkgood.Count += count;
                     else
                         checkgood.Count = count;
                     ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                    labelSumAll.Text = Math.Round(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
                 }
             }
         }

@@ -22,6 +22,10 @@ namespace OnlineCashRmk.Models
         public Units Unit { get; set; }
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
+        [JsonPropertyName("specialType")]
+        public SpecialTypes SpecialType { get; set; } = SpecialTypes.None;
+        [JsonPropertyName("vPackage")]
+        public double? VPackage { get; set; }
         [JsonIgnore]
         public List<CheckGood> CheckGoods { get; set; }
         [JsonPropertyName("barCodes")]

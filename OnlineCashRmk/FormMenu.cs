@@ -68,7 +68,9 @@ namespace OnlineCashRmk
                                 Article = good.Name,
                                 BarCode = good.BarCode,
                                 Unit = good.Unit,
-                                Price = good.Price
+                                Price = good.Price,
+                                SpecialType=good.SpecialType,
+                                VPackage=good.VPackage
                             };
                             db.Goods.Add(newgood);
                             //добавление штрих кодов
@@ -82,8 +84,11 @@ namespace OnlineCashRmk
                         else
                         {
                             goodDb.Name = good.Name;
+                            goodDb.Unit = good.Unit;
                             goodDb.BarCode = good.BarCode;
                             goodDb.Price = good.Price;
+                            goodDb.SpecialType = good.SpecialType;
+                            goodDb.VPackage = good.VPackage;
                             //добавление новых или измененных штрих кодов
                             foreach (var barcode in good.BarCodes)
                                 if (goodDb.BarCodes.Count(b => b.Code == barcode.Code) == 0)
