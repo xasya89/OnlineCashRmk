@@ -312,6 +312,8 @@ namespace OnlineCashRmk
                         frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
                         double.TryParse(frCountEdit.textBoxCount.Text, out count);
                     }
+                    else
+                        return;
                 }
                 if(good.SpecialType==SpecialTypes.Beer)
                 {
@@ -321,8 +323,10 @@ namespace OnlineCashRmk
                         var goodButtle = (Good)frBuy.BottleListBox.SelectedItem;
                         double.TryParse(frBuy.CountTextBox.Text, out count);
                         AddGood(goodButtle, count);
-                        count = Math.Round((goodButtle.VPackage==null ? 0 : (double)goodButtle.VPackage) * count,2);
+                        count = Math.Round((goodButtle.VPackage == null ? 0 : (double)goodButtle.VPackage) * count, 2);
                     }
+                    else
+                        return;
                 }
                 if (checkGoods.Count(g => g.GoodId == good.Id) == 0)
                     checkGoods.Add(new CheckGoodModel { GoodId = good.Id, Good = good, Count = count, Cost = good.Price });
@@ -378,7 +382,10 @@ namespace OnlineCashRmk
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            CheckPrint(false);
+            decimal sumAll = checkGoods.Sum(c => c.Sum);
+            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
+            if(fr.ShowDialog()==DialogResult.OK)
+                CheckPrint(false);
         }
 
         public void CheckPrint(bool isElectron)

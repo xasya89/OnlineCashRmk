@@ -55,7 +55,7 @@ namespace OnlineCashRmk
             this.GoodNameLabel.Name = "GoodNameLabel";
             this.GoodNameLabel.ReadOnly = true;
             this.GoodNameLabel.Size = new System.Drawing.Size(491, 29);
-            this.GoodNameLabel.TabIndex = 1;
+            this.GoodNameLabel.TabIndex = 10;
             // 
             // BottleListBox
             // 
@@ -64,7 +64,7 @@ namespace OnlineCashRmk
             this.BottleListBox.Location = new System.Drawing.Point(12, 50);
             this.BottleListBox.Name = "BottleListBox";
             this.BottleListBox.Size = new System.Drawing.Size(552, 193);
-            this.BottleListBox.TabIndex = 2;
+            this.BottleListBox.TabIndex = 1;
             // 
             // label2
             // 
@@ -80,7 +80,7 @@ namespace OnlineCashRmk
             this.ButtonMinus.Location = new System.Drawing.Point(80, 254);
             this.ButtonMinus.Name = "ButtonMinus";
             this.ButtonMinus.Size = new System.Drawing.Size(40, 41);
-            this.ButtonMinus.TabIndex = 4;
+            this.ButtonMinus.TabIndex = 10;
             this.ButtonMinus.Text = "-";
             this.ButtonMinus.UseVisualStyleBackColor = true;
             // 
@@ -89,14 +89,14 @@ namespace OnlineCashRmk
             this.CountTextBox.Location = new System.Drawing.Point(126, 261);
             this.CountTextBox.Name = "CountTextBox";
             this.CountTextBox.Size = new System.Drawing.Size(100, 29);
-            this.CountTextBox.TabIndex = 5;
+            this.CountTextBox.TabIndex = 2;
             // 
             // ButtonPlus
             // 
             this.ButtonPlus.Location = new System.Drawing.Point(232, 254);
             this.ButtonPlus.Name = "ButtonPlus";
             this.ButtonPlus.Size = new System.Drawing.Size(40, 41);
-            this.ButtonPlus.TabIndex = 4;
+            this.ButtonPlus.TabIndex = 10;
             this.ButtonPlus.Text = "-";
             this.ButtonPlus.UseVisualStyleBackColor = true;
             // 
@@ -107,7 +107,7 @@ namespace OnlineCashRmk
             this.button3.Location = new System.Drawing.Point(300, 254);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(99, 41);
-            this.button3.TabIndex = 6;
+            this.button3.TabIndex = 3;
             this.button3.Text = "Отмена Esc";
             this.button3.UseVisualStyleBackColor = false;
             // 
@@ -118,7 +118,7 @@ namespace OnlineCashRmk
             this.button4.Location = new System.Drawing.Point(405, 254);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(159, 41);
-            this.button4.TabIndex = 6;
+            this.button4.TabIndex = 4;
             this.button4.Text = "Добавить Enter";
             this.button4.UseVisualStyleBackColor = false;
             // 
