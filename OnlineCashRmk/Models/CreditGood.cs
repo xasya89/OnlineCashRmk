@@ -16,6 +16,7 @@ namespace OnlineCashRmk.Models
         public Guid? Uuid { get => Good?.Uuid; }
         public Good Good { get; set; }
         public int CreditId { get; set; }
+        public decimal Sum { get => (decimal)Count * Cost; }
         [JsonIgnore]
         public Credit Credit { get; set; }
     }

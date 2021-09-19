@@ -32,6 +32,7 @@ namespace OnlineCashRmk
         DataContext db = new DataContext();
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
+        Good goodPackcage = null;
         IConfiguration configuration;
         string serverName = "";
         int idShop = 1;
@@ -47,7 +48,13 @@ namespace OnlineCashRmk
             idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
-
+            Guid uuidGoodPackage = Guid.Empty;
+            DataContext db = new DataContext();
+            Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
+            if (uuidGoodPackage != Guid.Empty)
+                goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
+            if (goodPackcage == null)
+                btnAddPackage.Visible = false;
             InitializeComponent();
             dataGridView1.Select();
             foreach (Panel p in new Panel[] { panel2, panel3 })
@@ -382,14 +389,21 @@ namespace OnlineCashRmk
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            decimal sumAll = checkGoods.Sum(c => c.Sum);
-            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
-            if(fr.ShowDialog()==DialogResult.OK)
                 CheckPrint(false);
         }
 
         public void CheckPrint(bool isElectron)
         {
+
+            //При наличной оплате вызовем диалог расчета сдачи
+            if (!isElectron)
+            {
+                decimal sumAll = checkGoods.Sum(c => c.Sum);
+                FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
+                if (fr.ShowDialog() != DialogResult.OK)
+                    return;
+            }
+
             var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shift == null)
                 MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -548,11 +562,11 @@ namespace OnlineCashRmk
         //поиск товара
         private void findTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (findTextBox.Text != "")
+            if (findTextBox.Text.Length>=2)
             {
                 findGoods.Clear();
                 var goods = db.Goods.OrderBy(g => g.Name).ToList();
-                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1).ToList())
+                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1).Take(20).ToList())
                     findGoods.Add(good);
                 foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
                     findGoods.Add(barcode.Good);
@@ -611,6 +625,20 @@ namespace OnlineCashRmk
                 else
                     buttonShift.BackColor = Color.LightPink;
             });
+        }
+
+        private void btnAddPackage_Click(object sender, EventArgs e)
+        {
+            if (goodPackcage != null)
+                AddGood(goodPackcage);
+        }
+
+        private void buttonCheckHistory_Click(object sender, EventArgs e)
+        {
+            FormCheckHistory fr = new FormCheckHistory();
+            fr.ShowDialog();
+            fr.BringToFront();
+            fr.Select();
         }
     }
 }

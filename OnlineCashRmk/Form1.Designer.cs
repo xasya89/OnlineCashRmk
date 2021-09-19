@@ -37,6 +37,7 @@ namespace OnlineCashRmk
             this.buttonMenu = new System.Windows.Forms.Button();
             this.buttonShift = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.btnAddPackage = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.labelSumAll = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -57,6 +58,7 @@ namespace OnlineCashRmk
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelStatusShift = new System.Windows.Forms.ToolStripStatusLabel();
             this.findTextBox = new System.Windows.Forms.TextBox();
+            this.buttonCheckHistory = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -81,6 +83,7 @@ namespace OnlineCashRmk
             // panel2
             // 
             this.panel2.Controls.Add(this.button4);
+            this.panel2.Controls.Add(this.buttonCheckHistory);
             this.panel2.Controls.Add(this.button3);
             this.panel2.Controls.Add(this.buttonMenu);
             this.panel2.Controls.Add(this.buttonShift);
@@ -122,6 +125,7 @@ namespace OnlineCashRmk
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.btnAddPackage);
             this.panel3.Controls.Add(this.button5);
             this.panel3.Controls.Add(this.labelSumAll);
             this.panel3.Controls.Add(this.label1);
@@ -134,11 +138,24 @@ namespace OnlineCashRmk
             this.panel3.Size = new System.Drawing.Size(153, 547);
             this.panel3.TabIndex = 4;
             // 
+            // btnAddPackage
+            // 
+            this.btnAddPackage.Image = global::OnlineCashRmk.Properties.Resources.bag;
+            this.btnAddPackage.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnAddPackage.Location = new System.Drawing.Point(9, 417);
+            this.btnAddPackage.Name = "btnAddPackage";
+            this.btnAddPackage.Size = new System.Drawing.Size(132, 56);
+            this.btnAddPackage.TabIndex = 3;
+            this.btnAddPackage.Text = "Пакет\r\n(F8)  ";
+            this.btnAddPackage.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btnAddPackage.UseVisualStyleBackColor = true;
+            this.btnAddPackage.Click += new System.EventHandler(this.btnAddPackage_Click);
+            // 
             // button5
             // 
             this.button5.Image = global::OnlineCashRmk.Properties.Resources.clear;
             this.button5.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button5.Location = new System.Drawing.Point(9, 363);
+            this.button5.Location = new System.Drawing.Point(9, 479);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(132, 56);
             this.button5.TabIndex = 3;
@@ -362,6 +379,16 @@ namespace OnlineCashRmk
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
+            // buttonCheckHistory
+            // 
+            this.buttonCheckHistory.Location = new System.Drawing.Point(254, 0);
+            this.buttonCheckHistory.Name = "buttonCheckHistory";
+            this.buttonCheckHistory.Size = new System.Drawing.Size(75, 42);
+            this.buttonCheckHistory.TabIndex = 1;
+            this.buttonCheckHistory.Text = "История";
+            this.buttonCheckHistory.UseVisualStyleBackColor = true;
+            this.buttonCheckHistory.Click += new System.EventHandler(this.buttonCheckHistory_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -421,6 +448,8 @@ namespace OnlineCashRmk
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel labelStatusShift;
+        private System.Windows.Forms.Button btnAddPackage;
+        private System.Windows.Forms.Button buttonCheckHistory;
     }
 }
 

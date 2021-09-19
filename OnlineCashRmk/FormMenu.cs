@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
+using OnlineCashRmk.ViewModels;
 
 namespace OnlineCashRmk
 {
@@ -177,6 +178,17 @@ namespace OnlineCashRmk
             //fr.TopMost = true;
             fr.Show();
             Close();
+        }
+
+        private void buttonRespondShifts_Click(object sender, EventArgs e)
+        {
+            Task.Run(async () =>
+            {
+                if (await ShiftSynchViewModel.SynchAsync())
+                    buttonRespondShifts.BackColor = Color.LightGreen;
+                else
+                    buttonRespondShifts.BackColor = Color.LightPink;
+            });
         }
     }
 }
