@@ -53,9 +53,9 @@ namespace OnlineCashRmk
             Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
             if (uuidGoodPackage != Guid.Empty)
                 goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
+            InitializeComponent();
             if (goodPackcage == null)
                 btnAddPackage.Visible = false;
-            InitializeComponent();
             dataGridView1.Select();
             foreach (Panel p in new Panel[] { panel2, panel3 })
                 foreach (Control c in p.Controls)
