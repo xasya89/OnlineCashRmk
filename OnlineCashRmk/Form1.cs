@@ -24,12 +24,15 @@ using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
 using System.Collections.ObjectModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using OnlineCashRmk.Services;
 
 namespace OnlineCashRmk
 {
     public partial class Form1 : Form
     {
-        DataContext db = new DataContext();
+        ISynchService synchService;
+        DataContext db;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
         Good goodPackcage = null;
@@ -38,8 +41,10 @@ namespace OnlineCashRmk
         int idShop = 1;
         string cashierName = "";
         string cashierInn = "";
-        public Form1()
+        public Form1(ILogger<Form1> logger, DataContext db, ISynchService synchService)
         {
+            this.db = db;
+            this.synchService = synchService;
             var builder = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(AppContext.BaseDirectory))
             .AddJsonFile("appsettings.json", optional: true);
@@ -49,7 +54,7 @@ namespace OnlineCashRmk
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
             Guid uuidGoodPackage = Guid.Empty;
-            DataContext db = new DataContext();
+            //DataContext db = new DataContext();
             Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
             if (uuidGoodPackage != Guid.Empty)
                 goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
@@ -99,9 +104,10 @@ namespace OnlineCashRmk
             {
                 fptr.openShift();
                 fptr.checkDocumentClosed();
-                var shift = new Shift { Start = DateTime.Now, ShopId=idShop };
+                var shift = new Shift { Uuid=Guid.NewGuid(), Start = DateTime.Now, ShopId=idShop };
                 db.Shifts.Add(shift);
                 db.SaveChanges();
+                synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.OpenShift, DocId = shift.Id });
                 buttonShift.Text = "Закрыть смену";
                 labelStatusShift.Text = "Открыта";
                 labelStatusShift.BackColor = Color.LightGreen;
@@ -120,12 +126,14 @@ namespace OnlineCashRmk
                 if(db.Credits.Where(c=>c.ShiftId==shift.Id).Count()>0)
                     shift.SumCredit = db.Credits.Where(c=>c.ShiftId==shift.Id).ToList().Sum(c => c.SumCredit);
                 db.SaveChanges();
+                synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
                 buttonShift.Text = "Открыть смену";
                 labelStatusShift.Text = "Закрыта";
                 labelStatusShift.BackColor = Color.LightPink;
                 //Вывод итогов смены
                 MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
                 //Синхронизация смен
+                /*
                 Task.Run(async () =>
                 {
                     if (await ShiftSynchViewModel.SynchAsync())
@@ -133,6 +141,7 @@ namespace OnlineCashRmk
                     else
                         buttonShift.BackColor = Color.LightPink;
                 });
+                */
             }
         }
 
@@ -273,7 +282,7 @@ namespace OnlineCashRmk
                 }
                 if (e.KeyCode == Keys.Enter)
                 {
-                    AddGood(db.BarCodes.Include(b=>b.Good).Where(b => b.Code == barcodeScan).FirstOrDefault()?.Good);
+                    AddGood(db.BarCodes.Include(b=>b.Good).Where(b => b.Code == barcodeScan & b.Good.IsDeleted==false).FirstOrDefault()?.Good);
                     barcodeScan = "";
                 }    
             };
@@ -302,6 +311,9 @@ namespace OnlineCashRmk
                 CheckPrint(false);
             if (e.KeyCode == Keys.F6)
                 CheckPrint(true);
+            //Пакет
+            if (e.KeyCode == Keys.F8)
+                btnAddPackage_Click(null, null);
             //Очистить чек
             if (e.KeyCode == Keys.Escape)
                 checkGoods.Clear();
@@ -374,7 +386,7 @@ namespace OnlineCashRmk
         {
             Task.Run(async () =>
             {
-                GoodList = await db.Goods.ToListAsync();
+                GoodList = await db.Goods.Where(g=>g.IsDeleted==false).ToListAsync();
             });
         }
 
@@ -461,7 +473,9 @@ namespace OnlineCashRmk
                         Cost = chgood.Cost
                     };
                     db.CheckGoods.Add(check);
-                }
+                };
+                db.SaveChanges();
+                db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
                 db.SaveChanges();
                 checkGoods.Clear();
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
@@ -564,12 +578,18 @@ namespace OnlineCashRmk
         {
             if (findTextBox.Text.Length>=2)
             {
+                string findText = findTextBox.Text;
                 findGoods.Clear();
-                var goods = db.Goods.OrderBy(g => g.Name).ToList();
+                var goods = db.Goods.Where(g=>g.IsDeleted==false).OrderBy(g => g.Name).ToList();
                 foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1).Take(20).ToList())
                     findGoods.Add(good);
-                foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
+                var barcode = db.BarCodes.Include(g => g.Good).Where(b => b.Code == findText /*& b.Good.IsDeleted == false*/).FirstOrDefault();
+                if (barcode != null)
                     findGoods.Add(barcode.Good);
+                /*
+                foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text & b.Good.IsDeleted==false).ToList())
+                    findGoods.Add(barcode.Good);
+                */
             }
         }
 

@@ -1,6 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,10 +16,30 @@ namespace OnlineCashRmk
         [STAThread]
         static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            if(InstanceCheck())
+            {
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                //Application.Run(new Form1());
+                var services = new ServiceCollection();
+
+                ConfigureServices.ConfigureService(services);
+                using(ServiceProvider provider = services.BuildServiceProvider())
+                {
+                    var form1 = provider.GetRequiredService<Form1>();
+                    provider.GetRequiredService<Services.ISynchBackgroundService>();
+                    Application.Run(form1);
+                }
+            }
+        }
+        // держим в переменной, чтобы сохранить владение им до конца пробега программы
+        static Mutex InstanceCheckMutex;
+        static bool InstanceCheck()
+        {
+            bool isNew;
+            InstanceCheckMutex = new Mutex(true, "OnlineCashRmk", out isNew);
+            return isNew;
         }
     }
 }

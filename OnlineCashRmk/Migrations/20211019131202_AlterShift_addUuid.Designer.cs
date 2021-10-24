@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211019131202_AlterShift_addUuid")]
+    partial class AlterShift_addUuid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,50 +298,6 @@ namespace OnlineCashRmk.Migrations
                     b.ToTable("Shifts");
                 });
 
-            modelBuilder.Entity("OnlineCashRmk.Models.Writeof", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("SumAll")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Writeofs");
-                });
-
-            modelBuilder.Entity("OnlineCashRmk.Models.WriteofGood", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<double>("Count")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("WriteofId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GoodId");
-
-                    b.HasIndex("WriteofId");
-
-                    b.ToTable("WriteofGoods");
-                });
-
             modelBuilder.Entity("OnlineCashRmk.Models.BarCode", b =>
                 {
                     b.HasOne("OnlineCashRmk.Models.Good", "Good")
@@ -420,25 +378,6 @@ namespace OnlineCashRmk.Migrations
                     b.Navigation("Credit");
                 });
 
-            modelBuilder.Entity("OnlineCashRmk.Models.WriteofGood", b =>
-                {
-                    b.HasOne("OnlineCashRmk.Models.Good", "Good")
-                        .WithMany("GetWriteofGoods")
-                        .HasForeignKey("GoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OnlineCashRmk.Models.Writeof", "Writeof")
-                        .WithMany("WriteofGoods")
-                        .HasForeignKey("WriteofId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Good");
-
-                    b.Navigation("Writeof");
-                });
-
             modelBuilder.Entity("OnlineCashRmk.Models.CheckSell", b =>
                 {
                     b.Navigation("CheckGoods");
@@ -456,8 +395,6 @@ namespace OnlineCashRmk.Migrations
                     b.Navigation("BarCodes");
 
                     b.Navigation("CheckGoods");
-
-                    b.Navigation("GetWriteofGoods");
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.Shift", b =>
@@ -465,11 +402,6 @@ namespace OnlineCashRmk.Migrations
                     b.Navigation("CheckSells");
 
                     b.Navigation("Credits");
-                });
-
-            modelBuilder.Entity("OnlineCashRmk.Models.Writeof", b =>
-                {
-                    b.Navigation("WriteofGoods");
                 });
 #pragma warning restore 612, 618
         }

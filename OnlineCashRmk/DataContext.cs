@@ -8,8 +8,10 @@ using OnlineCashRmk.Models;
 
 namespace OnlineCashRmk
 {
-    class DataContext:DbContext
+    public class DataContext:DbContext
     {
+        public DbSet<DocSynch> DocSynches { get; set; }
+
         public DbSet<Shift> Shifts { get; set; }
         public DbSet<Good> Goods { get; set; }
         public DbSet<BarCode> BarCodes { get; set; }
@@ -20,7 +22,12 @@ namespace OnlineCashRmk
         public DbSet<CreditGood> CreditGoods { get; set; }
         public DbSet<CreditPayment> CreditPayments { get; set; }
 
-        public DataContext() { }
+        public DbSet<Writeof> Writeofs { get; set; }
+        public DbSet<WriteofGood> WriteofGoods { get; set; }
+
+        public DataContext() 
+        {
+        }
         public DataContext(DbContextOptions options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -64,6 +71,11 @@ namespace OnlineCashRmk
                 .HasOne(c => c.Shift)
                 .WithMany(s => s.Credits)
                 .HasForeignKey(c => c.ShiftId);
+
+            modelBuilder.Entity<WriteofGood>()
+                .HasOne(w => w.Writeof)
+                .WithMany(w => w.WriteofGoods)
+                .HasForeignKey(w => w.WriteofId);
         }
     }
 }

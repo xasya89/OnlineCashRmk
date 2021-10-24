@@ -18,7 +18,10 @@ namespace OnlineCashRmk
             InitializeComponent();
             GoodNameLabel.Text = good.Name;
             DataContext db = new DataContext();
-            BottleListBox.DataSource = db.Goods.Where(g => g.SpecialType == SpecialTypes.Bottle).ToList();
+            BottleListBox.DataSource = db.Goods
+                .Where(g => g.SpecialType == SpecialTypes.Bottle)
+                .OrderBy(g=>g.Name)
+                .ToList();
             BottleListBox.DisplayMember = nameof(Good.Name);
             CountTextBox.Text = "1";
         }
@@ -59,6 +62,16 @@ namespace OnlineCashRmk
                     DialogResult = DialogResult.OK;
                     break;
             }
+        }
+
+        private void ButtonPlus_Click(object sender, EventArgs e)
+        {
+            CountPlus();
+        }
+
+        private void ButtonMinus_Click(object sender, EventArgs e)
+        {
+            CountMinus();
         }
     }
 }

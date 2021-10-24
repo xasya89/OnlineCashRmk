@@ -83,6 +83,7 @@ namespace OnlineCashRmk
             this.ButtonMinus.TabIndex = 10;
             this.ButtonMinus.Text = "-";
             this.ButtonMinus.UseVisualStyleBackColor = true;
+            this.ButtonMinus.Click += new System.EventHandler(this.ButtonMinus_Click);
             // 
             // CountTextBox
             // 
@@ -99,6 +100,7 @@ namespace OnlineCashRmk
             this.ButtonPlus.TabIndex = 10;
             this.ButtonPlus.Text = "-";
             this.ButtonPlus.UseVisualStyleBackColor = true;
+            this.ButtonPlus.Click += new System.EventHandler(this.ButtonPlus_Click);
             // 
             // button3
             // 

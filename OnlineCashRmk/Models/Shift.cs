@@ -9,6 +9,7 @@ namespace OnlineCashRmk.Models
     public class Shift
     {
         public int Id { get; set; }
+        public Guid Uuid { get; set; }
         public DateTime Start { get; set; }
         public DateTime? Stop { get; set; }
         public decimal SumNoElectron { get; set; } = 0;

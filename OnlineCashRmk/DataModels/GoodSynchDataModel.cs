@@ -23,7 +23,7 @@ namespace OnlineCashRmk.DataModels
         [JsonPropertyName("vPackage")]
         public double? VPackage { get; set; }
         [JsonPropertyName("barcodes")]
-        public List<string> Barcodes { get; set; } = new List<string>();
+        public IEnumerable<string> Barcodes { get; set; } = new List<string>();
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
         [JsonPropertyName("isDeleted")]

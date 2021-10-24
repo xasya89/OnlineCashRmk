@@ -20,6 +20,7 @@ namespace OnlineCashRmk.Models
         public string BarCode { get; set; }
         [JsonPropertyName("unit")]
         public Units Unit { get; set; }
+        public string UnitDescription { get => Unit.GetDisplay(); }
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
         [JsonPropertyName("specialType")]
@@ -32,5 +33,7 @@ namespace OnlineCashRmk.Models
         public List<CheckGood> CheckGoods { get; set; }
         [JsonPropertyName("barCodes")]
         public List<BarCode> BarCodes { get; set; } = new List<BarCode>();
+        [JsonIgnore]
+        public List<WriteofGood> GetWriteofGoods { get; set; }
     }
 }
