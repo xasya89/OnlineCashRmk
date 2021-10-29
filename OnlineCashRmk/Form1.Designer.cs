@@ -31,8 +31,10 @@ namespace OnlineCashRmk
         {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.buttonCheckHistory = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.buttonMenu = new System.Windows.Forms.Button();
             this.buttonShift = new System.Windows.Forms.Button();
@@ -57,8 +59,9 @@ namespace OnlineCashRmk
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelStatusShift = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
+            this.списанияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findTextBox = new System.Windows.Forms.TextBox();
-            this.buttonCheckHistory = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -92,6 +95,16 @@ namespace OnlineCashRmk
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1008, 42);
             this.panel2.TabIndex = 3;
+            // 
+            // buttonCheckHistory
+            // 
+            this.buttonCheckHistory.Location = new System.Drawing.Point(254, 0);
+            this.buttonCheckHistory.Name = "buttonCheckHistory";
+            this.buttonCheckHistory.Size = new System.Drawing.Size(75, 42);
+            this.buttonCheckHistory.TabIndex = 1;
+            this.buttonCheckHistory.Text = "История";
+            this.buttonCheckHistory.UseVisualStyleBackColor = true;
+            this.buttonCheckHistory.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // button3
             // 
@@ -349,7 +362,8 @@ namespace OnlineCashRmk
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
-            this.labelStatusShift});
+            this.labelStatusShift,
+            this.toolStripDropDownButton1});
             this.statusStrip1.Location = new System.Drawing.Point(3, 216);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(847, 22);
@@ -368,6 +382,23 @@ namespace OnlineCashRmk
             this.labelStatusShift.Size = new System.Drawing.Size(118, 17);
             this.labelStatusShift.Text = "toolStripStatusLabel2";
             // 
+            // toolStripDropDownButton1
+            // 
+            this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.списанияToolStripMenuItem});
+            this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
+            this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
+            this.toolStripDropDownButton1.Size = new System.Drawing.Size(86, 20);
+            this.toolStripDropDownButton1.Text = "Деяствия";
+            // 
+            // списанияToolStripMenuItem
+            // 
+            this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.списанияToolStripMenuItem.Text = "Списания";
+            this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
+            // 
             // findTextBox
             // 
             this.findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
@@ -378,16 +409,6 @@ namespace OnlineCashRmk
             this.findTextBox.TabIndex = 0;
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
-            // 
-            // buttonCheckHistory
-            // 
-            this.buttonCheckHistory.Location = new System.Drawing.Point(254, 0);
-            this.buttonCheckHistory.Name = "buttonCheckHistory";
-            this.buttonCheckHistory.Size = new System.Drawing.Size(75, 42);
-            this.buttonCheckHistory.TabIndex = 1;
-            this.buttonCheckHistory.Text = "История";
-            this.buttonCheckHistory.UseVisualStyleBackColor = true;
-            this.buttonCheckHistory.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // Form1
             // 
@@ -450,6 +471,8 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripStatusLabel labelStatusShift;
         private System.Windows.Forms.Button btnAddPackage;
         private System.Windows.Forms.Button buttonCheckHistory;
+        private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton1;
+        private System.Windows.Forms.ToolStripMenuItem списанияToolStripMenuItem;
     }
 }
 

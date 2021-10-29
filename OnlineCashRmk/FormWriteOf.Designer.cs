@@ -90,6 +90,8 @@ namespace OnlineCashRmk
             // 
             // writeofGoodTable
             // 
+            this.writeofGoodTable.AllowUserToAddRows = false;
+            this.writeofGoodTable.AllowUserToDeleteRows = false;
             this.writeofGoodTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.writeofGoodTable.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnGoodName,
@@ -102,6 +104,7 @@ namespace OnlineCashRmk
             this.writeofGoodTable.Name = "writeofGoodTable";
             this.writeofGoodTable.Size = new System.Drawing.Size(916, 239);
             this.writeofGoodTable.TabIndex = 2;
+            this.writeofGoodTable.SelectionChanged += new System.EventHandler(this.writeofGoodTable_SelectionChanged);
             // 
             // ColumnGoodName
             // 
@@ -152,6 +155,7 @@ namespace OnlineCashRmk
             this.toolStripButton2.Name = "toolStripButton2";
             this.toolStripButton2.Size = new System.Drawing.Size(88, 25);
             this.toolStripButton2.Text = "Удалить";
+            this.toolStripButton2.Click += new System.EventHandler(this.toolStripButton2_Click);
             // 
             // statusStrip1
             // 
@@ -223,6 +227,7 @@ namespace OnlineCashRmk
             this.button1.TabIndex = 5;
             this.button1.Text = "Отправить";
             this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
@@ -233,6 +238,7 @@ namespace OnlineCashRmk
             this.button2.TabIndex = 5;
             this.button2.Text = "Отмена";
             this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // panel2
             // 
@@ -252,6 +258,7 @@ namespace OnlineCashRmk
             this.findListBox.Name = "findListBox";
             this.findListBox.Size = new System.Drawing.Size(890, 104);
             this.findListBox.TabIndex = 2;
+            this.findListBox.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.findListBox_MouseDoubleClick);
             // 
             // label2
             // 
@@ -268,6 +275,8 @@ namespace OnlineCashRmk
             this.findInpText.Name = "findInpText";
             this.findInpText.Size = new System.Drawing.Size(832, 27);
             this.findInpText.TabIndex = 0;
+            this.findInpText.TextChanged += new System.EventHandler(this.findInpText_TextChanged);
+            this.findInpText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findInpText_KeyDown);
             // 
             // FormWriteOf
             // 
@@ -287,6 +296,7 @@ namespace OnlineCashRmk
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "FormWriteOf";
             this.Text = "Списание";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.writeofGoodTable)).EndInit();

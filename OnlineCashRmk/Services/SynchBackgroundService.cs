@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
+using OnlineCashRmk.DataModels;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 
@@ -94,6 +95,23 @@ namespace OnlineCashRmk.Services
                                         }
                                         else
                                             throw new Exception("Ошибка отправки на сервер");
+                                    }
+                                    break;
+                                case TypeDocs.WriteOf:
+                                    var writeof = await db.Writeofs.Include(w=>w.WriteofGoods).ThenInclude(wg=>wg.Good).Where(w => w.Id == doc.DocId).FirstOrDefaultAsync();
+                                    List<WriteofGoodSynchDataModel> goods = new List<WriteofGoodSynchDataModel>();
+                                    foreach (var wg in writeof.WriteofGoods)
+                                        goods.Add(new WriteofGoodSynchDataModel { Uuid = wg.Good.Uuid, Count = wg.Count, Price = wg.Price });
+                                    var writeofsynch = new WriteofSynchDataModel { DateCreate = writeof.DateCreate, Note = writeof.Note, Goods=goods};
+                                    using(var client =new HttpClient())
+                                    {
+                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/WriteofSynch/{shopId}", writeofsynch);
+                                        if(resp.IsSuccessStatusCode)
+                                        {
+                                            doc.SynchStatus = true;
+                                            doc.Synch = DateTime.Now;
+                                            await db.SaveChangesAsync();
+                                        }
                                     }
                                     break;
                             }

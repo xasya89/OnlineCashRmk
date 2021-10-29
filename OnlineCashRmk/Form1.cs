@@ -23,6 +23,7 @@ using ToastNotifications.Position;
 using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OnlineCashRmk.Services;
@@ -31,6 +32,7 @@ namespace OnlineCashRmk
 {
     public partial class Form1 : Form
     {
+        IServiceProvider serviceProvider;
         ISynchService synchService;
         DataContext db;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
@@ -41,8 +43,9 @@ namespace OnlineCashRmk
         int idShop = 1;
         string cashierName = "";
         string cashierInn = "";
-        public Form1(ILogger<Form1> logger, DataContext db, ISynchService synchService)
+        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService)
         {
+            this.serviceProvider = serviceProvider;
             this.db = db;
             this.synchService = synchService;
             var builder = new ConfigurationBuilder()
@@ -576,21 +579,17 @@ namespace OnlineCashRmk
         //поиск товара
         private void findTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (findTextBox.Text.Length>=2)
-            {
-                string findText = findTextBox.Text;
-                findGoods.Clear();
-                var goods = db.Goods.Where(g=>g.IsDeleted==false).OrderBy(g => g.Name).ToList();
-                foreach (var good in goods.Where(g=>g.Name.ToLower().IndexOf(findTextBox.Text.ToLower())>-1).Take(20).ToList())
-                    findGoods.Add(good);
-                var barcode = db.BarCodes.Include(g => g.Good).Where(b => b.Code == findText /*& b.Good.IsDeleted == false*/).FirstOrDefault();
-                if (barcode != null)
-                    findGoods.Add(barcode.Good);
-                /*
-                foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text & b.Good.IsDeleted==false).ToList())
-                    findGoods.Add(barcode.Good);
-                */
-            }
+            if (findTextBox.Text != "")
+                if (findTextBox.Text.Length >= 2)
+                {
+                    findGoods.Clear();
+                    var goods = db.Goods.OrderBy(g => g.Name).ToList();
+                    //foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).ToList())
+                    foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
+                        findGoods.Add(good);
+                    foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
+                        findGoods.Add(barcode.Good);
+                }
         }
 
         private void findTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -659,6 +658,12 @@ namespace OnlineCashRmk
             fr.ShowDialog();
             fr.BringToFront();
             fr.Select();
+        }
+
+        private void списанияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formWriteOf = serviceProvider.GetRequiredService<FormWriteOf>();
+            formWriteOf.Show();
         }
     }
 }

@@ -11,6 +11,7 @@ namespace OnlineCashRmk.Models
         OpenShift,
         Buy,
         Return,
-        CloseShift
+        CloseShift,
+        WriteOf
     }
 }
