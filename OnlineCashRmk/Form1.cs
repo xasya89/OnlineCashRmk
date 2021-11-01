@@ -36,6 +36,13 @@ namespace OnlineCashRmk
         ISynchService synchService;
         DataContext db;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
+        int saleSelected = 1;
+        Dictionary<int, List<CheckGoodModel>> saleCheckGoods = new Dictionary<int, List<CheckGoodModel>>()
+        {
+            {1,new List<CheckGoodModel>() },
+            {2,new List<CheckGoodModel>() },
+            {3,new List<CheckGoodModel>() }
+        };
         ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
         Good goodPackcage = null;
         IConfiguration configuration;
@@ -81,7 +88,7 @@ namespace OnlineCashRmk
             checkGoods.CollectionChanged += (s, e) =>
             {
                 bindingCheckGoods.ResetBindings(false);
-                labelSumAll.Text = Math.Round(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
+                labelSumAll.Text = checkGoods.Sum(c => c.Sum ).ToString();
             };
             bindingCheckGoods.DataSource = checkGoods;
             dataGridView1.AutoGenerateColumns = false;
@@ -320,6 +327,12 @@ namespace OnlineCashRmk
             //Очистить чек
             if (e.KeyCode == Keys.Escape)
                 checkGoods.Clear();
+            if (e.KeyCode == Keys.F1)
+                btnSale_Click(btnSale1, null);
+            if (e.KeyCode == Keys.F2)
+                btnSale_Click(btnSale2, null);
+            if (e.KeyCode == Keys.F3)
+                btnSale_Click(btnSale3, null);
         }
 
         void AddGood(Good good, double count=1)
@@ -664,6 +677,21 @@ namespace OnlineCashRmk
         {
             var formWriteOf = serviceProvider.GetRequiredService<FormWriteOf>();
             formWriteOf.Show();
+        }
+
+        private void btnSale_Click(object sender, EventArgs e)
+        {
+            foreach (var btn in new List<Button>() { btnSale1, btnSale2, btnSale3 })
+                btn.BackColor = SystemColors.Control;
+            (sender as Button).BackColor = Color.Green;
+            int num = Convert.ToInt32((sender as Button).Name.Replace("btnSale", ""));
+            saleCheckGoods[saleSelected].Clear();
+            foreach (var ch in checkGoods)
+                saleCheckGoods[saleSelected].Add(ch);
+            saleSelected = num;
+            checkGoods.Clear();
+            foreach (var ch in saleCheckGoods[saleSelected])
+                checkGoods.Add(ch);
         }
     }
 }

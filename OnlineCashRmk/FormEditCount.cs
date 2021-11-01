@@ -24,8 +24,15 @@ namespace OnlineCashRmk
 
         private void FormEditCount_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
-                DialogResult = DialogResult.OK;
+            switch (e.KeyCode)
+            {
+                case Keys.Enter:
+                    DialogResult = DialogResult.OK;
+                    break;
+                case Keys.Escape:
+                    DialogResult = DialogResult.Cancel;
+                    break;
+            }
         }
     }
 }

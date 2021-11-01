@@ -55,7 +55,7 @@ namespace OnlineCashRmk
                 case Keys.Subtract:
                     CountMinus();
                     break;
-                case Keys.Cancel:
+                case Keys.Escape:
                     DialogResult = DialogResult.Cancel;
                     break;
                 case Keys.Enter:

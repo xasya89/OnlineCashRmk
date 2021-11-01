@@ -34,7 +34,9 @@ namespace OnlineCashRmk
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.buttonCheckHistory = new System.Windows.Forms.Button();
+            this.btnSale3 = new System.Windows.Forms.Button();
+            this.btnSale2 = new System.Windows.Forms.Button();
+            this.btnSale1 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.buttonMenu = new System.Windows.Forms.Button();
             this.buttonShift = new System.Windows.Forms.Button();
@@ -61,6 +63,7 @@ namespace OnlineCashRmk
             this.labelStatusShift = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
             this.списанияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.историяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findTextBox = new System.Windows.Forms.TextBox();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -85,8 +88,10 @@ namespace OnlineCashRmk
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.btnSale3);
+            this.panel2.Controls.Add(this.btnSale2);
+            this.panel2.Controls.Add(this.btnSale1);
             this.panel2.Controls.Add(this.button4);
-            this.panel2.Controls.Add(this.buttonCheckHistory);
             this.panel2.Controls.Add(this.button3);
             this.panel2.Controls.Add(this.buttonMenu);
             this.panel2.Controls.Add(this.buttonShift);
@@ -96,15 +101,36 @@ namespace OnlineCashRmk
             this.panel2.Size = new System.Drawing.Size(1008, 42);
             this.panel2.TabIndex = 3;
             // 
-            // buttonCheckHistory
+            // btnSale3
             // 
-            this.buttonCheckHistory.Location = new System.Drawing.Point(254, 0);
-            this.buttonCheckHistory.Name = "buttonCheckHistory";
-            this.buttonCheckHistory.Size = new System.Drawing.Size(75, 42);
-            this.buttonCheckHistory.TabIndex = 1;
-            this.buttonCheckHistory.Text = "История";
-            this.buttonCheckHistory.UseVisualStyleBackColor = true;
-            this.buttonCheckHistory.Click += new System.EventHandler(this.buttonCheckHistory_Click);
+            this.btnSale3.Location = new System.Drawing.Point(576, 1);
+            this.btnSale3.Name = "btnSale3";
+            this.btnSale3.Size = new System.Drawing.Size(94, 41);
+            this.btnSale3.TabIndex = 2;
+            this.btnSale3.Text = "Продажа F3";
+            this.btnSale3.UseVisualStyleBackColor = true;
+            this.btnSale3.Click += new System.EventHandler(this.btnSale_Click);
+            // 
+            // btnSale2
+            // 
+            this.btnSale2.Location = new System.Drawing.Point(462, 1);
+            this.btnSale2.Name = "btnSale2";
+            this.btnSale2.Size = new System.Drawing.Size(94, 41);
+            this.btnSale2.TabIndex = 2;
+            this.btnSale2.Text = "Продажа F2";
+            this.btnSale2.UseVisualStyleBackColor = true;
+            this.btnSale2.Click += new System.EventHandler(this.btnSale_Click);
+            // 
+            // btnSale1
+            // 
+            this.btnSale1.BackColor = System.Drawing.Color.Green;
+            this.btnSale1.Location = new System.Drawing.Point(348, 0);
+            this.btnSale1.Name = "btnSale1";
+            this.btnSale1.Size = new System.Drawing.Size(94, 41);
+            this.btnSale1.TabIndex = 2;
+            this.btnSale1.Text = "Продажа F1";
+            this.btnSale1.UseVisualStyleBackColor = false;
+            this.btnSale1.Click += new System.EventHandler(this.btnSale_Click);
             // 
             // button3
             // 
@@ -385,7 +411,8 @@ namespace OnlineCashRmk
             // toolStripDropDownButton1
             // 
             this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.списанияToolStripMenuItem});
+            this.списанияToolStripMenuItem,
+            this.историяToolStripMenuItem});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -398,6 +425,13 @@ namespace OnlineCashRmk
             this.списанияToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
+            // 
+            // историяToolStripMenuItem
+            // 
+            this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.историяToolStripMenuItem.Text = "История";
+            this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // findTextBox
             // 
@@ -470,9 +504,12 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel labelStatusShift;
         private System.Windows.Forms.Button btnAddPackage;
-        private System.Windows.Forms.Button buttonCheckHistory;
         private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton1;
         private System.Windows.Forms.ToolStripMenuItem списанияToolStripMenuItem;
+        private System.Windows.Forms.Button btnSale1;
+        private System.Windows.Forms.Button btnSale3;
+        private System.Windows.Forms.Button btnSale2;
+        private System.Windows.Forms.ToolStripMenuItem историяToolStripMenuItem;
     }
 }
 

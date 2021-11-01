@@ -9,7 +9,7 @@ namespace OnlineCashRmk.Models
     public class CheckGoodModel:CheckGood
     {
         public string GoodName { get => Good?.Name; }
-        public string GoodUnit { get => Good.Unit.ToString(); }
-        public decimal Sum { get => (decimal)Count * Cost; }
+        public string GoodUnit { get => Good.Unit.GetDisplay(); }
+        public decimal Sum { get => Math.Ceiling((decimal)Count * Cost); }
     }
 }
