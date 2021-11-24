@@ -25,7 +25,8 @@ namespace OnlineCashRmk
                 .AddSingleton<ISynchBackgroundService, SynchBackgroundService>()
                 .AddTransient<IConfiguration>(_ => builder.Build())
                 .AddScoped<Form1>()
-                .AddTransient<FormWriteOf>();
+                .AddTransient<FormWriteOf>()
+                .AddTransient<FormArrival>();
         }
     }
 }

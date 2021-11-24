@@ -25,6 +25,10 @@ namespace OnlineCashRmk
         public DbSet<Writeof> Writeofs { get; set; }
         public DbSet<WriteofGood> WriteofGoods { get; set; }
 
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Arrival> Arrivals { get; set; }
+        public DbSet<ArrivalGood> ArrivalGoods { get; set; }
+
         public DataContext() 
         {
         }
@@ -76,6 +80,19 @@ namespace OnlineCashRmk
                 .HasOne(w => w.Writeof)
                 .WithMany(w => w.WriteofGoods)
                 .HasForeignKey(w => w.WriteofId);
+
+            modelBuilder.Entity<Arrival>()
+                .HasOne(a => a.Supplier)
+                .WithMany(s => s.Arrivals)
+                .HasForeignKey(a => a.SupplierId);
+            modelBuilder.Entity<ArrivalGood>()
+                .HasOne(a => a.Arrival)
+                .WithMany(a => a.ArrivalGoods)
+                .HasForeignKey(a => a.ArrivalId);
+            modelBuilder.Entity<ArrivalGood>()
+                .HasOne(a => a.Good)
+                .WithMany(a => a.ArrivalGoods)
+                .HasForeignKey(a => a.GoodId);
         }
     }
 }

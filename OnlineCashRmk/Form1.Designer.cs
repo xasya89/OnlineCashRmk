@@ -65,6 +65,7 @@ namespace OnlineCashRmk
             this.списанияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.историяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findTextBox = new System.Windows.Forms.TextBox();
+            this.приходыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -412,7 +413,8 @@ namespace OnlineCashRmk
             // 
             this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.списанияToolStripMenuItem,
-            this.историяToolStripMenuItem});
+            this.историяToolStripMenuItem,
+            this.приходыToolStripMenuItem});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -422,14 +424,14 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
@@ -443,6 +445,13 @@ namespace OnlineCashRmk
             this.findTextBox.TabIndex = 0;
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
+            // 
+            // приходыToolStripMenuItem
+            // 
+            this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.приходыToolStripMenuItem.Text = "Приходы";
+            this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -510,6 +519,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button btnSale3;
         private System.Windows.Forms.Button btnSale2;
         private System.Windows.Forms.ToolStripMenuItem историяToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem приходыToolStripMenuItem;
     }
 }
 

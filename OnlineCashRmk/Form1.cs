@@ -296,7 +296,7 @@ namespace OnlineCashRmk
                     barcodeScan = "";
                 }    
             };
-            if (e.KeyCode == Keys.F2 && dataGridView1.SelectedRows.Count > 0)
+            if (e.KeyCode == Keys.F2 & e.Control && dataGridView1.SelectedRows.Count > 0)
                 EditGood(dataGridView1.SelectedRows[0]);
             if(e.KeyCode==Keys.Delete && dataGridView1.SelectedRows.Count>0)
             {
@@ -327,10 +327,10 @@ namespace OnlineCashRmk
             //Очистить чек
             if (e.KeyCode == Keys.Escape)
                 checkGoods.Clear();
-            if (e.KeyCode == Keys.F1)
+            if(e.KeyCode==Keys.F1)
                 btnSale_Click(btnSale1, null);
-            if (e.KeyCode == Keys.F2)
-                btnSale_Click(btnSale2, null);
+            if (e.KeyCode == Keys.F2 & !e.Control)
+                btnSale_Click(btnSale2, null); 
             if (e.KeyCode == Keys.F3)
                 btnSale_Click(btnSale3, null);
         }
@@ -692,6 +692,12 @@ namespace OnlineCashRmk
             checkGoods.Clear();
             foreach (var ch in saleCheckGoods[saleSelected])
                 checkGoods.Add(ch);
+        }
+
+        private void приходыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formarrival = serviceProvider.GetRequiredService<FormArrival>();
+            formarrival.Show();
         }
     }
 }

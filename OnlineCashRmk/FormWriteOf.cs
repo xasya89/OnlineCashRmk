@@ -225,9 +225,10 @@ namespace OnlineCashRmk
 
         private async void findInpText_TextChanged(object sender, EventArgs e)
         {
-            findGoods.Clear();
+            //findGoods.Clear();
             if (findInpText.Text.Length >= 3)
             {
+                /*
                 string str = findInpText.Text.ToLower();
                 var goods = await db.Goods.Where(g => g.Name.ToLower().IndexOf(str) > -1).OrderBy(g => g.Name).Take(10).ToListAsync();
                 foreach (var g in goods)
@@ -235,6 +236,14 @@ namespace OnlineCashRmk
                 var good = (await db.BarCodes.Include(b => b.Good).Where(b => b.Code == findInpText.Text).FirstOrDefaultAsync())?.Good;
                 if (good != null)
                     findGoods.Add(good);
+                */
+
+                findGoods.Clear();
+                var goods = await db.Goods.OrderBy(g => g.Name).ToListAsync();
+                foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findInpText.Text.ToLower()) > -1).Take(20).ToList())
+                    findGoods.Add(good);
+                foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findInpText.Text).ToList())
+                    findGoods.Add(barcode.Good);
             }
         }
 

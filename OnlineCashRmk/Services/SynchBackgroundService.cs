@@ -13,20 +13,24 @@ using System.Net.Http;
 
 namespace OnlineCashRmk.Services
 {
-    class SynchBackgroundService:ISynchBackgroundService
+    class SynchBackgroundService : ISynchBackgroundService
     {
+        DataContext db;
+        string serverurl;
+        int shopId;
+        int cronSynch;
         public SynchBackgroundService(IServiceProvider provider)
         {
+            db = provider.GetRequiredService<DataContext>();
+            IConfiguration config = provider.GetRequiredService<IConfiguration>();
+            serverurl = config.GetSection("serverName").Value;
+            shopId = Convert.ToInt32(config.GetSection("idShop").Value);
+            cronSynch = Convert.ToInt32(config.GetSection("Crons").GetSection("Synch").Value);
             Task.Run(async () =>
             {
                 while (true)
                 {
-                    DataContext db = provider.GetRequiredService<DataContext>();
-                    IConfiguration config = provider.GetRequiredService<IConfiguration>();
-                    var serverurl = config.GetSection("serverName").Value;
-                    int shopId = Convert.ToInt32(config.GetSection("idShop").Value);
-                    int cronSynch = Convert.ToInt32(config.GetSection("Crons").GetSection("Synch").Value);
-                    IEnumerable<DocSynch> docs = db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d=>d.Create);
+                    IEnumerable<DocSynch> docs = db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create);
                     try
                     {
                         foreach (var doc in docs)
@@ -53,7 +57,7 @@ namespace OnlineCashRmk.Services
                                     .Where(c => c.Id == doc.DocId).FirstOrDefaultAsync();
                                     var shiftbuy = await db.Shifts.Where(s => s.Id == check.ShiftId).FirstOrDefaultAsync();
                                     List<CashBoxBuyReturnModel> bues = new List<CashBoxBuyReturnModel>();
-                                    foreach(var checkgood in check.CheckGoods)
+                                    foreach (var checkgood in check.CheckGoods)
                                     {
                                         bool isElectron = check.IsElectron;
                                         Guid uuid = checkgood.Good.Uuid;
@@ -74,7 +78,7 @@ namespace OnlineCashRmk.Services
                                     using (var client = new HttpClient())
                                     {
                                         var resp = await client.PostAsJsonAsync($"{serverurl}/api/CashBox/buy/{shiftbuy.Uuid}", bues);
-                                        if(resp.IsSuccessStatusCode)
+                                        if (resp.IsSuccessStatusCode)
                                         {
                                             doc.SynchStatus = true;
                                             doc.Synch = DateTime.Now;
@@ -98,15 +102,15 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                                 case TypeDocs.WriteOf:
-                                    var writeof = await db.Writeofs.Include(w=>w.WriteofGoods).ThenInclude(wg=>wg.Good).Where(w => w.Id == doc.DocId).FirstOrDefaultAsync();
+                                    var writeof = await db.Writeofs.Include(w => w.WriteofGoods).ThenInclude(wg => wg.Good).Where(w => w.Id == doc.DocId).FirstOrDefaultAsync();
                                     List<WriteofGoodSynchDataModel> goods = new List<WriteofGoodSynchDataModel>();
                                     foreach (var wg in writeof.WriteofGoods)
                                         goods.Add(new WriteofGoodSynchDataModel { Uuid = wg.Good.Uuid, Count = wg.Count, Price = wg.Price });
-                                    var writeofsynch = new WriteofSynchDataModel { DateCreate = writeof.DateCreate, Note = writeof.Note, Goods=goods};
-                                    using(var client =new HttpClient())
+                                    var writeofsynch = new WriteofSynchDataModel { DateCreate = writeof.DateCreate, Note = writeof.Note, Goods = goods };
+                                    using (var client = new HttpClient())
                                     {
                                         var resp = await client.PostAsJsonAsync($"{serverurl}/api/WriteofSynch/{shopId}", writeofsynch);
-                                        if(resp.IsSuccessStatusCode)
+                                        if (resp.IsSuccessStatusCode)
                                         {
                                             doc.SynchStatus = true;
                                             doc.Synch = DateTime.Now;
@@ -114,14 +118,45 @@ namespace OnlineCashRmk.Services
                                         }
                                     }
                                     break;
+                                case TypeDocs.Arrival:
+                                    if (await SendArrival(doc.DocId))
+                                    {
+                                        doc.SynchStatus = true;
+                                        doc.Synch = DateTime.Now;
+                                        await db.SaveChangesAsync();
+                                    }
+                                    break;
                             }
                     }
                     catch (HttpRequestException) { }
-                    catch (Exception) { };
+                    catch (Exception) { }
                     await Task.Delay(TimeSpan.FromMinutes(cronSynch));
                 }
             });
 
+        }
+
+        private async Task<Boolean> SendArrival(int docId)
+        {
+            var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docId).FirstOrDefaultAsync();
+            if (arrival == null)
+                return false;
+            var model = new ArrivalSynchDataModel { Num = arrival.Num, DateArrival = arrival.DateArrival, SupplierId = arrival.SupplierId, Uuid = arrival.Uuid };
+            foreach (var aGood in arrival.ArrivalGoods)
+                model.ArrivalGoods.Add(new ArrivalGoodSynchDataModel
+                {
+                    GoodUuid = aGood.Good.Uuid,
+                    Price = aGood.Price,
+                    Count = aGood.Count
+                });
+            using (var client = new HttpClient())
+                {
+                    var resp = await client.PostAsJsonAsync($"{serverurl}/api/ArrivalSynch/{shopId}", model);
+                    System.Diagnostics.Debug.WriteLine(resp);
+                    if (resp.IsSuccessStatusCode)
+                        return true;
+                }
+            return false;
         }
     }
 

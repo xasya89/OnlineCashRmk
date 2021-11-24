@@ -35,5 +35,7 @@ namespace OnlineCashRmk.Models
         public List<BarCode> BarCodes { get; set; } = new List<BarCode>();
         [JsonIgnore]
         public List<WriteofGood> GetWriteofGoods { get; set; }
+        [JsonIgnore]
+        public List<ArrivalGood> ArrivalGoods { get; set; }
     }
 }
