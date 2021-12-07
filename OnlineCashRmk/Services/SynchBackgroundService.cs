@@ -10,6 +10,7 @@ using OnlineCashRmk.Models;
 using OnlineCashRmk.DataModels;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
+using Flurl.Http;
 
 namespace OnlineCashRmk.Services
 {
@@ -23,6 +24,7 @@ namespace OnlineCashRmk.Services
         {
             db = provider.GetRequiredService<DataContext>();
             IConfiguration config = provider.GetRequiredService<IConfiguration>();
+            SynchBuyersService buyersService = provider.GetRequiredService<SynchBuyersService>();
             serverurl = config.GetSection("serverName").Value;
             shopId = Convert.ToInt32(config.GetSection("idShop").Value);
             cronSynch = Convert.ToInt32(config.GetSection("Crons").GetSection("Synch").Value);
@@ -127,6 +129,8 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                             }
+
+                        await GetBuyersAsync();
                     }
                     catch (HttpRequestException) { }
                     catch (Exception) { }
@@ -157,6 +161,34 @@ namespace OnlineCashRmk.Services
                         return true;
                 }
             return false;
+        }
+
+
+        public async Task GetBuyersAsync()
+        {
+            var buyers = await $"{serverurl}/api/onlinecash/Buyers".GetJsonAsync<List<Buyer>>();
+            var buyersdb = await db.Buyers.ToListAsync();
+            foreach (var buyer in buyers)
+            {
+                var buyerDb = buyersdb.Where(b => b.Uuid == buyer.Uuid).FirstOrDefault();
+                if (buyerDb == null)
+                    db.Buyers.Add(buyer);
+                if (buyerDb != null && buyerDb.SumBuy < buyer.SumBuy)
+                {
+                    buyerDb.SumBuy = buyer.SumBuy;
+                    buyerDb.isChanged = false;
+                }
+            }
+            await db.SaveChangesAsync();
+        }
+
+        public async Task SendChangedAsync()
+        {
+            var buyers = await db.Buyers.Where(b => b.isChanged == true).ToListAsync();
+            await $"{serverurl}/api/onlinecash/Buyers".PutJsonAsync(buyers);
+            foreach (var buyer in buyers)
+                buyer.isChanged = false;
+            await db.SaveChangesAsync();
         }
     }
 

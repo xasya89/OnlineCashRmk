@@ -23,6 +23,7 @@ namespace OnlineCashRmk
                 .AddLogging(configure => configure.AddConsole())
                 .AddScoped<ISynchService, SynchService>()
                 .AddSingleton<ISynchBackgroundService, SynchBackgroundService>()
+                .AddSingleton<SynchBuyersService>()
                 .AddTransient<IConfiguration>(_ => builder.Build())
                 .AddScoped<Form1>()
                 .AddTransient<FormWriteOf>()

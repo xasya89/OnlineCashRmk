@@ -29,6 +29,8 @@ namespace OnlineCashRmk
         public DbSet<Arrival> Arrivals { get; set; }
         public DbSet<ArrivalGood> ArrivalGoods { get; set; }
 
+        public DbSet<Buyer> Buyers { get; set; }
+
         public DataContext() 
         {
         }
