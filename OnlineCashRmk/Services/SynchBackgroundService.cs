@@ -131,6 +131,8 @@ namespace OnlineCashRmk.Services
                             }
 
                         await GetBuyersAsync();
+                        if (db.Buyers.Where(b => b.isChanged == true).Count() > 0)
+                            await SendChangedAsync();
                     }
                     catch (HttpRequestException) { }
                     catch (Exception) { }
