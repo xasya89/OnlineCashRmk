@@ -699,5 +699,12 @@ namespace OnlineCashRmk
             var formarrival = serviceProvider.GetRequiredService<FormArrival>();
             formarrival.Show();
         }
+
+        //Новая оплата
+        private void button7_Click(object sender, EventArgs e)
+        {
+            var payForm = serviceProvider.GetRequiredService<PayForm>();
+            MessageBox.Show(payForm.Pay(new CheckSell { Sum=checkGoods.Sum(c=>c.Sum) }).ToString());
+        }
     }
 }

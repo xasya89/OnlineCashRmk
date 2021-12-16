@@ -29,8 +29,8 @@ namespace OnlineCashRmk
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -64,8 +64,9 @@ namespace OnlineCashRmk
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
             this.списанияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.историяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.findTextBox = new System.Windows.Forms.TextBox();
             this.приходыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.findTextBox = new System.Windows.Forms.TextBox();
+            this.button7 = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -165,6 +166,7 @@ namespace OnlineCashRmk
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.button7);
             this.panel3.Controls.Add(this.btnAddPackage);
             this.panel3.Controls.Add(this.button5);
             this.panel3.Controls.Add(this.labelSumAll);
@@ -267,14 +269,14 @@ namespace OnlineCashRmk
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnId,
@@ -283,14 +285,14 @@ namespace OnlineCashRmk
             this.ColumnCount,
             this.ColumnPrice,
             this.ColumnSum});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
@@ -424,16 +426,23 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
+            // 
+            // приходыToolStripMenuItem
+            // 
+            this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.приходыToolStripMenuItem.Text = "Приходы";
+            this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
             // 
             // findTextBox
             // 
@@ -446,12 +455,15 @@ namespace OnlineCashRmk
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
-            // приходыToolStripMenuItem
+            // button7
             // 
-            this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
-            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.приходыToolStripMenuItem.Text = "Приходы";
-            this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
+            this.button7.Location = new System.Drawing.Point(9, 343);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(132, 40);
+            this.button7.TabIndex = 4;
+            this.button7.Text = "button7";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
             // Form1
             // 
@@ -520,6 +532,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button btnSale2;
         private System.Windows.Forms.ToolStripMenuItem историяToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem приходыToolStripMenuItem;
+        private System.Windows.Forms.Button button7;
     }
 }
 
