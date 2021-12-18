@@ -27,6 +27,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OnlineCashRmk.Services;
+using System.Globalization;
 
 namespace OnlineCashRmk
 {
@@ -69,6 +70,7 @@ namespace OnlineCashRmk
             if (uuidGoodPackage != Guid.Empty)
                 goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
             InitializeComponent();
+            btnDiscount.Visible = configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true" ? true : false;
             if (goodPackcage == null)
                 btnAddPackage.Visible = false;
             dataGridView1.Select();
@@ -333,6 +335,8 @@ namespace OnlineCashRmk
                 btnSale_Click(btnSale2, null); 
             if (e.KeyCode == Keys.F3)
                 btnSale_Click(btnSale3, null);
+            if (e.KeyCode == Keys.F7)
+                btnDiscount_Click(btnDiscount, null);
         }
 
         void AddGood(Good good, double count=1)
@@ -705,6 +709,29 @@ namespace OnlineCashRmk
         {
             var payForm = serviceProvider.GetRequiredService<PayForm>();
             MessageBox.Show(payForm.Pay(new CheckSell { Sum=checkGoods.Sum(c=>c.Sum) }).ToString());
+        }
+
+        /// <summary>
+        /// Скидка на позицию
+        /// </summary>
+        private void btnDiscount_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                int pos = dataGridView1.SelectedRows[0].Index;
+                var chekGood = checkGoods[pos];
+                FormText fr = new FormText();
+                fr.label1.Text = "Скидка";
+                if (fr.ShowDialog()==DialogResult.OK)
+                {
+                    decimal discount = 0M;
+                    var cultureInfo = CultureInfo.InvariantCulture;
+                    NumberStyles styles = NumberStyles.Number;
+                    decimal.TryParse(fr.textBox1.Text, styles, cultureInfo, out discount);
+                    chekGood.Discount = discount;
+                    ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                }
+            }
         }
     }
 }

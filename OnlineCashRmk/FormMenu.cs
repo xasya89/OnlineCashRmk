@@ -180,16 +180,5 @@ namespace OnlineCashRmk
             fr.Show();
             Close();
         }
-
-        private void buttonRespondShifts_Click(object sender, EventArgs e)
-        {
-            Task.Run(async () =>
-            {
-                if (await ShiftSynchViewModel.SynchAsync())
-                    buttonRespondShifts.BackColor = Color.LightGreen;
-                else
-                    buttonRespondShifts.BackColor = Color.LightPink;
-            });
-        }
     }
 }
