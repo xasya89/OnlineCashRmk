@@ -70,7 +70,16 @@ namespace OnlineCashRmk
             if (uuidGoodPackage != Guid.Empty)
                 goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
             InitializeComponent();
-            btnDiscount.Visible = configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true" ? true : false;
+            if(configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
+            {
+                btnDiscount.Visible = true;
+                ColumnDiscount.Visible = true;
+            }
+            else
+            {
+                btnDiscount.Visible = false;
+                ColumnDiscount.Visible = false;
+            }
             if (goodPackcage == null)
                 btnAddPackage.Visible = false;
             dataGridView1.Select();
@@ -99,6 +108,7 @@ namespace OnlineCashRmk
             ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
             ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
             ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
+            ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
             ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
             ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
         }
@@ -520,7 +530,7 @@ namespace OnlineCashRmk
 
         private void buttonMenu_Click(object sender, EventArgs e)
         {
-            FormMenu fr = new FormMenu();
+            var fr = serviceProvider.GetRequiredService<FormMenu>();
             fr.ShowDialog();
             LoadGoods();
         }
@@ -602,10 +612,11 @@ namespace OnlineCashRmk
                     findGoods.Clear();
                     var goods = db.Goods.OrderBy(g => g.Name).ToList();
                     //foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).ToList())
-                    foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
+                    foreach (var good in goods.Where(g => g.IsDeleted == false && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
                         findGoods.Add(good);
                     foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
-                        findGoods.Add(barcode.Good);
+                        if (barcode.Good != null && barcode.Good.IsDeleted == false)
+                            findGoods.Add(barcode.Good);
                 }
         }
 
@@ -730,8 +741,15 @@ namespace OnlineCashRmk
                     decimal.TryParse(fr.textBox1.Text, styles, cultureInfo, out discount);
                     chekGood.Discount = discount;
                     ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                    labelSumAll.Text = Math.Round(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
                 }
             }
+        }
+
+        private void инверторизацияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var fr = serviceProvider.GetRequiredService<FormStocktaking>();
+            fr.Show();
         }
     }
 }

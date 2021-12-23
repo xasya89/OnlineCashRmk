@@ -31,6 +31,10 @@ namespace OnlineCashRmk
 
         public DbSet<Buyer> Buyers { get; set; }
 
+        public DbSet<Stocktaking> Stocktakings { get; set; }
+        public DbSet<StocktakingGroup> StocktakingGroups { get; set; }
+        public DbSet<StocktakingGood> StocktakingGoods { get; set; }
+
         public DataContext() 
         {
         }
@@ -95,6 +99,19 @@ namespace OnlineCashRmk
                 .HasOne(a => a.Good)
                 .WithMany(a => a.ArrivalGoods)
                 .HasForeignKey(a => a.GoodId);
+
+            modelBuilder.Entity<StocktakingGroup>()
+                .HasOne(gr => gr.Stocktaking)
+                .WithMany(s => s.StocktakingGroups)
+                .HasForeignKey(gr => gr.StocktakingId);
+            modelBuilder.Entity<StocktakingGood>()
+                .HasOne(g => g.StocktakingGroup)
+                .WithMany(gr => gr.StocktakingGoods)
+                .HasForeignKey(g => g.StocktakingGroupId);
+            modelBuilder.Entity<StocktakingGood>()
+                .HasOne(s => s.Good)
+                .WithMany(g => g.StocktakingGoods)
+                .HasForeignKey(s => s.GoodId);
         }
     }
 }

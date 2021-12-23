@@ -22,13 +22,21 @@ namespace OnlineCashRmk
 {
     public partial class FormMenu : Form
     {
-        IConfiguration configuration;
+        IConfiguration _configuration;
+        DataContext _db;
         string serverName = "";
         int idShop = 1;
         string cashierName = "";
         string cashierInn = "";
-        public FormMenu()
+        public FormMenu(IConfiguration configuration, DataContext db)
         {
+            serverName = configuration.GetSection("serverName").Value;
+            idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
+            cashierName = configuration.GetSection("cashierName").Value;
+            cashierInn = configuration.GetSection("cashierInn").Value;
+            _configuration = configuration;
+            _db = db;
+            /*
             var builder = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(AppContext.BaseDirectory))
             .AddJsonFile("appsettings.json", optional: true);
@@ -37,6 +45,7 @@ namespace OnlineCashRmk
             idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
+            */
             InitializeComponent();
         }
 
@@ -50,17 +59,17 @@ namespace OnlineCashRmk
         private void button1_Click(object sender, EventArgs e)
         {
             button1.BackColor = Color.LightBlue;
+
             Task.Run(async () =>
             {
                 bool statusSuccess = true;
                 try
                 {
-                    DataContext db = new DataContext();
                     var str = await new HttpClient().GetAsync($"{serverName}/api/Goodssynchnew/{idShop}").Result.Content.ReadAsStringAsync();
                     List<GoodSynchDataModel> goods = JsonSerializer.Deserialize<List<GoodSynchDataModel>>(str);
                     foreach (var good in goods)
                     {
-                        var goodDb = db.Goods.Include(g=>g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
+                        var goodDb = _db.Goods.Include(g=>g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
                         if (goodDb == null)
                         {
                             var newgood = new Good
@@ -74,10 +83,10 @@ namespace OnlineCashRmk
                                 VPackage=good.VPackage,
                                 IsDeleted=good.IsDeleted
                             };
-                            db.Goods.Add(newgood);
+                            _db.Goods.Add(newgood);
                             //добавление штрих кодов
                             foreach (string barcode in good.Barcodes)
-                                db.BarCodes.Add(new BarCode
+                                _db.BarCodes.Add(new BarCode
                                 {
                                     Good = newgood,
                                     Code = barcode
@@ -94,14 +103,15 @@ namespace OnlineCashRmk
                             //добавление новых или измененных штрих кодов
                             foreach (string barcode in good.Barcodes)
                                 if (goodDb.BarCodes.Count(b => b.Code == barcode) == 0)
-                                    db.BarCodes.Add(new BarCode { Good = goodDb, Code = barcode });
+                                    _db.BarCodes.Add(new BarCode { Good = goodDb, Code = barcode });
                             //Удаление не зарегестрированных на сервере штрихкодов
                             foreach (var barcodeDb in goodDb.BarCodes)
                                 if (good.Barcodes.Count(b => b == barcodeDb.Code) == 0)
-                                    db.BarCodes.Remove(barcodeDb);
+                                    _db.BarCodes.Remove(barcodeDb);
                         }
                     };
-                    await db.SaveChangesAsync();
+                    await _db.SaveChangesAsync();
+                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(20));
                 }
                 catch (SystemException ex)
                 {

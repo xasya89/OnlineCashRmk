@@ -14,6 +14,7 @@ namespace OnlineCashRmk.Models
         public DateTime? Birthday { get; set; } = null;
         public string DiscountCardNum { get; set; }
         public DiscountType DiscountType { get; set; }
+        public int? DiscountPercant { get; set; }
         public decimal SumBuy { get; set; }
         public bool isChanged { get; set; } = false;
     }

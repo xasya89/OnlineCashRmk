@@ -26,9 +26,11 @@ namespace OnlineCashRmk
                 .AddSingleton<SynchBuyersService>()
                 .AddTransient<IConfiguration>(_ => builder.Build())
                 .AddScoped<Form1>()
+                .AddScoped<FormMenu>()
                 .AddTransient<PayForm>()
                 .AddTransient<FormWriteOf>()
-                .AddTransient<FormArrival>();
+                .AddTransient<FormArrival>()
+                .AddTransient<FormStocktaking>();
         }
     }
 }

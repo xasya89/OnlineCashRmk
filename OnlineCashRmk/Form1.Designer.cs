@@ -29,9 +29,10 @@ namespace OnlineCashRmk
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.btnSale3 = new System.Windows.Forms.Button();
@@ -41,6 +42,7 @@ namespace OnlineCashRmk
             this.buttonMenu = new System.Windows.Forms.Button();
             this.buttonShift = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.btnDiscount = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
             this.btnAddPackage = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
@@ -54,6 +56,7 @@ namespace OnlineCashRmk
             this.ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -67,7 +70,7 @@ namespace OnlineCashRmk
             this.историяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.приходыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findTextBox = new System.Windows.Forms.TextBox();
-            this.btnDiscount = new System.Windows.Forms.Button();
+            this.инверторизацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -182,6 +185,20 @@ namespace OnlineCashRmk
             this.panel3.Size = new System.Drawing.Size(153, 547);
             this.panel3.TabIndex = 4;
             // 
+            // btnDiscount
+            // 
+            this.btnDiscount.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnDiscount.BackgroundImage")));
+            this.btnDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.btnDiscount.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnDiscount.Location = new System.Drawing.Point(9, 247);
+            this.btnDiscount.Name = "btnDiscount";
+            this.btnDiscount.Size = new System.Drawing.Size(132, 73);
+            this.btnDiscount.TabIndex = 5;
+            this.btnDiscount.Text = "Скидка\r\nF7     ";
+            this.btnDiscount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btnDiscount.UseVisualStyleBackColor = true;
+            this.btnDiscount.Click += new System.EventHandler(this.btnDiscount_Click);
+            // 
             // button7
             // 
             this.button7.Location = new System.Drawing.Point(9, 381);
@@ -190,7 +207,6 @@ namespace OnlineCashRmk
             this.button7.TabIndex = 4;
             this.button7.Text = "button7";
             this.button7.UseVisualStyleBackColor = true;
-            this.button7.Visible = false;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
             // btnAddPackage
@@ -297,16 +313,17 @@ namespace OnlineCashRmk
             this.ColumnName,
             this.ColumnUnit,
             this.ColumnCount,
+            this.ColumnDiscount,
             this.ColumnPrice,
             this.ColumnSum});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
@@ -344,6 +361,16 @@ namespace OnlineCashRmk
             // 
             this.ColumnCount.HeaderText = "Кол-во";
             this.ColumnCount.Name = "ColumnCount";
+            // 
+            // ColumnDiscount
+            // 
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.MenuHighlight;
+            this.ColumnDiscount.DefaultCellStyle = dataGridViewCellStyle2;
+            this.ColumnDiscount.HeaderText = "Скидка";
+            this.ColumnDiscount.Name = "ColumnDiscount";
+            this.ColumnDiscount.ReadOnly = true;
+            this.ColumnDiscount.Width = 80;
             // 
             // ColumnPrice
             // 
@@ -430,7 +457,8 @@ namespace OnlineCashRmk
             this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.списанияToolStripMenuItem,
             this.историяToolStripMenuItem,
-            this.приходыToolStripMenuItem});
+            this.приходыToolStripMenuItem,
+            this.инверторизацияToolStripMenuItem});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -440,21 +468,21 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // приходыToolStripMenuItem
             // 
             this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
-            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(128, 22);
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.приходыToolStripMenuItem.Text = "Приходы";
             this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
             // 
@@ -469,19 +497,12 @@ namespace OnlineCashRmk
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
-            // btnDiscount
+            // инверторизацияToolStripMenuItem
             // 
-            this.btnDiscount.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnDiscount.BackgroundImage")));
-            this.btnDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnDiscount.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnDiscount.Location = new System.Drawing.Point(9, 247);
-            this.btnDiscount.Name = "btnDiscount";
-            this.btnDiscount.Size = new System.Drawing.Size(132, 73);
-            this.btnDiscount.TabIndex = 5;
-            this.btnDiscount.Text = "Скидка\r\nF7     ";
-            this.btnDiscount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.btnDiscount.UseVisualStyleBackColor = true;
-            this.btnDiscount.Click += new System.EventHandler(this.btnDiscount_Click);
+            this.инверторизацияToolStripMenuItem.Name = "инверторизацияToolStripMenuItem";
+            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.инверторизацияToolStripMenuItem.Text = "Инверторизация";
+            this.инверторизацияToolStripMenuItem.Click += new System.EventHandler(this.инверторизацияToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -533,12 +554,6 @@ namespace OnlineCashRmk
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ListBox findListBox;
         private System.Windows.Forms.TextBox findTextBox;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnUnit;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPrice;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnSum;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel labelStatusShift;
@@ -552,6 +567,14 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripMenuItem приходыToolStripMenuItem;
         private System.Windows.Forms.Button button7;
         private System.Windows.Forms.Button btnDiscount;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnUnit;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnCount;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDiscount;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPrice;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnSum;
+        private System.Windows.Forms.ToolStripMenuItem инверторизацияToolStripMenuItem;
     }
 }
 
