@@ -13,6 +13,7 @@ namespace OnlineCashRmk.Models
         Return,
         CloseShift,
         WriteOf,
-        Arrival
+        Arrival,
+        StockTaking
     }
 }

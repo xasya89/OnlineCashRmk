@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineCashRmk.Models
 {
@@ -18,6 +19,7 @@ namespace OnlineCashRmk.Models
         public Guid Uuid { get => Good.Uuid; }
         public string GoodName { get => Good?.Name; }
         public string UnitStr { get => Good?.Unit.DisplayName(); }
+        [NotMapped]
         public string CountFactStr { 
             get => CountFact?.ToString();
             set

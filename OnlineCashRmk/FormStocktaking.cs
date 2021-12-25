@@ -11,25 +11,42 @@ using System.ComponentModel;
 using System.Collections.ObjectModel;
 using OnlineCashRmk.Models;
 using Microsoft.EntityFrameworkCore;
+using OnlineCashRmk.Services;
 
 namespace OnlineCashRmk
 {
     public partial class FormStocktaking : Form
     {
         DataContext _db;
-        int? stocktakingId=null;
+        ISynchService _synchService;
+        Stocktaking stocktaking;
         ObservableCollection<StocktakingGroup> groups=new ObservableCollection<StocktakingGroup>();
         StocktakingGroup selectedGroup;
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         BindingSource bindingGroups;
         BindingSource bindingGoods;
-        public FormStocktaking(DataContext db)
+        public FormStocktaking(DataContext db, ISynchService synchService)
         {
             _db = db;
-            var stocktaking = db.Stocktakings.Where(s => s.isSynch == false).FirstOrDefault();
+            _synchService = synchService;
+            stocktaking = db.Stocktakings.Include(s=>s.StocktakingGroups).ThenInclude(gr=>gr.StocktakingGoods).ThenInclude(g=>g.Good).Where(s => s.isSynch == false).FirstOrDefault();
             if(stocktaking!=null && MessageBox.Show("Продолжить редактировать предыдущую инверторизацию?","",MessageBoxButtons.YesNo,MessageBoxIcon.Warning)==DialogResult.Yes)
             {
-                //TODO: Доделать открытие предыдущего документа
+                foreach (var group in stocktaking.StocktakingGroups)
+                {
+                    var stGroup = new StocktakingGroup { Id = group.Id, Name = group.Name };
+                    groups.Add(stGroup);
+                    foreach (var good in group.StocktakingGoods)
+                        stGroup.StocktakingGoods.Add(new StocktakingGood
+                        {
+                            Id = good.Id,
+                            StocktakingGroupId = good.StocktakingGroupId,
+                            GoodId = good.Id,
+                            Good = good.Good,
+                            CountFact = good.CountFact
+                        });
+                }    
+                    
             }
             InitializeComponent();
             bindingGroups = new BindingSource();
@@ -85,16 +102,47 @@ namespace OnlineCashRmk
 
         public void AddGood(Good good)
         {
-            if (good == null || selectedGroup==null)
+            if (good == null || selectedGroup == null)
                 return;
-            selectedGroup.StocktakingGoods.Add(new StocktakingGood { Good = good });
-            bindingGoods.ResetBindings(false);
+            FormEditCount fr = new FormEditCount();
+            fr.labelGoodName.Text = good.Name;
+            if (fr.ShowDialog() == DialogResult.OK)
+            {
+                var stGood = selectedGroup.StocktakingGoods.Where(g => g.Uuid == good.Uuid).FirstOrDefault();
+                if (stGood == null)
+                {
+                    selectedGroup.StocktakingGoods.Add(new StocktakingGood { Good = good, CountFactStr = fr.textBoxCount.Text });
+                    bindingGoods.ResetBindings(false);
+                    dataGridViewGoods.FirstDisplayedScrollingRowIndex = selectedGroup.StocktakingGoods.Count - 1;
+
+                    return;
+                };
+
+
+                stGood.CountFactStr = fr.textBoxCount.Text;
+                bindingGoods.ResetBindings(false);
+                int rowSelected = -1;
+                foreach (var stgood in selectedGroup.StocktakingGoods)
+                    ++rowSelected;
+                dataGridViewGoods.FirstDisplayedScrollingRowIndex = rowSelected;
+            }
         }
 
         private void FormStocktaking_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.F4)
                 textBoxFind.Select();
+            if(e.KeyCode==Keys.F2 && dataGridViewGoods.SelectedCells.Count>0)
+            {
+                var stGood = selectedGroup.StocktakingGoods[dataGridViewGoods.SelectedCells[0].RowIndex];
+                FormEditCount fr = new FormEditCount();
+                fr.labelGoodName.Text = stGood.GoodName;
+                if(fr.ShowDialog()==DialogResult.OK)
+                {
+                    stGood.CountFactStr = fr.textBoxCount.Text;
+                    bindingGoods.ResetBindings(false);
+                }
+            }
         }
 
         #region Поиск
@@ -167,5 +215,59 @@ namespace OnlineCashRmk
         }
         #endregion
 
+        private void dataGridViewGoods_KeyDown(object sender, KeyEventArgs e)
+        {
+        }
+
+        private async Task<bool> Save()
+        {
+            bool result = true;
+            try
+            {
+                if (stocktaking == null)
+                {
+                    stocktaking = new Stocktaking();
+                    _db.Stocktakings.Add(stocktaking);
+                }
+                foreach (var group in groups)
+                {
+                    var groupDb = await _db.StocktakingGroups.Where(gr => gr.Id == group.Id).FirstOrDefaultAsync();
+                    if (groupDb == null)
+                    {
+                        groupDb = new StocktakingGroup { StocktakingId = stocktaking.Id, Name = group.Name };
+                        _db.StocktakingGroups.Add(groupDb);
+                    };
+                    foreach (var good in group.StocktakingGoods)
+                    {
+                        var goodDb = await _db.StocktakingGoods.Where(g => g.Id == good.Id).FirstOrDefaultAsync();
+                        if (goodDb == null)
+                            _db.StocktakingGoods.Add(new StocktakingGood { StocktakingGroupId = groupDb.Id, GoodId = good.Good.Id, CountFact = good.CountFact });
+                        else
+                            goodDb.CountFact = good.CountFact;
+                    }
+                }
+                await _db.SaveChangesAsync();
+            }
+            catch(DbUpdateException dbe)
+            {
+                System.Diagnostics.Debug.WriteLine(dbe.InnerException.Message);
+            }
+            catch (SystemException ex)
+            {
+                result = false;
+            }
+            return result;
+        }
+
+        private async void button3_Click(object sender, EventArgs e)
+        {
+            await Save();
+        }
+
+        private async void button2_Click(object sender, EventArgs e)
+        {
+            await Save();
+            _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StockTaking });
+        }
     }
 }
