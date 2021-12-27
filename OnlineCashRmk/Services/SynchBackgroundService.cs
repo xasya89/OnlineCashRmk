@@ -128,6 +128,12 @@ namespace OnlineCashRmk.Services
                                         await db.SaveChangesAsync();
                                     }
                                     break;
+                                case TypeDocs.StockTaking:
+                                    await SendStocktaking(doc.DocId);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
                             }
 
                         await GetBuyersAsync();
@@ -156,12 +162,12 @@ namespace OnlineCashRmk.Services
                     Count = aGood.Count
                 });
             using (var client = new HttpClient())
-                {
-                    var resp = await client.PostAsJsonAsync($"{serverurl}/api/ArrivalSynch/{shopId}", model);
-                    System.Diagnostics.Debug.WriteLine(resp);
-                    if (resp.IsSuccessStatusCode)
-                        return true;
-                }
+            {
+                var resp = await client.PostAsJsonAsync($"{serverurl}/api/ArrivalSynch/{shopId}", model);
+                System.Diagnostics.Debug.WriteLine(resp);
+                if (resp.IsSuccessStatusCode)
+                    return true;
+            }
             return false;
         }
 
@@ -191,6 +197,31 @@ namespace OnlineCashRmk.Services
             foreach (var buyer in buyers)
                 buyer.isChanged = false;
             await db.SaveChangesAsync();
+        }
+
+        public async Task SendStocktaking(int docId)
+        {
+            var stocktaking = await db.Stocktakings.Include(s => s.StocktakingGroups).ThenInclude(s => s.StocktakingGoods).ThenInclude(g => g.Good).Where(s => s.Id == docId).FirstOrDefaultAsync();
+            var stocktakingSend = new StocktakingSendDataModel { Create = stocktaking.Create };
+            foreach (var group in stocktaking.StocktakingGroups)
+            {
+                var groupSend = new StocktakingGroupSendDataModel { Name = group.Name };
+                foreach (var good in group.StocktakingGoods)
+                {
+                    double countfact = 0;
+                    if (good.CountFact != null)
+                        countfact = (double)good.CountFact;
+                    groupSend.Goods.Add(new StocktakingGoodSendDataModel { Uuid = good.Uuid, CountFact = countfact });
+                };
+                stocktakingSend.Groups.Add(groupSend);
+            }
+            try
+            {
+                var result = await $"{serverurl}/api/onlinecash/Stocktaking/{shopId}".PostJsonAsync(stocktakingSend);
+            }
+            catch (FlurlHttpException ex)
+            {
+            }
         }
     }
 

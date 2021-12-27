@@ -296,6 +296,7 @@ namespace OnlineCashRmk
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "FormWriteOf";
             this.Text = "Списание";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormWriteOf_FormClosed);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

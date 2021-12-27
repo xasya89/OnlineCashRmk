@@ -13,6 +13,7 @@ using OnlineCashRmk.Models;
 using OnlineCashRmk.DataModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.IO.Ports;
 
 namespace OnlineCashRmk
 {
@@ -23,11 +24,32 @@ namespace OnlineCashRmk
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         ISynchService synch;
         DataContext db;
-        public FormArrival(ISynchService synchService, ILogger<FormArrival> logger, DataContext db, ISynchService synch)
+
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
+            var activeform = Form.ActiveForm;
+            if (activeform != null && nameof(FormArrival) == activeform.Name)
+            {
+                var port = (SerialPort)s;
+                string code = port.ReadExisting();
+                var form = activeform as FormArrival;
+                var barcode = await form.db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                Action<Good, decimal> addGood = form.AddGood;
+                if (barcode != null && barcode.Good.IsDeleted == false)
+                    Task.Run(() => form.Invoke(addGood, barcode.Good, 1M));
+            }
+        });
+        BarCodeScanner _barCodeScanner;
+
+        public FormArrival(ISynchService synchService, ILogger<FormArrival> logger, DataContext db, ISynchService synch, BarCodeScanner barCodeScanner)
         {
             this.synch = synch;
             this.db = db;
             InitializeComponent();
+
+            _barCodeScanner = barCodeScanner;
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
+
             Task<List<Supplier>> taskSynchSuppliers = Task.Run(async () => await synchService.SynchSuppliersAsync());
             taskSynchSuppliers.ContinueWith(task =>
             {
@@ -74,7 +96,7 @@ namespace OnlineCashRmk
                 {
                     findGoods.Clear();
                     var goods = db.Goods.OrderBy(g => g.Name).ToList();
-                    foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
+                    foreach (var good in goods.Where(g => g.Name!=null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
                         findGoods.Add(good);
                     foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
                         findGoods.Add(barcode.Good);
@@ -236,6 +258,12 @@ namespace OnlineCashRmk
                 synch.AppendDoc(new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival });
                 Close();
             }
+        }
+
+        private void FormArrival_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
         }
     }
 }

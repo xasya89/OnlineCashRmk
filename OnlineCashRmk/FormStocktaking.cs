@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using OnlineCashRmk.Models;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Services;
+using System.IO.Ports;
 
 namespace OnlineCashRmk
 {
@@ -25,7 +26,23 @@ namespace OnlineCashRmk
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         BindingSource bindingGroups;
         BindingSource bindingGoods;
-        public FormStocktaking(DataContext db, ISynchService synchService)
+
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
+            var activeform = Form.ActiveForm;
+            if (activeform != null && nameof(FormStocktaking) == activeform.Name)
+            {
+                var port = (SerialPort)s;
+                string code = port.ReadExisting();
+                var form = activeform as FormStocktaking;
+                var barcode = await form._db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                Action<Good> addGood = form.AddGood;
+                if (barcode != null && barcode.Good.IsDeleted == false)
+                    Task.Run(() => form.Invoke(addGood, barcode.Good));
+            }
+        });
+        BarCodeScanner _barCodeScanner;
+
+        public FormStocktaking(DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner)
         {
             _db = db;
             _synchService = synchService;
@@ -49,6 +66,11 @@ namespace OnlineCashRmk
                     
             }
             InitializeComponent();
+
+            _barCodeScanner = barCodeScanner;
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
+
             bindingGroups = new BindingSource();
             bindingGroups.DataSource = groups;
             groups.CollectionChanged += (s, e) => { bindingGroups.ResetBindings(false); };
@@ -268,6 +290,12 @@ namespace OnlineCashRmk
         {
             await Save();
             _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StockTaking });
+        }
+
+        private void FormStocktaking_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
         }
     }
 }

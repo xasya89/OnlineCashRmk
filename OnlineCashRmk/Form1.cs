@@ -28,6 +28,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OnlineCashRmk.Services;
 using System.Globalization;
+using System.IO.Ports;
 
 namespace OnlineCashRmk
 {
@@ -51,7 +52,22 @@ namespace OnlineCashRmk
         int idShop = 1;
         string cashierName = "";
         string cashierInn = "";
-        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService)
+
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler=  new SerialDataReceivedEventHandler(async (s, e) => {
+            var activeform = Form.ActiveForm;
+            if (activeform!=null && nameof(Form1) == activeform.Name)
+            {
+                var port = (SerialPort)s;
+                string code = port.ReadExisting();
+                var form = activeform as Form1;
+                var barcode = await form.db.BarCodes.Include(b=>b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                Action<Good, double> addGood = form.AddGood;
+                if (barcode != null && barcode.Good.IsDeleted == false)
+                    Task.Run(() => form.Invoke(addGood, barcode.Good, 1));
+            }
+        });
+
+        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner)
         {
             this.serviceProvider = serviceProvider;
             this.db = db;
@@ -70,7 +86,11 @@ namespace OnlineCashRmk
             if (uuidGoodPackage != Guid.Empty)
                 goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
             InitializeComponent();
-            if(configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
+
+            if(barCodeScanner.port!=null)
+                barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
+
+            if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
             {
                 btnDiscount.Visible = true;
                 ColumnDiscount.Visible = true;
@@ -154,16 +174,6 @@ namespace OnlineCashRmk
                 labelStatusShift.BackColor = Color.LightPink;
                 //Вывод итогов смены
                 MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
-                //Синхронизация смен
-                /*
-                Task.Run(async () =>
-                {
-                    if (await ShiftSynchViewModel.SynchAsync())
-                        buttonShift.BackColor = Color.LightGreen;
-                    else
-                        buttonShift.BackColor = Color.LightPink;
-                });
-                */
             }
         }
 
@@ -351,7 +361,7 @@ namespace OnlineCashRmk
 
         void AddGood(Good good, double count=1)
         {
-            if (good != null)
+            if (good != null && good.IsDeleted==false)
             {
                 if (good.Unit != Units.PCE & good.SpecialType!=SpecialTypes.Beer)
                 {

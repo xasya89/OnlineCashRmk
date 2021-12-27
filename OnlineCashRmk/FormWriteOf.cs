@@ -12,6 +12,7 @@ using OnlineCashRmk.Services;
 using System.Collections.ObjectModel;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
+using System.IO.Ports;
 
 namespace OnlineCashRmk
 {
@@ -21,17 +22,37 @@ namespace OnlineCashRmk
         ILogger<FormWriteOf> logger;
         ISynchService synch;
 
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
+            var activeform = Form.ActiveForm;
+            if (activeform != null && nameof(FormWriteOf) == activeform.Name)
+            {
+                var port = (SerialPort)s;
+                string code = port.ReadExisting();
+                var form = activeform as FormWriteOf;
+                var barcode = await form.db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                Action<Good> addGood = form.AddGood;
+                if (barcode != null && barcode.Good.IsDeleted == false)
+                    Task.Run(() => form.Invoke(addGood, barcode.Good));
+            }
+        });
+        BarCodeScanner _barCodeScanner;
+
         ObservableCollection<WriteofGood> writeofGoods = new ObservableCollection<WriteofGood>();
         WriteofGood writeofGoodSelected { get; set; }
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
 
-        public FormWriteOf(DataContext db, ILogger<FormWriteOf> logger, ISynchService synch)
+        public FormWriteOf(DataContext db, ILogger<FormWriteOf> logger, ISynchService synch, BarCodeScanner barCodeScanner)
         {
             this.db = db;
             this.logger = logger;
             this.synch = synch;
 
             InitializeComponent();
+
+            _barCodeScanner = barCodeScanner;
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
+
             BindingSource binding = new BindingSource();
             binding.DataSource = writeofGoods;
             writeofGoods.CollectionChanged += (s, e) =>
@@ -281,6 +302,13 @@ namespace OnlineCashRmk
         private void button2_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void FormWriteOf_FormClosed(object sender, FormClosedEventArgs e)
+        {
+
+            if (_barCodeScanner.port != null)
+                _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
         }
     }
 }

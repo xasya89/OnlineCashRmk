@@ -19,9 +19,9 @@ namespace OnlineCashRmk
             GoodNameLabel.Text = good.Name;
             DataContext db = new DataContext();
             BottleListBox.DataSource = db.Goods
-                .Where(g => g.SpecialType == SpecialTypes.Bottle)
+                .Where(g => g.SpecialType == SpecialTypes.Bottle & g.IsDeleted==false & g.VPackage!=null)
                 .OrderBy(g=>g.Name)
-                .ToList();
+                .ToList().Where(g=>g.IsDeleted==false).ToList();
             BottleListBox.DisplayMember = nameof(Good.Name);
             CountTextBox.Text = "1";
         }

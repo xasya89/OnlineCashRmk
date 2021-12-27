@@ -294,6 +294,7 @@ namespace OnlineCashRmk
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormStocktaking";
             this.Text = "Инверторизация";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormStocktaking_FormClosed);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormStocktaking_KeyDown);
             this.panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
