@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
+using OnlineCashRmk.DataModels;
+using System.Collections.ObjectModel;
 
 namespace OnlineCashRmk
 {
@@ -18,6 +22,33 @@ namespace OnlineCashRmk
         BindingSource bindingCheckSell = new BindingSource();
         Buyer _buyer=new Buyer();
         BindingSource bindingBuyer = new BindingSource();
+        ObservableCollection<CheckPaymentDataModel> CheckPayments = new ObservableCollection<CheckPaymentDataModel>();
+        BindingSource bindingPayments = new BindingSource();
+
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
+            var activeform = Form.ActiveForm;
+            if (activeform != null && nameof(Form1) == activeform.Name)
+            {
+                var port = (SerialPort)s;
+                string code = port.ReadExisting();
+                var form = activeform as PayForm;
+                var buyer = await form._db.Buyers.Where(b => b.DiscountCardNum == code).FirstOrDefaultAsync();
+                if(buyer!=null)
+                {
+                    form._buyer = buyer;
+                    //TODO: Скорее всего добавить buyer ы checksell
+                    Action action = form.ResetBinding;
+                    form.Invoke(action);
+                };
+            }
+        });
+
+        void ResetBinding()
+        {
+            bindingBuyer.DataSource = _buyer;
+            bindingBuyer.ResetBindings(false);
+        }
+
         public PayForm(DataContext db)
         {
             InitializeComponent();
@@ -29,11 +60,25 @@ namespace OnlineCashRmk
 
             bindingBuyer.DataSource = _buyer;
             BuyerName.DataBindings.Add("Text", bindingBuyer, nameof(Buyer.Name), false, DataSourceUpdateMode.OnPropertyChanged);
+
+            bindingPayments.DataSource = CheckPayments;
+            dataGridViewPayments.AutoGenerateColumns = false;
+            dataGridViewPayments.DataSource = bindingPayments;
+            ColumnTypePayment.DataPropertyName = nameof(CheckPaymentDataModel.TypePaymentStr);
+            ColumnIncome.DataPropertyName = nameof(CheckPaymentDataModel.Income);
+            ColumnSum.DataPropertyName = nameof(CheckPaymentDataModel.Sum);
+            ColumnReturn.DataPropertyName = nameof(CheckPaymentDataModel.Return);
+            CheckPayments.CollectionChanged += (s, e) =>
+            {
+                bindingPayments.ResetBindings(false);
+                var payment = s as CheckPaymentDataModel;
+            };
         }
 
         public DialogResult Pay(CheckSell checkSell)
         {
-            _checkSell = new CheckSell { Sum=22 };
+            _checkSell = checkSell;
+            _checkSell.SumAll = _checkSell.Sum;
             bindingCheckSell.DataSource = _checkSell;
             bindingCheckSell.ResetBindings(false);
             return ShowDialog();
@@ -42,22 +87,72 @@ namespace OnlineCashRmk
         private void textBox1_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
-            {
-                var buyer = _db.Buyers.Where(b => b.DiscountCardNum == textBox1.Text).FirstOrDefault();
-                if(buyer!=null)
-                {
-                    _buyer = buyer;
-                    //TODO: Скорее всего добавить buyer ы checksell
-                    bindingBuyer.DataSource = buyer;
-                    bindingBuyer.ResetBindings(false);
-                }
-            }
+                DialogResult = DialogResult.OK;
+            if (e.KeyCode == Keys.Escape)
+                DialogResult = DialogResult.Cancel;
+            if (e.KeyCode == Keys.F6)
+                AddPaymetnElectron();
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             
 
+        }
+
+        private void AddPaymetnElectron()
+        {
+            decimal payRemaned = _checkSell.SumAll - CheckPayments.Sum(p => p.Sum);
+            if (payRemaned > 0)
+                CheckPayments.Add(new CheckPaymentDataModel
+                {
+                    TypePayment=TypePayment.Electron,
+                    Sum=payRemaned
+                });
+        }
+
+        private void AddPaymentCash()
+        {
+            decimal payRemaned = _checkSell.SumAll - CheckPayments.Sum(p => p.Sum);
+            if (payRemaned > 0)
+                CheckPayments.Add(new CheckPaymentDataModel
+                {
+                    TypePayment = TypePayment.Cash,
+                    Sum = payRemaned
+                });
+        }
+
+        private void dataGridViewPayments_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            dataGridViewPayments.Focus();
+            var row = dataGridViewPayments.Rows[e.RowIndex];
+            var payment = CheckPayments[e.RowIndex];
+            if (payment.TypePayment == TypePayment.Cash)
+            {
+                row.Cells[nameof(ColumnIncome)].ReadOnly = false;
+                row.Cells[nameof(ColumnReturn)].ReadOnly = false;
+                row.Cells[nameof(ColumnIncome)].Selected = true;
+            }
+            if (payment.TypePayment == TypePayment.Electron)
+            {
+                row.Cells[nameof(ColumnIncome)].ReadOnly = true;
+                row.Cells[nameof(ColumnReturn)].ReadOnly = true;
+                row.Cells[nameof(ColumnSum)].Selected = true;
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            AddPaymetnElectron();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            AddPaymentCash();
+        }
+
+        private void dataGridViewPayments_CurrentCellChanged(object sender, EventArgs e)
+        {
         }
     }
 }

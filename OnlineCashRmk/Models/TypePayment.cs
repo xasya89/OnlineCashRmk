@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OnlineCashRmk.Models
+{
+    public enum TypePayment
+    {
+        [Display(Name = "Электронные")]
+        Electron,
+        [Display(Name = "Наличные")]
+        Cash
+    }
+}

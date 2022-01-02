@@ -21,6 +21,7 @@ namespace OnlineCashRmk
             .AddJsonFile("appsettings.json", optional: true);
             services.AddDbContext<DataContext>()
                 .AddSingleton<BarCodeScanner>()
+                .AddSingleton<ICashRegisterService, AtolService>()
                 .AddLogging(configure => configure.AddConsole())
                 .AddScoped<ISynchService, SynchService>()
                 .AddSingleton<ISynchBackgroundService, SynchBackgroundService>()

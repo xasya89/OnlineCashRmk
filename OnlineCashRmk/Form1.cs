@@ -36,6 +36,7 @@ namespace OnlineCashRmk
     {
         IServiceProvider serviceProvider;
         ISynchService synchService;
+        ICashRegisterService _cashService;
         DataContext db;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         int saleSelected = 1;
@@ -67,8 +68,9 @@ namespace OnlineCashRmk
             }
         });
 
-        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner)
+        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner, ICashRegisterService cashService)
         {
+            _cashService = cashService;
             this.serviceProvider = serviceProvider;
             this.db = db;
             this.synchService = synchService;
@@ -144,8 +146,6 @@ namespace OnlineCashRmk
         {
             if (db.Shifts.Where(s => s.Stop == null).Count() == 0)
             {
-                fptr.openShift();
-                fptr.checkDocumentClosed();
                 var shift = new Shift { Uuid=Guid.NewGuid(), Start = DateTime.Now, ShopId=idShop };
                 db.Shifts.Add(shift);
                 db.SaveChanges();
@@ -153,11 +153,10 @@ namespace OnlineCashRmk
                 buttonShift.Text = "Закрыть смену";
                 labelStatusShift.Text = "Открыта";
                 labelStatusShift.BackColor = Color.LightGreen;
+                _cashService.OpenShift();
             }
             else
             {
-                fptr.setParam(Constants.LIBFPTR_PARAM_REPORT_TYPE, Constants.LIBFPTR_RT_CLOSE_SHIFT);
-                fptr.report();
                 var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
                 shift.Stop = DateTime.Now;
                 var checklist = db.CheckSells.Where(c=>c.ShiftId==shift.Id).ToList();
@@ -172,6 +171,7 @@ namespace OnlineCashRmk
                 buttonShift.Text = "Открыть смену";
                 labelStatusShift.Text = "Закрыта";
                 labelStatusShift.BackColor = Color.LightPink;
+                _cashService.CloseShift();
                 //Вывод итогов смены
                 MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
             }
@@ -179,8 +179,7 @@ namespace OnlineCashRmk
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            fptr.showProperties(Constants.LIBFPTR_GUI_PARENT_NATIVE, this.Handle);
-            fptr.open();
+            Task.Delay(TimeSpan.FromSeconds(1.5)).Wait();
             var shiftOpen = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shiftOpen != null)
             {
@@ -462,36 +461,7 @@ namespace OnlineCashRmk
             else
             if (checkGoods.Count > 0)
             {
-                //Открытие чека
-                fptr.setParam(1021, cashierName);
-                fptr.setParam(1203, cashierInn);
-                fptr.operatorLogin();
-                fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL);
-                fptr.openReceipt();
-                //Регистрация позиций
-                foreach (var check in checkGoods)
-                {
-                    string goodname = check.Good.Name;
-                    double price = (double)check.Cost;
-                    double count = check.Count;
-                    fptr.setParam(Constants.LIBFPTR_PARAM_COMMODITY_NAME, goodname);
-                    fptr.setParam(Constants.LIBFPTR_PARAM_PRICE, price);
-                    fptr.setParam(Constants.LIBFPTR_PARAM_QUANTITY, count);
-                    fptr.setParam(Constants.LIBFPTR_PARAM_TAX_TYPE, Constants.LIBFPTR_TAX_NO);
-                    fptr.registration();
-                };
                 double sumAll = (double)checkGoods.Sum(c => c.Sum);
-                //Оплата чека
-                if (isElectron)
-                    fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_ELECTRONICALLY);
-                else
-                    fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_CASH);
-                fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, sumAll);
-                fptr.payment();
-                //Итог чека
-                fptr.setParam(Constants.LIBFPTR_PARAM_SUM, sumAll);
-                fptr.receiptTotal();
-                fptr.closeReceipt();
                 CheckSell checkSell = new CheckSell
                 {
                     IsElectron = isElectron,
@@ -519,6 +489,7 @@ namespace OnlineCashRmk
                 db.SaveChanges();
                 checkGoods.Clear();
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+                _cashService.RegisterCheckSell(db.CheckSells.Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());
             }
         }
 

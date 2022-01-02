@@ -17,6 +17,7 @@ namespace OnlineCashRmk.Models
         public decimal SumAll { get; set; }
         [JsonPropertyName("Goods")]
         public List<CheckGood> CheckGoods { get; set; } = new List<CheckGood>();
+        public List<CheckPayment> CheckPayments { get; set; } = new List<CheckPayment>();
         public int ShiftId { get; set; }
         [JsonIgnore]
         public Shift Shift { get; set; }
