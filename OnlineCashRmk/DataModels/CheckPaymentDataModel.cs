@@ -7,7 +7,7 @@ using OnlineCashRmk.Models;
 
 namespace OnlineCashRmk.DataModels
 {
-    class CheckPaymentDataModel
+    public class CheckPaymentDataModel
     {
         public TypePayment TypePayment { get; set; }
         public string TypePaymentStr

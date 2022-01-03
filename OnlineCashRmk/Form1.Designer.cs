@@ -69,8 +69,8 @@ namespace OnlineCashRmk
             this.списанияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.историяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.приходыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.findTextBox = new System.Windows.Forms.TextBox();
             this.инверторизацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.findTextBox = new System.Windows.Forms.TextBox();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -201,11 +201,12 @@ namespace OnlineCashRmk
             // 
             // button7
             // 
-            this.button7.Location = new System.Drawing.Point(9, 381);
+            this.button7.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.button7.Location = new System.Drawing.Point(9, 324);
             this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(132, 30);
+            this.button7.Size = new System.Drawing.Size(132, 61);
             this.button7.TabIndex = 4;
-            this.button7.Text = "button7";
+            this.button7.Text = "Сложная оплата\r\nF8";
             this.button7.UseVisualStyleBackColor = true;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
@@ -259,9 +260,9 @@ namespace OnlineCashRmk
             // 
             this.button6.Image = global::OnlineCashRmk.Properties.Resources.purchasing_64;
             this.button6.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button6.Location = new System.Drawing.Point(9, 337);
+            this.button6.Location = new System.Drawing.Point(9, 391);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(132, 38);
+            this.button6.Size = new System.Drawing.Size(132, 20);
             this.button6.TabIndex = 0;
             this.button6.Text = "Кредит\r\nF7   ";
             this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -468,23 +469,30 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // приходыToolStripMenuItem
             // 
             this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
-            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.приходыToolStripMenuItem.Text = "Приходы";
             this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
+            // 
+            // инверторизацияToolStripMenuItem
+            // 
+            this.инверторизацияToolStripMenuItem.Name = "инверторизацияToolStripMenuItem";
+            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.инверторизацияToolStripMenuItem.Text = "Инверторизация";
+            this.инверторизацияToolStripMenuItem.Click += new System.EventHandler(this.инверторизацияToolStripMenuItem_Click);
             // 
             // findTextBox
             // 
@@ -496,13 +504,6 @@ namespace OnlineCashRmk
             this.findTextBox.TabIndex = 0;
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
-            // 
-            // инверторизацияToolStripMenuItem
-            // 
-            this.инверторизацияToolStripMenuItem.Name = "инверторизацияToolStripMenuItem";
-            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.инверторизацияToolStripMenuItem.Text = "Инверторизация";
-            this.инверторизацияToolStripMenuItem.Click += new System.EventHandler(this.инверторизацияToolStripMenuItem_Click);
             // 
             // Form1
             // 

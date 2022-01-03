@@ -56,25 +56,37 @@ namespace OnlineCashRmk.Services
                 decimal price = check.Cost;
                 decimal count = (decimal)check.Count;
                 decimal sum = Math.Ceiling(price * count);
-                sumAll += sum;
+                //sumAll += sum;
                 if (sum - price * count > 0)
-                    count = sum/price;
+                    count = Math.Round(sum/price,3);
                 fptr.setParam(Constants.LIBFPTR_PARAM_COMMODITY_NAME, goodname);
                 fptr.setParam(Constants.LIBFPTR_PARAM_PRICE, (double)price);
                 fptr.setParam(Constants.LIBFPTR_PARAM_QUANTITY, (double)count);
                 fptr.setParam(Constants.LIBFPTR_PARAM_TAX_TYPE, Constants.LIBFPTR_TAX_NO);
                 fptr.registration();
+                sumAll += count * price;
             };
+            //Итог чека
+            fptr.setParam(Constants.LIBFPTR_PARAM_SUM, (double)sumAll);
+            fptr.receiptTotal();
             //Оплата чека
-            if (checkSell.IsElectron)
+            /*
+            if (true)
                 fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_ELECTRONICALLY);
             else
                 fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, Constants.LIBFPTR_PT_CASH);
-            fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, (double)Math.Ceiling(sumAll));
+            fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, (double) sumAll);
             fptr.payment();
-            //Итог чека
-            fptr.setParam(Constants.LIBFPTR_PARAM_SUM,  (double)Math.Ceiling(sumAll));
-            fptr.receiptTotal();
+            */
+            foreach (var payment in checkSell.CheckPayments.OrderBy(p=>p.TypePayment))
+            {
+                fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_SUM, (double)payment.Sum);
+                fptr.setParam(Constants.LIBFPTR_PARAM_PAYMENT_TYPE, payment.TypePayment==TypePayment.Electron? Constants.LIBFPTR_PT_ELECTRONICALLY : Constants.LIBFPTR_PT_CASH);
+
+
+                fptr.payment();
+
+            }
             fptr.closeReceipt();
         }
     }

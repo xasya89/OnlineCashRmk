@@ -18,6 +18,8 @@ namespace OnlineCashRmk.Models
         {
             get => TypePayment.GetDisplay();
         }
+        public decimal Income { get; set; }
         public decimal Sum { get; set; }
+        public decimal Retturn { get; set; }
     }
 }

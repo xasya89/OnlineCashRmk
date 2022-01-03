@@ -20,6 +20,6 @@ namespace OnlineCashRmk.Models
                 Cost = Cost - Cost * discount / 100;
             }
         }
-        public decimal Sum { get => Math.Ceiling((decimal)Count * Cost); }
+        public decimal Sum { get => Math.Round( (decimal)Count * Cost,2, MidpointRounding.AwayFromZero); }
     }
 }

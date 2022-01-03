@@ -10,8 +10,8 @@ namespace OnlineCashRmk.Models
     public enum TypePayment
     {
         [Display(Name = "Электронные")]
-        Electron,
+        Electron=0,
         [Display(Name = "Наличные")]
-        Cash
+        Cash=1
     }
 }

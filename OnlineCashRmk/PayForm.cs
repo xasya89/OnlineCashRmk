@@ -75,19 +75,28 @@ namespace OnlineCashRmk
             };
         }
 
-        public DialogResult Pay(CheckSell checkSell)
+        public List<CheckPaymentDataModel> Pay(decimal sum)
         {
-            _checkSell = checkSell;
-            _checkSell.SumAll = _checkSell.Sum;
+            _checkSell = new CheckSell();
+            _checkSell.Sum = sum;
+            _checkSell.SumAll = sum;
             bindingCheckSell.DataSource = _checkSell;
             bindingCheckSell.ResetBindings(false);
-            return ShowDialog();
+            if (ShowDialog() != DialogResult.OK)
+                throw new Exception("Отмена операции");
+            var payments = new List<CheckPaymentDataModel>();
+            foreach (var pay in CheckPayments)
+                payments.Add(pay);
+            return payments;
         }
 
         private void textBox1_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
-                DialogResult = DialogResult.OK;
+            {
+                if(_checkSell.SumAll==CheckPayments.Sum(c=>c.Sum))
+                    DialogResult = DialogResult.OK;
+            }
             if (e.KeyCode == Keys.Escape)
                 DialogResult = DialogResult.Cancel;
             if (e.KeyCode == Keys.F6)
@@ -153,6 +162,12 @@ namespace OnlineCashRmk
 
         private void dataGridViewPayments_CurrentCellChanged(object sender, EventArgs e)
         {
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (_checkSell.SumAll == CheckPayments.Sum(c => c.Sum))
+                DialogResult = DialogResult.OK;
         }
     }
 }

@@ -29,6 +29,7 @@ using Microsoft.Extensions.Logging;
 using OnlineCashRmk.Services;
 using System.Globalization;
 using System.IO.Ports;
+using OnlineCashRmk.DataModels;
 
 namespace OnlineCashRmk
 {
@@ -121,7 +122,7 @@ namespace OnlineCashRmk
             checkGoods.CollectionChanged += (s, e) =>
             {
                 bindingCheckGoods.ResetBindings(false);
-                labelSumAll.Text = checkGoods.Sum(c => c.Sum ).ToString();
+                labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => c.Sum )).ToString();
             };
             bindingCheckGoods.DataSource = checkGoods;
             dataGridView1.AutoGenerateColumns = false;
@@ -337,11 +338,11 @@ namespace OnlineCashRmk
                 }
             if(e.Control & e.KeyCode==Keys.F4)
                 FindGood();
-                //Наличная оплата
+            //Наличная оплата
             if (e.KeyCode == Keys.F5)
-                CheckPrint(false);
+                button1_Click_1(null, null);
             if (e.KeyCode == Keys.F6)
-                CheckPrint(true);
+                button2_Click_1(null, null);
             //Пакет
             if (e.KeyCode == Keys.F8)
                 btnAddPackage_Click(null, null);
@@ -366,10 +367,7 @@ namespace OnlineCashRmk
                 {
                     FormEditCount frCountEdit = new FormEditCount();
                     if (frCountEdit.ShowDialog() == DialogResult.OK)
-                    {
-                        frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
-                        double.TryParse(frCountEdit.textBoxCount.Text, out count);
-                    }
+                        count = frCountEdit.textBoxCount.Text.ToDouble();
                     else
                         return;
                 }
@@ -396,7 +394,7 @@ namespace OnlineCashRmk
                     else
                         checkgood.Count = count;
                     ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
-                    labelSumAll.Text = Math.Round(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
+                    labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
                 }
             }
         }
@@ -440,20 +438,16 @@ namespace OnlineCashRmk
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-                CheckPrint(false);
+            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
+            if (fr.ShowDialog() != DialogResult.OK)
+                return;
+            
+            CheckPrint(new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Income = fr.SumBuyerTextBox.Text.ToDecimal(), Sum = sumAll, TypePayment = TypePayment.Cash } });
         }
 
-        public void CheckPrint(bool isElectron)
+        public void CheckPrint(List<CheckPaymentDataModel> payments, decimal sumDiscount=0)
         {
-
-            //При наличной оплате вызовем диалог расчета сдачи
-            if (!isElectron)
-            {
-                decimal sumAll = checkGoods.Sum(c => c.Sum);
-                FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
-                if (fr.ShowDialog() != DialogResult.OK)
-                    return;
-            }
 
             var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shift == null)
@@ -461,17 +455,27 @@ namespace OnlineCashRmk
             else
             if (checkGoods.Count > 0)
             {
-                double sumAll = (double)checkGoods.Sum(c => c.Sum);
+                var sumAll = checkGoods.Sum(c => c.Sum);
                 CheckSell checkSell = new CheckSell
                 {
-                    IsElectron = isElectron,
                     DateCreate = DateTime.Now,
                     Shift = shift,
-                    Sum = (decimal)sumAll,
-                    SumDiscont = 0,
-                    SumAll = (decimal)sumAll
+                    Sum = sumAll,
+                    SumDiscont = sumDiscount,
+                    SumAll = sumAll - sumDiscount
                 };
                 db.CheckSells.Add(checkSell);
+
+                foreach (var payment in payments)
+                    db.CheckPayments.Add(new CheckPayment
+                    {
+                        CheckSell=checkSell,
+                        TypePayment=payment.TypePayment,
+                        Income=payment.Income,
+                        Sum=payment.Sum,
+                        Retturn=payment.Income - payment.Sum
+                    });
+
                 var chgoods = new List<CheckGood>();
                 foreach (var chgood in checkGoods)
                 {
@@ -489,13 +493,14 @@ namespace OnlineCashRmk
                 db.SaveChanges();
                 checkGoods.Clear();
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
-                _cashService.RegisterCheckSell(db.CheckSells.Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());
+                _cashService.RegisterCheckSell(db.CheckSells.Include(s=>s.CheckPayments).Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());
             }
         }
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            CheckPrint(true);
+            decimal sumAll = checkGoods.Sum(c => c.Sum);
+            CheckPrint(new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } });
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
@@ -700,7 +705,13 @@ namespace OnlineCashRmk
         private void button7_Click(object sender, EventArgs e)
         {
             var payForm = serviceProvider.GetRequiredService<PayForm>();
-            MessageBox.Show(payForm.Pay(new CheckSell { Sum=checkGoods.Sum(c=>c.Sum) }).ToString());
+            try
+            {
+                List<CheckPaymentDataModel> checkpayments = payForm.Pay( Math.Ceiling(checkGoods.Sum(c => c.Sum)));
+                CheckPrint(checkpayments);
+            }
+            catch(Exception)
+            { };
         }
 
         /// <summary>

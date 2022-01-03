@@ -259,6 +259,7 @@ namespace OnlineCashRmk
             this.button3.TabIndex = 12;
             this.button3.Text = "Оплатить (Enter)";
             this.button3.UseVisualStyleBackColor = false;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // button4
             // 
@@ -289,7 +290,7 @@ namespace OnlineCashRmk
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "PayForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "PayForm";
+            this.Text = "Сложная оплата";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.panel1.ResumeLayout(false);

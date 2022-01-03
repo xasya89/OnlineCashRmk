@@ -55,6 +55,7 @@ namespace OnlineCashRmk
             this.SumBuyTextBox.ReadOnly = true;
             this.SumBuyTextBox.Size = new System.Drawing.Size(190, 29);
             this.SumBuyTextBox.TabIndex = 10;
+            this.SumBuyTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // SumBuyerTextBox
             // 
@@ -62,6 +63,7 @@ namespace OnlineCashRmk
             this.SumBuyerTextBox.Name = "SumBuyerTextBox";
             this.SumBuyerTextBox.Size = new System.Drawing.Size(190, 29);
             this.SumBuyerTextBox.TabIndex = 1;
+            this.SumBuyerTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.SumBuyerTextBox.TextChanged += new System.EventHandler(this.SumBuyerTextBox_TextChanged);
             // 
             // label2
@@ -81,6 +83,7 @@ namespace OnlineCashRmk
             this.SumCostTextBox.Size = new System.Drawing.Size(190, 29);
             this.SumCostTextBox.TabIndex = 10;
             this.SumCostTextBox.Text = "0";
+            this.SumCostTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // label3
             // 
@@ -112,6 +115,7 @@ namespace OnlineCashRmk
             this.button2.TabIndex = 3;
             this.button2.Text = "Оплатить Enter";
             this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // FormPaymentNoElectron
             // 
@@ -129,7 +133,7 @@ namespace OnlineCashRmk
             this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.KeyPreview = true;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FormPaymentNoElectron";
             this.Text = "FormPaymentNoElectron";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormPaymentNoElectron_KeyDown);
@@ -142,11 +146,11 @@ namespace OnlineCashRmk
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox SumBuyTextBox;
-        private System.Windows.Forms.TextBox SumBuyerTextBox;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox SumCostTextBox;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
+        public System.Windows.Forms.TextBox SumBuyerTextBox;
     }
 }
