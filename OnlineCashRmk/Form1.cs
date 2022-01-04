@@ -446,7 +446,7 @@ namespace OnlineCashRmk
             CheckPrint(new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Income = fr.SumBuyerTextBox.Text.ToDecimal(), Sum = sumAll, TypePayment = TypePayment.Cash } });
         }
 
-        public void CheckPrint(List<CheckPaymentDataModel> payments, decimal sumDiscount=0)
+        public void CheckPrint(List<CheckPaymentDataModel> payments, decimal sumDiscount=0, bool isElectron=false)
         {
 
             var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
@@ -458,6 +458,7 @@ namespace OnlineCashRmk
                 var sumAll = checkGoods.Sum(c => c.Sum);
                 CheckSell checkSell = new CheckSell
                 {
+                    IsElectron=isElectron,
                     DateCreate = DateTime.Now,
                     Shift = shift,
                     Sum = sumAll,
@@ -500,7 +501,10 @@ namespace OnlineCashRmk
         private void button2_Click_1(object sender, EventArgs e)
         {
             decimal sumAll = checkGoods.Sum(c => c.Sum);
-            CheckPrint(new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } });
+            CheckPrint(
+                new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } },
+                isElectron:true
+                );
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
