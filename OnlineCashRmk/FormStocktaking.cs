@@ -13,6 +13,7 @@ using OnlineCashRmk.Models;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Services;
 using System.IO.Ports;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OnlineCashRmk
 {
@@ -20,6 +21,7 @@ namespace OnlineCashRmk
     {
         DataContext _db;
         ISynchService _synchService;
+        IServiceProvider _provider;
         Stocktaking stocktaking;
         ObservableCollection<StocktakingGroup> groups=new ObservableCollection<StocktakingGroup>();
         StocktakingGroup selectedGroup;
@@ -27,6 +29,7 @@ namespace OnlineCashRmk
         BindingSource bindingGroups;
         BindingSource bindingGoods;
 
+        #region Сканер штрих кода
         SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
             var activeform = Form.ActiveForm;
             if (activeform != null && nameof(FormStocktaking) == activeform.Name)
@@ -41,29 +44,51 @@ namespace OnlineCashRmk
             }
         });
         BarCodeScanner _barCodeScanner;
+        #endregion
 
-        public FormStocktaking(DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner)
+        public FormStocktaking(DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner, IServiceProvider provider)
         {
             _db = db;
             _synchService = synchService;
-            stocktaking = db.Stocktakings.Include(s=>s.StocktakingGroups).ThenInclude(gr=>gr.StocktakingGoods).ThenInclude(g=>g.Good).Where(s => s.isSynch == false).FirstOrDefault();
-            if(stocktaking!=null && MessageBox.Show("Продолжить редактировать предыдущую инверторизацию?","",MessageBoxButtons.YesNo,MessageBoxIcon.Warning)==DialogResult.Yes)
-            {
-                foreach (var group in stocktaking.StocktakingGroups)
+            stocktaking = db.Stocktakings.Include(s => s.StocktakingGroups).ThenInclude(gr => gr.StocktakingGoods).ThenInclude(g => g.Good).Where(s => s.isSynch == false).FirstOrDefault();
+            if (stocktaking != null)
+                if (MessageBox.Show($"Продолжить редактировать предыдущую инверторизацию от {stocktaking.Create.ToString("dd.MM.yy")}?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
-                    var stGroup = new StocktakingGroup { Id = group.Id, Name = group.Name };
-                    groups.Add(stGroup);
-                    foreach (var good in group.StocktakingGoods)
-                        stGroup.StocktakingGoods.Add(new StocktakingGood
+                    foreach (var group in stocktaking.StocktakingGroups)
+                    {
+                        var stGroup = new StocktakingGroup { Id = group.Id, Name = group.Name };
+                        groups.Add(stGroup);
+                        foreach (var good in group.StocktakingGoods)
                         {
-                            Id = good.Id,
-                            StocktakingGroupId = good.StocktakingGroupId,
-                            GoodId = good.Id,
-                            Good = good.Good,
-                            CountFact = good.CountFact
-                        });
-                }    
-                    
+                            var stGood = new StocktakingGood
+                            {
+                                Id = good.Id,
+                                StocktakingGroupId = good.StocktakingGroupId,
+                                GoodId = good.GoodId,
+                                Good = good.Good,
+                                CountFact = good.CountFact
+                            };
+                            stGroup.StocktakingGoods.Add(stGood);
+                            stGood.PropertyChanged += (s, e) =>
+                            {
+                                if (e.PropertyName == nameof(StocktakingGood.CountFact))
+                                    bindingGroups.ResetBindings(false);
+                            };
+                        }
+                    }
+                }
+                else
+                {
+                    stocktaking.isSynch = true;
+                    stocktaking = new Stocktaking { Create = DateTime.Now, isSynch = false };
+                    db.Stocktakings.Add(stocktaking);
+                    db.SaveChanges();
+                }
+            if (stocktaking == null)
+            {
+                stocktaking = new Stocktaking { Create = DateTime.Now, isSynch = false };
+                db.Stocktakings.Add(stocktaking);
+                db.SaveChanges();
             }
             InitializeComponent();
 
@@ -75,7 +100,7 @@ namespace OnlineCashRmk
             bindingGroups.DataSource = groups;
             groups.CollectionChanged += (s, e) => { bindingGroups.ResetBindings(false); };
             listBoxGroups.DataSource = bindingGroups;
-            listBoxGroups.DisplayMember = nameof(StocktakingGroup.Name);
+            listBoxGroups.DisplayMember = nameof(StocktakingGroup);
 
             bindingGoods = new BindingSource();
             bindingGoods.DataSource = selectedGroup?.StocktakingGoods;
@@ -87,10 +112,10 @@ namespace OnlineCashRmk
             ColumnPrice.DataPropertyName = nameof(StocktakingGood.Price);
             ColumnSum.DataPropertyName = nameof(StocktakingGood.Sum);
             ColumnCountMoveDoc.DataPropertyName = nameof(StocktakingGood.CountDocMove);
-            
+
             listBoxGroups.SelectedIndexChanged += (s, e) =>
             {
-                if (listBoxGroups.SelectedItem!=null)
+                if (listBoxGroups.SelectedItem != null)
                 {
                     selectedGroup = listBoxGroups.SelectedItem as StocktakingGroup;
                     bindingGoods.DataSource = selectedGroup.StocktakingGoods;
@@ -102,7 +127,12 @@ namespace OnlineCashRmk
             bindingFind.DataSource = findGoods;
             listBoxFind.DataSource = bindingFind;
             listBoxFind.DisplayMember = nameof(Good.Name);
-            findGoods.CollectionChanged += (s, e) =>{ bindingFind.ResetBindings(false); };
+            findGoods.CollectionChanged += (s, e) => { bindingFind.ResetBindings(false); };
+        }
+
+        void LoadStocktaking()
+        {
+
         }
 
         /// <summary>
@@ -112,9 +142,10 @@ namespace OnlineCashRmk
         {
             if (textBoxGroupAdd.Text != "")
             {
-                var newgroup = new StocktakingGroup { Name = textBoxGroupAdd.Text };
-                groups.Add(newgroup);
-                bindingGroups.ResetBindings(false);
+                var newgroup = new StocktakingGroup { StocktakingId=stocktaking.Id, Name = textBoxGroupAdd.Text };
+                _db.StocktakingGroups.Add(newgroup);
+                _db.SaveChanges();
+                groups.Add(new StocktakingGroup { StocktakingId=stocktaking.Id, Id=newgroup.Id, Name=newgroup.Name});
                 selectedGroup = newgroup;
                 bindingGoods.DataSource = newgroup.StocktakingGoods;
                 bindingGoods.ResetBindings(false);
@@ -131,17 +162,30 @@ namespace OnlineCashRmk
             if (fr.ShowDialog() == DialogResult.OK)
             {
                 var stGood = selectedGroup.StocktakingGoods.Where(g => g.Uuid == good.Uuid).FirstOrDefault();
+                var count = fr.textBoxCount.Text.ToDecimal();
                 if (stGood == null)
                 {
-                    selectedGroup.StocktakingGoods.Add(new StocktakingGood { Good = good, CountFactStr = fr.textBoxCount.Text });
+                    var stocktackingGood = new StocktakingGood { StocktakingGroupId=selectedGroup.Id, Good = good, CountFact = count };
+                    _db.StocktakingGoods.Add(stocktackingGood);
+                    _db.SaveChanges();
+                    selectedGroup.StocktakingGoods.Add(stocktackingGood);
+
                     bindingGoods.ResetBindings(false);
                     dataGridViewGoods.FirstDisplayedScrollingRowIndex = selectedGroup.StocktakingGoods.Count - 1;
 
+                    bindingGroups.ResetBindings(false);
                     return;
-                };
+                }
+                else
+                {
+                    var dbGood = _db.StocktakingGoods.Where(s => s.Id == stGood.Id).FirstOrDefault();
+                    dbGood.CountFact = fr.textBoxCount.Text.ToDecimal();
+                    _db.SaveChanges();
+                    stGood.CountFact = fr.textBoxCount.Text.ToDecimal();
+                }
 
 
-                stGood.CountFactStr = fr.textBoxCount.Text;
+                //stGood.CountFactStr = fr.textBoxCount.Text;
                 bindingGoods.ResetBindings(false);
                 int rowSelected = -1;
                 foreach (var stgood in selectedGroup.StocktakingGoods)
@@ -161,9 +205,21 @@ namespace OnlineCashRmk
                 fr.labelGoodName.Text = stGood.GoodName;
                 if(fr.ShowDialog()==DialogResult.OK)
                 {
+                    _db.StocktakingGoods.Where(s => s.Id == stGood.Id).FirstOrDefault().CountFact = fr.textBoxCount.Text.ToDecimal();
+                    _db.SaveChanges();
                     stGood.CountFactStr = fr.textBoxCount.Text;
                     bindingGoods.ResetBindings(false);
+                    bindingGroups.ResetBindings(false);
                 }
+            }
+            if (e.KeyCode == Keys.Delete && dataGridViewGoods.SelectedCells.Count > 0)
+            {
+                var stGood = selectedGroup.StocktakingGoods[dataGridViewGoods.SelectedCells[0].RowIndex];
+                _db.StocktakingGoods.Remove(_db.StocktakingGoods.Where(s => s.Id == stGood.Id).FirstOrDefault());
+                _db.SaveChanges();
+                selectedGroup.StocktakingGoods.Remove(stGood);
+                bindingGoods.ResetBindings(false);
+                bindingGroups.ResetBindings(false);
             }
         }
 
@@ -241,54 +297,14 @@ namespace OnlineCashRmk
         {
         }
 
-        private async Task<bool> Save()
-        {
-            bool result = true;
-            try
-            {
-                if (stocktaking == null)
-                {
-                    stocktaking = new Stocktaking();
-                    _db.Stocktakings.Add(stocktaking);
-                }
-                foreach (var group in groups)
-                {
-                    var groupDb = await _db.StocktakingGroups.Where(gr => gr.Id == group.Id).FirstOrDefaultAsync();
-                    if (groupDb == null)
-                    {
-                        groupDb = new StocktakingGroup { StocktakingId = stocktaking.Id, Name = group.Name };
-                        _db.StocktakingGroups.Add(groupDb);
-                    };
-                    foreach (var good in group.StocktakingGoods)
-                    {
-                        var goodDb = await _db.StocktakingGoods.Where(g => g.Id == good.Id).FirstOrDefaultAsync();
-                        if (goodDb == null)
-                            _db.StocktakingGoods.Add(new StocktakingGood { StocktakingGroupId = groupDb.Id, GoodId = good.Good.Id, CountFact = good.CountFact });
-                        else
-                            goodDb.CountFact = good.CountFact;
-                    }
-                }
-                await _db.SaveChangesAsync();
-            }
-            catch(DbUpdateException dbe)
-            {
-                System.Diagnostics.Debug.WriteLine(dbe.InnerException.Message);
-            }
-            catch (SystemException ex)
-            {
-                result = false;
-            }
-            return result;
-        }
-
         private async void button3_Click(object sender, EventArgs e)
         {
-            await Save();
         }
 
         private async void button2_Click(object sender, EventArgs e)
         {
-            await Save();
+            stocktaking.isSynch = true;
+            _db.SaveChanges();
             _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StockTaking });
         }
 
@@ -296,6 +312,11 @@ namespace OnlineCashRmk
         {
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

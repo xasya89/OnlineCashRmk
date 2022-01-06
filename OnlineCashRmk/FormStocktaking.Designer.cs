@@ -30,8 +30,7 @@ namespace OnlineCashRmk
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.listBoxGroups = new System.Windows.Forms.ListBox();
@@ -62,8 +61,7 @@ namespace OnlineCashRmk
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.button4);
-            this.panel1.Controls.Add(this.button3);
+            this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.button2);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 581);
@@ -71,28 +69,14 @@ namespace OnlineCashRmk
             this.panel1.Size = new System.Drawing.Size(1029, 49);
             this.panel1.TabIndex = 1;
             // 
-            // button4
+            // label3
             // 
-            this.button4.BackColor = System.Drawing.Color.LightPink;
-            this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button4.Location = new System.Drawing.Point(301, 9);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(160, 31);
-            this.button4.TabIndex = 0;
-            this.button4.Text = "Отменить";
-            this.button4.UseVisualStyleBackColor = false;
-            // 
-            // button3
-            // 
-            this.button3.BackColor = System.Drawing.Color.LightGreen;
-            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button3.Location = new System.Drawing.Point(584, 9);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(160, 31);
-            this.button3.TabIndex = 0;
-            this.button3.Text = "Сохранить";
-            this.button3.UseVisualStyleBackColor = false;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 14);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(52, 21);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "label3";
             // 
             // button2
             // 
@@ -102,7 +86,7 @@ namespace OnlineCashRmk
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(255, 31);
             this.button2.TabIndex = 0;
-            this.button2.Text = "Сохранить и отправить";
+            this.button2.Text = "Отправить";
             this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -157,7 +141,7 @@ namespace OnlineCashRmk
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(153, 34);
             this.button1.TabIndex = 2;
-            this.button1.Text = "Добавить (Enter)";
+            this.button1.Text = "Добавить";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -297,6 +281,7 @@ namespace OnlineCashRmk
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormStocktaking_FormClosed);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormStocktaking_KeyDown);
             this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -330,8 +315,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ListBox listBoxFind;
         private System.Windows.Forms.TextBox textBoxFind;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label3;
     }
 }

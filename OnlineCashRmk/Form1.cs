@@ -55,6 +55,9 @@ namespace OnlineCashRmk
         string cashierName = "";
         string cashierInn = "";
 
+        public delegate void SellNotifyHandler(List<CheckGood> Goods);
+        public event SellNotifyHandler SellNotify;
+
         SerialDataReceivedEventHandler serialDataReceivedEventHandler=  new SerialDataReceivedEventHandler(async (s, e) => {
             var activeform = Form.ActiveForm;
             if (activeform!=null && nameof(Form1) == activeform.Name)
@@ -488,10 +491,12 @@ namespace OnlineCashRmk
                         Cost = chgood.Cost
                     };
                     db.CheckGoods.Add(check);
+                    chgoods.Add(check);
                 };
                 db.SaveChanges();
                 db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
                 db.SaveChanges();
+                SellNotify?.Invoke(chgoods);
                 checkGoods.Clear();
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
                 _cashService.RegisterCheckSell(db.CheckSells.Include(s=>s.CheckPayments).Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());

@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using System.Globalization;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace OnlineCashRmk.Models
 {
-    public class StocktakingGood
+    public class StocktakingGood: INotifyPropertyChanged
     {
         public int Id { get; set; }
         public int StocktakingGroupId { get; set; }
@@ -24,9 +26,15 @@ namespace OnlineCashRmk.Models
             get => CountFact?.ToString();
             set
             {
-                decimal countFact = -1;
-                decimal.TryParse(value?.Replace(",","."), NumberStyles.Any, CultureInfo.InvariantCulture, out countFact);
-                CountFact = countFact == -1 ? null : countFact;
+                try
+                {
+                    CountFact = value.ToDecimal();
+                }
+                catch (NotFiniteNumberException)
+                {
+                    CountFact = null;
+                }
+                OnPropertyChanged(nameof(CountFact));
             }
         }
         public decimal? CountFact { get; set; }
@@ -36,5 +44,12 @@ namespace OnlineCashRmk.Models
         public decimal? Sum { get => Price * CountFact; }
         [JsonIgnore]
         public decimal? CountDocMove { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        }
     }
 }
