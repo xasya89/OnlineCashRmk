@@ -306,6 +306,7 @@ namespace OnlineCashRmk
             stocktaking.isSynch = true;
             _db.SaveChanges();
             _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StockTaking });
+            Close();
         }
 
         private void FormStocktaking_FormClosed(object sender, FormClosedEventArgs e)
