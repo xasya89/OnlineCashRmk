@@ -140,6 +140,12 @@ namespace OnlineCashRmk.Services
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
                                     break;
+                                case TypeDocs.CashMoney:
+                                    await SendCashMoney(doc.DocId);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
                             }
 
                         await GetBuyersAsync();
@@ -251,6 +257,14 @@ namespace OnlineCashRmk.Services
             catch (FlurlHttpException ex)
             {
             }
+        }
+
+        public async Task SendCashMoney(int docId)
+        {
+            var cashMoney = db.CashMoneys.Where(c => c.Id == docId).FirstOrDefault();
+            if (cashMoney == null)
+                throw new Exception("Не найден документ cashMoney");
+            await $"{serverurl}/api/onlinecash/CashMoneys/{shopId}".PostJsonAsync(cashMoney);
         }
     }
 

@@ -6,15 +6,9 @@ using System.Threading.Tasks;
 
 namespace OnlineCashRmk.Models
 {
-    public enum TypeDocs
+    public enum TypeCashMoneyOpertaion
     {
-        OpenShift,
-        Buy,
-        Return,
-        CloseShift,
-        WriteOf,
-        Arrival,
-        StockTaking,
-        CashMoney
+        Income=0,
+        Outcome=1
     }
 }

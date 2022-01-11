@@ -32,7 +32,8 @@ namespace OnlineCashRmk
                 .AddTransient<PayForm>()
                 .AddTransient<FormWriteOf>()
                 .AddTransient<FormArrival>()
-                .AddTransient<FormStocktaking>();
+                .AddTransient<FormStocktaking>()
+                .AddTransient<FormCashMoney>();
         }
     }
 }

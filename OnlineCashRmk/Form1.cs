@@ -752,5 +752,17 @@ namespace OnlineCashRmk
             var fr = serviceProvider.GetRequiredService<FormStocktaking>();
             fr.Show();
         }
+
+        private void выдачаДенегToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var fr = serviceProvider.GetRequiredService<FormCashMoney>();
+            fr.Open(TypeCashMoneyOpertaion.Outcome);
+        }
+
+        private void внесениеДенегToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var fr = serviceProvider.GetRequiredService<FormCashMoney>();
+            fr.Open(TypeCashMoneyOpertaion.Income);
+        }
     }
 }

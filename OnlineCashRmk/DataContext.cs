@@ -36,6 +36,8 @@ namespace OnlineCashRmk
         public DbSet<StocktakingGroup> StocktakingGroups { get; set; }
         public DbSet<StocktakingGood> StocktakingGoods { get; set; }
 
+        public DbSet<CashMoney> CashMoneys { get; set; }
+
         public DataContext() 
         {
         }
