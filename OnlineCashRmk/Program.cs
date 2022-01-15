@@ -1,10 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Serilog.Events;
 
 namespace OnlineCashRmk
 {
@@ -16,16 +21,21 @@ namespace OnlineCashRmk
         [STAThread]
         static void Main()
         {
-            if(InstanceCheck())
+            if (InstanceCheck())
             {
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 //Application.Run(new Form1());
+
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+                    .WriteTo.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Hour).CreateLogger();
+
                 var services = new ServiceCollection();
 
                 ConfigureServices.ConfigureService(services);
-                using(ServiceProvider provider = services.BuildServiceProvider())
+                using (ServiceProvider provider = services.BuildServiceProvider())
                 {
                     var form1 = provider.GetRequiredService<Form1>();
                     provider.GetRequiredService<Services.ISynchBackgroundService>();

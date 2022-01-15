@@ -9,6 +9,8 @@ namespace OnlineCashRmk.Services
 {
     public interface ICashRegisterService
     {
+        public void Close();
+        public bool IsOpen();
         public void OpenShift();
         public void CloseShift();
         public void RegisterCheckSell(CheckSell checkSell);

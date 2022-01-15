@@ -72,7 +72,10 @@ namespace OnlineCashRmk
                             stGood.PropertyChanged += (s, e) =>
                             {
                                 if (e.PropertyName == nameof(StocktakingGood.CountFact))
+                                {
                                     bindingGroups.ResetBindings(false);
+                                    label3.Text = groups.Sum(gr => gr.Sum).ToString();
+                                }
                             };
                         }
                     }
@@ -98,7 +101,7 @@ namespace OnlineCashRmk
 
             bindingGroups = new BindingSource();
             bindingGroups.DataSource = groups;
-            groups.CollectionChanged += (s, e) => { bindingGroups.ResetBindings(false); };
+            groups.CollectionChanged += (s, e) => { bindingGroups.ResetBindings(false); label3.Text = groups.Sum(gr => gr.Sum).ToString(); };
             listBoxGroups.DataSource = bindingGroups;
             listBoxGroups.DisplayMember = nameof(StocktakingGroup);
 
@@ -128,6 +131,8 @@ namespace OnlineCashRmk
             listBoxFind.DataSource = bindingFind;
             listBoxFind.DisplayMember = nameof(Good.Name);
             findGoods.CollectionChanged += (s, e) => { bindingFind.ResetBindings(false); };
+
+            label3.Text = groups.Sum(gr => gr.Sum).ToString();
         }
 
         void LoadStocktaking()
@@ -163,6 +168,18 @@ namespace OnlineCashRmk
             {
                 var stGood = selectedGroup.StocktakingGoods.Where(g => g.Uuid == good.Uuid).FirstOrDefault();
                 var count = fr.textBoxCount.Text.ToDecimal();
+                var stocktackingGood = new StocktakingGood { StocktakingGroupId = selectedGroup.Id, Good = good, CountFact = count };
+                _db.StocktakingGoods.Add(stocktackingGood);
+                _db.SaveChanges();
+                selectedGroup.StocktakingGoods.Add(stocktackingGood);
+
+                bindingGoods.ResetBindings(false);
+                dataGridViewGoods.FirstDisplayedScrollingRowIndex = selectedGroup.StocktakingGoods.Count - 1;
+
+                bindingGroups.ResetBindings(false);
+                label3.Text = groups.Sum(gr => gr.Sum).ToString();
+                return;
+                /*
                 if (stGood == null)
                 {
                     var stocktackingGood = new StocktakingGood { StocktakingGroupId=selectedGroup.Id, Good = good, CountFact = count };
@@ -183,7 +200,7 @@ namespace OnlineCashRmk
                     _db.SaveChanges();
                     stGood.CountFact = fr.textBoxCount.Text.ToDecimal();
                 }
-
+                */
 
                 //stGood.CountFactStr = fr.textBoxCount.Text;
                 bindingGoods.ResetBindings(false);
@@ -210,6 +227,7 @@ namespace OnlineCashRmk
                     stGood.CountFactStr = fr.textBoxCount.Text;
                     bindingGoods.ResetBindings(false);
                     bindingGroups.ResetBindings(false);
+                    label3.Text = groups.Sum(gr => gr.Sum).ToString();
                 }
             }
             if (e.KeyCode == Keys.Delete && dataGridViewGoods.SelectedCells.Count > 0)
@@ -220,6 +238,7 @@ namespace OnlineCashRmk
                 selectedGroup.StocktakingGoods.Remove(stGood);
                 bindingGoods.ResetBindings(false);
                 bindingGroups.ResetBindings(false);
+                label3.Text = groups.Sum(gr => gr.Sum).ToString();
             }
         }
 
@@ -255,12 +274,14 @@ namespace OnlineCashRmk
             if (textBoxFind.Text != "")
                 switch (e.KeyCode)
                 {
+                    case Keys.Back:
+                        textBoxFind.Text = "";
+                        findGoods.Clear();
+                        break;
                     case Keys.Enter:
                         var good = (Good)listBoxFind.SelectedItem;
                         if (good != null)
                             AddGood(good);
-                        textBoxFind.Text = "";
-                        findGoods.Clear();
                         break;
                     case Keys.Down:
                         int cursor = listBoxFind.SelectedIndex;
@@ -287,8 +308,6 @@ namespace OnlineCashRmk
             {
                 var good = (Good)listBoxFind.SelectedItem;
                 AddGood(good);
-                findGoods.Clear();
-                textBoxFind.Text = "";
             }
         }
         #endregion

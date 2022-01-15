@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Atol.Drivers10.Fptr;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace OnlineCashRmk.Services
 {
@@ -14,13 +17,19 @@ namespace OnlineCashRmk.Services
         string cashierName;
         string cashierInn;
         Fptr fptr;
-        public AtolService(IConfiguration configuration)
+        ILogger<AtolService> _logger;
+        public AtolService(IConfiguration configuration, ILogger<AtolService> logger)
         {
+            _logger = logger;
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
             fptr = new Fptr();
             fptr.open();
         }
+
+        public bool IsOpen() => fptr.isOpened();
+
+        public void Close() => fptr.close();
 
         public void CloseShift()
         {
@@ -88,6 +97,33 @@ namespace OnlineCashRmk.Services
 
             }
             fptr.closeReceipt();
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            };
+            //Проверка чека
+            if (!fptr.getParamBool(Constants.LIBFPTR_PARAM_DOCUMENT_CLOSED))
+            {
+                // Документ не закрылся. Требуется его отменить (если это чек) и сформировать заново
+                fptr.cancelReceipt();
+                _logger.LogError("Документ не закрылся. Требуется его отменить (если это чек) и сформировать заново\n"+ JsonSerializer.Serialize(checkSell, options));
+                return;
+            }
+
+            if (!fptr.getParamBool(Constants.LIBFPTR_PARAM_DOCUMENT_PRINTED))
+            {
+                // Можно сразу вызвать метод допечатывания документа, он завершится с ошибкой, если это невозможно
+                while (fptr.continuePrint() < 0)
+                {
+                    // Если не удалось допечатать документ - показать пользователю ошибку и попробовать еще раз.
+                    _logger.LogError(String.Format("Не удалось напечатать документ (Ошибка \"{0}\"). Устраните неполадку и повторите.\n{1}",
+                        fptr.errorDescription(),
+                        JsonSerializer.Serialize(checkSell,options)
+                        )); 
+                    continue;
+                }
+            }
         }
     }
 }

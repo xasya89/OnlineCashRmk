@@ -39,6 +39,7 @@ namespace OnlineCashRmk
         ISynchService synchService;
         ICashRegisterService _cashService;
         DataContext db;
+        ILogger<Form1> _logger;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         int saleSelected = 1;
         Dictionary<int, List<CheckGoodModel>> saleCheckGoods = new Dictionary<int, List<CheckGoodModel>>()
@@ -74,77 +75,103 @@ namespace OnlineCashRmk
 
         public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner, ICashRegisterService cashService)
         {
-            _cashService = cashService;
-            this.serviceProvider = serviceProvider;
-            this.db = db;
-            this.synchService = synchService;
-            var builder = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(AppContext.BaseDirectory))
-            .AddJsonFile("appsettings.json", optional: true);
-            configuration = builder.Build();
-            serverName = configuration.GetSection("serverName").Value;
-            idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
-            cashierName = configuration.GetSection("cashierName").Value;
-            cashierInn = configuration.GetSection("cashierInn").Value;
-            Guid uuidGoodPackage = Guid.Empty;
-            //DataContext db = new DataContext();
-            Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
-            if (uuidGoodPackage != Guid.Empty)
-                goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
-            InitializeComponent();
-
-            if(barCodeScanner.port!=null)
-                barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
-
-            if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
+            try
             {
-                btnDiscount.Visible = true;
-                ColumnDiscount.Visible = true;
+                _cashService = cashService;
+                this.serviceProvider = serviceProvider;
+                this.db = db;
+                _logger = logger;
+                this.synchService = synchService;
+                var builder = new ConfigurationBuilder()
+                .SetBasePath(Path.Combine(AppContext.BaseDirectory))
+                .AddJsonFile("appsettings.json", optional: true);
+                configuration = builder.Build();
+                serverName = configuration.GetSection("serverName").Value;
+                idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
+                cashierName = configuration.GetSection("cashierName").Value;
+                cashierInn = configuration.GetSection("cashierInn").Value;
+                Guid uuidGoodPackage = Guid.Empty;
+                //DataContext db = new DataContext();
+                Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
+                if (uuidGoodPackage != Guid.Empty)
+                    goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage).FirstOrDefault();
+                InitializeComponent();
+
+                if (barCodeScanner.port != null)
+                {
+                    barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
+                    if (barCodeScanner.port.IsOpen)
+                        toolStripStatusLabelScannerIsOpen.BackColor = Color.LightGreen;
+                    else
+                    {
+                        _logger.LogError("Barcode scanner port is not openned");
+                        toolStripStatusLabelScannerIsOpen.BackColor = Color.Red;
+                    }
+                        
+                };
+                GetFiscalRegisterState();
+
+                if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
+                {
+                    btnDiscount.Visible = true;
+                    ColumnDiscount.Visible = true;
+                }
+                else
+                {
+                    btnDiscount.Visible = false;
+                    ColumnDiscount.Visible = false;
+                }
+                if (goodPackcage == null)
+                    btnAddPackage.Visible = false;
+                dataGridView1.Select();
+                foreach (Panel p in new Panel[] { panel2, panel3 })
+                    foreach (Control c in p.Controls)
+                        if (c is Button && c.Name != button4.Name)
+                            c.Click += (sender, e) => { dataGridView1.Focus(); dataGridView1.Select(); };
+                BindingSource binding = new BindingSource();
+                findGoods.CollectionChanged += (sender, e) =>
+                {
+                    binding.ResetBindings(false);
+                };
+                binding.DataSource = findGoods;
+                findListBox.DataSource = binding;
+                findListBox.DisplayMember = nameof(Good.Name);
+                BindingSource bindingCheckGoods = new BindingSource();
+                checkGoods.CollectionChanged += (s, e) =>
+                {
+                    bindingCheckGoods.ResetBindings(false);
+                    labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => c.Sum)).ToString();
+                };
+                bindingCheckGoods.DataSource = checkGoods;
+                dataGridView1.AutoGenerateColumns = false;
+                dataGridView1.DataSource = bindingCheckGoods;
+                ColumnId.DataPropertyName = nameof(CheckGoodModel.GoodId);
+                ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
+                ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
+                ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
+                ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
+                ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
+                ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
             }
+            catch(Exception ex)
+            {
+                logger.LogError("Form 1 error init \n"+ ex.StackTrace+"\n"+ ex.Message);
+                Close();
+            }
+        }
+
+        void GetFiscalRegisterState()
+        {
+            if (_cashService.IsOpen())
+                toolStripStatusLabelCashRegisterState.BackColor = Color.LightGreen;
             else
-            {
-                btnDiscount.Visible = false;
-                ColumnDiscount.Visible = false;
-            }
-            if (goodPackcage == null)
-                btnAddPackage.Visible = false;
-            dataGridView1.Select();
-            foreach (Panel p in new Panel[] { panel2, panel3 })
-                foreach (Control c in p.Controls)
-                    if (c is Button && c.Name != button4.Name)
-                        c.Click += (sender, e) => { dataGridView1.Focus(); dataGridView1.Select(); };
-            BindingSource binding = new BindingSource();
-            findGoods.CollectionChanged += (sender, e) =>
-            {
-                binding.ResetBindings(false);
-            };
-            binding.DataSource = findGoods;
-            findListBox.DataSource = binding;
-            findListBox.DisplayMember = nameof(Good.Name);
-            BindingSource bindingCheckGoods = new BindingSource();
-            checkGoods.CollectionChanged += (s, e) =>
-            {
-                bindingCheckGoods.ResetBindings(false);
-                labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => c.Sum )).ToString();
-            };
-            bindingCheckGoods.DataSource = checkGoods;
-            dataGridView1.AutoGenerateColumns = false;
-            dataGridView1.DataSource = bindingCheckGoods;
-            ColumnId.DataPropertyName = nameof(CheckGoodModel.GoodId);
-            ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
-            ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
-            ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
-            ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
-            ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
-            ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
+                toolStripStatusLabelCashRegisterState.BackColor = Color.Red;
         }
 
         private void FindGoods_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             throw new NotImplementedException();
         }
-
-        Fptr fptr=new Fptr();
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -202,7 +229,7 @@ namespace OnlineCashRmk
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            fptr.close();
+            _cashService.Close();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -500,6 +527,7 @@ namespace OnlineCashRmk
                 checkGoods.Clear();
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
                 _cashService.RegisterCheckSell(db.CheckSells.Include(s=>s.CheckPayments).Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());
+                GetFiscalRegisterState();
             }
         }
 

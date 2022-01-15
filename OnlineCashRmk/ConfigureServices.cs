@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using OnlineCashRmk.Services;
 using System.IO;
+using Serilog;
+using Serilog.Configuration;
 
 namespace OnlineCashRmk
 {
@@ -22,7 +24,7 @@ namespace OnlineCashRmk
             services.AddDbContext<DataContext>()
                 .AddSingleton<BarCodeScanner>()
                 .AddSingleton<ICashRegisterService, AtolService>()
-                .AddLogging(configure => configure.AddConsole())
+                .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
                 .AddScoped<ISynchService, SynchService>()
                 .AddSingleton<ISynchBackgroundService, SynchBackgroundService>()
                 .AddSingleton<SynchBuyersService>()
@@ -34,6 +36,7 @@ namespace OnlineCashRmk
                 .AddTransient<FormArrival>()
                 .AddTransient<FormStocktaking>()
                 .AddTransient<FormCashMoney>();
+            
         }
     }
 }
