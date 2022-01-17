@@ -396,6 +396,8 @@ namespace OnlineCashRmk
                 if (good.Unit != Units.PCE & good.SpecialType!=SpecialTypes.Beer)
                 {
                     FormEditCount frCountEdit = new FormEditCount();
+                    frCountEdit.textBoxCount.Text = "0,";
+                    frCountEdit.textBoxCount.SelectionStart = "0,".Length;
                     if (frCountEdit.ShowDialog() == DialogResult.OK)
                         count = frCountEdit.textBoxCount.Text.ToDouble();
                     else

@@ -24,5 +24,11 @@ namespace OnlineCashRmk
                 throw new NotFiniteNumberException("Ошибка преобразования строки в decimal");
             return dec;
         }
+
+        public static string ToSellFormat(this decimal val)
+            => String.Format("{0:0.00}", val);
+
+        public static string ToCountFormat(this decimal val)
+            => String.Format("{0:0.000}", val);
     }
 }

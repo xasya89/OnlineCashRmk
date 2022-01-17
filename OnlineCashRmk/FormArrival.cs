@@ -45,6 +45,7 @@ namespace OnlineCashRmk
             this.synch = synch;
             this.db = db;
             InitializeComponent();
+            CalcSumAll();
 
             _barCodeScanner = barCodeScanner;
             if (_barCodeScanner.port != null)
@@ -67,6 +68,7 @@ namespace OnlineCashRmk
             ArrivalPositions.CollectionChanged += (s, e) =>
             {
                 positionBinding.ResetBindings(false);
+                CalcSumAll();
             };
             positionBinding.DataSource = ArrivalPositions;
             dataGridViewPositions.AutoGenerateColumns = false;
@@ -78,6 +80,8 @@ namespace OnlineCashRmk
             Column_PricePercent.DataPropertyName = nameof(ArrivalPositionDataModel.PricePercent);
             Column_Count.DataPropertyName = nameof(ArrivalPositionDataModel.Count);
             Column_SumArrival.DataPropertyName = nameof(ArrivalPositionDataModel.SumArrival);
+            Column_NdsPercent.DataPropertyName = nameof(ArrivalPositionDataModel.NdsPercent);
+            Column_SumNds.DataPropertyName = nameof(ArrivalPositionDataModel.SumNdsStr);
             Column_SumSell.DataPropertyName = nameof(ArrivalPositionDataModel.SumSell);
             BindingSource binding = new BindingSource();
             findGoods.CollectionChanged += (sender, e) =>
@@ -105,8 +109,14 @@ namespace OnlineCashRmk
 
         void AddGood(Good good, decimal count = 1)
         {
-            if (good != null && ArrivalPositions.FirstOrDefault(p=>p.GoodId==good.Id)==null)
-                ArrivalPositions.Add(new ArrivalPositionDataModel { GoodId = good.Id, GoodName = good.Name, Unit=good.Unit, Count = count, PriceSell = good.Price });
+            if (good != null /*&& ArrivalPositions.FirstOrDefault(p => p.GoodId == good.Id) == null*/)
+            {
+                var newArrival = new ArrivalPositionDataModel { GoodId = good.Id, GoodName = good.Name, Unit = good.Unit, Count = count, PriceSell = good.Price };
+                ArrivalPositions.Add(newArrival);
+                newArrival.PropertyChanged += (s, e) => CalcSumAll();
+                dataGridViewPositions.FirstDisplayedScrollingRowIndex = ArrivalPositions.Count - 1;
+            }
+                
         }
 
         private void findTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -264,6 +274,13 @@ namespace OnlineCashRmk
         {
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
+        }
+
+        void CalcSumAll()
+        {
+            labelSumNds.Text = ArrivalPositions.Sum(a => a.SumNds).ToSellFormat();
+            labelSumArrival.Text = ArrivalPositions.Sum(a => a.SumArrival).ToSellFormat();
+            labelSumSell.Text = ArrivalPositions.Sum(a => a.SumSell).ToSellFormat();
         }
     }
 }
