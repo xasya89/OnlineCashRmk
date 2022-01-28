@@ -100,10 +100,12 @@ namespace OnlineCashRmk
                 {
                     findGoods.Clear();
                     var goods = db.Goods.OrderBy(g => g.Name).ToList();
-                    foreach (var good in goods.Where(g => g.Name!=null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
-                        findGoods.Add(good);
+                    foreach (var good in goods.Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
+                        if (good.IsDeleted == false)
+                            findGoods.Add(good);
                     foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
-                        findGoods.Add(barcode.Good);
+                        if (barcode.Good?.IsDeleted == false)
+                            findGoods.Add(barcode.Good);
                 }
         }
 
@@ -261,7 +263,7 @@ namespace OnlineCashRmk
                 db.Arrivals.Add(arrival);
                 foreach(var position in ArrivalPositions)
                 {
-                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival };
+                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds=position.NdsPercent };
                     db.ArrivalGoods.Add(arrivalGood);
                 };
                 await db.SaveChangesAsync();

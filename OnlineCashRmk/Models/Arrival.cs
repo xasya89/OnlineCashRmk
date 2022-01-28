@@ -34,6 +34,7 @@ namespace OnlineCashRmk.Models
         public Good Good { get; set; }
         public decimal Price { get; set; }
         public decimal Count { get; set; }
+        public string Nds { get; set; } = "Без ндс";
         public decimal Sum { get => Price * Count; }
     }
 }

@@ -51,5 +51,11 @@ namespace OnlineCashRmk
             catch (SystemException) { }
             catch (Exception ) { };
         }
+
+        private void Create_ValueChanged(object sender, EventArgs e)
+        {
+            if (DateTime.Compare(DateTime.Now.Date, Create.Value.Date) == -1)
+                Create.Value = DateTime.Now;
+        }
     }
 }

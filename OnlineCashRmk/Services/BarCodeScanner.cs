@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 using System.IO.Ports;
 using Microsoft.Extensions.Configuration;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
 
 namespace OnlineCashRmk.Services
 {
     public class BarCodeScanner
     {
         public SerialPort port;
-        public BarCodeScanner(IConfiguration configuration)
+        ILogger<BarCodeScanner> _logger;
+        public BarCodeScanner(IConfiguration configuration, ILogger<BarCodeScanner> logger)
         {
+            _logger = logger;
             string portNumber = configuration.GetSection("BarCodeScanner").Value;
             if (portNumber != "")
                 try
@@ -30,7 +33,10 @@ namespace OnlineCashRmk.Services
                       {
                           string[] forms = new string[] { nameof(Form1), nameof(FormArrival), nameof(FormStocktaking), nameof(FormWriteOf) };
                           if (forms.Where(f => f == Form.ActiveForm?.Name).FirstOrDefault() == null)
+                          {
+                              _logger.LogError("form not active");
                               (s as SerialPort).ReadExisting();
+                          };
                       });
                     port.Open();
                 }

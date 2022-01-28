@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Serilog.Events;
 
 namespace OnlineCashRmk
@@ -30,13 +31,15 @@ namespace OnlineCashRmk
 
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
-                    .WriteTo.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Hour).CreateLogger();
+                    .WriteTo.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Day).CreateLogger();
 
                 var services = new ServiceCollection();
 
                 ConfigureServices.ConfigureService(services);
                 using (ServiceProvider provider = services.BuildServiceProvider())
                 {
+                    var db = provider.GetRequiredService<DataContext>();
+                    db.Database.Migrate();
                     var form1 = provider.GetRequiredService<Form1>();
                     provider.GetRequiredService<Services.ISynchBackgroundService>();
                     Application.Run(form1);

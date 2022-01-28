@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220120161958_AddArrival_AddNDS")]
+    partial class AddArrival_AddNDS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -229,9 +231,6 @@ namespace OnlineCashRmk.Migrations
 
                     b.Property<decimal>("SumDiscont")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("TypeSell")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

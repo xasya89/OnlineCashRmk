@@ -172,11 +172,12 @@ namespace OnlineCashRmk.Services
                 {
                     GoodUuid = aGood.Good.Uuid,
                     Price = aGood.Price,
-                    Count = aGood.Count
+                    Count = aGood.Count,
+                    Nds=aGood.Nds
                 });
             using (var client = new HttpClient())
             {
-                var resp = await client.PostAsJsonAsync($"{serverurl}/api/ArrivalSynch/{shopId}", model);
+                var resp = await client.PostAsJsonAsync($"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}", model);
                 System.Diagnostics.Debug.WriteLine(resp);
                 if (resp.IsSuccessStatusCode)
                     return true;
@@ -209,6 +210,7 @@ namespace OnlineCashRmk.Services
             var shiftbuy = db.Shifts.Where(s => s.Id == sell.ShiftId).FirstOrDefault();
             var sellPost = new CashBoxCheckSellModel
             {
+                IsReturn=sell.IsReturn,
                 Create = sell.DateCreate,
                 SumCash = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Cash).Sum(p => p.Sum),
                 SumElectron = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum),
@@ -279,6 +281,7 @@ namespace OnlineCashRmk.Services
     class CashBoxCheckSellModel
     {
         public DateTime Create { get; set; }
+        public bool IsReturn { get; set; } = false;
         public decimal SumCash { get; set; }
         public decimal SumElectron { get; set; }
         public decimal SumDiscount { get; set; }

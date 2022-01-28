@@ -18,6 +18,7 @@ namespace OnlineCashRmk
         DataContext db;
         ObservableCollection<CheckSell> checkSells = new ObservableCollection<CheckSell>();
         ObservableCollection<CheckGood> checkGoods = new ObservableCollection<CheckGood>();
+        public List<CheckGood> checkGoodsReturn = new List<CheckGood>();
         BindingSource binding = new BindingSource();
         BindingSource bindingCheckGoods = new BindingSource();
         public FormCheckHistory()
@@ -30,6 +31,7 @@ namespace OnlineCashRmk
             ColumnDateCreate.DataPropertyName = nameof(CheckSell.DateCreate);
             ColumnSumAll.DataPropertyName = nameof(CheckSell.SumAll);
             ColumnTypePayment.DataPropertyName = nameof(CheckSell.IsElectron);
+            ColumnTypeReturn.DataPropertyName = nameof(CheckSell.IsReturn);
 
             dataGridViewCheck.AutoGenerateColumns = false;
             bindingCheckGoods.DataSource = checkGoods;
@@ -60,10 +62,12 @@ namespace OnlineCashRmk
         {
             if(dataGridViewChecks.SelectedRows.Count>0)
             {
-                var chGoods = checkSells[dataGridViewChecks.SelectedRows[0].Index].CheckGoods;
+                var checkSell = checkSells[dataGridViewChecks.SelectedRows[0].Index];
+                var chGoods = checkSell.CheckGoods;
                 checkGoods.Clear();
                 foreach (var chGood in chGoods)
                     checkGoods.Add(chGood);
+                buttonReturn.Visible = !checkSell.IsReturn;
                 bindingCheckGoods.ResetBindings(false);
             }
         }
@@ -71,6 +75,13 @@ namespace OnlineCashRmk
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
         {
             Select();
+        }
+
+        private void buttonReturn_Click(object sender, EventArgs e)
+        {
+            foreach (var ch in checkGoods)
+                checkGoodsReturn.Add(ch);
+            Close();
         }
     }
 }

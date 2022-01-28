@@ -11,6 +11,11 @@ namespace OnlineCashRmk.Models
     {
         public int Id { get; set; }
         public DateTime DateCreate { get; set; } = DateTime.Now;
+        public TypeSell TypeSell { get; set; } = TypeSell.Sell;
+        public bool IsReturn
+        {
+            get => TypeSell == TypeSell.Return; 
+        }
         public bool IsElectron { get; set; }
         public decimal Sum { get; set; }
         public decimal SumDiscont { get; set; } = 0;
@@ -21,5 +26,10 @@ namespace OnlineCashRmk.Models
         public int ShiftId { get; set; }
         [JsonIgnore]
         public Shift Shift { get; set; }
+    }
+    public enum TypeSell
+    {
+        Sell=0,
+        Return=1
     }
 }

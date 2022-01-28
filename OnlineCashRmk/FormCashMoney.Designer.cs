@@ -43,6 +43,7 @@ namespace OnlineCashRmk
             this.Create.Name = "Create";
             this.Create.Size = new System.Drawing.Size(200, 23);
             this.Create.TabIndex = 0;
+            this.Create.ValueChanged += new System.EventHandler(this.Create_ValueChanged);
             // 
             // label1
             // 

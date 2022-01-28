@@ -41,6 +41,16 @@ namespace OnlineCashRmk
         DataContext db;
         ILogger<Form1> _logger;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
+        bool __isReturn = false;
+        bool IsReturn
+        {
+            get => __isReturn;
+            set
+            {
+                __isReturn = value;
+                buttonReturn.BackColor = __isReturn==true ? Color.Red : SystemColors.Control;
+            }
+        }
         int saleSelected = 1;
         Dictionary<int, List<CheckGoodModel>> saleCheckGoods = new Dictionary<int, List<CheckGoodModel>>()
         {
@@ -64,8 +74,10 @@ namespace OnlineCashRmk
             if (activeform!=null && nameof(Form1) == activeform.Name)
             {
                 var port = (SerialPort)s;
-                string code = port.ReadExisting();
+                string code = port.ReadExisting().Trim();
                 var form = activeform as Form1;
+                MessageBox.Show("--"+code+"--");
+                form._logger.LogError($"code - {code}");
                 var barcode = await form.db.BarCodes.Include(b=>b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
                 Action<Good, double> addGood = form.AddGood;
                 if (barcode != null && barcode.Good.IsDeleted == false)
@@ -81,6 +93,7 @@ namespace OnlineCashRmk
                 this.serviceProvider = serviceProvider;
                 this.db = db;
                 _logger = logger;
+                _logger.LogError("Start form");
                 this.synchService = synchService;
                 var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(AppContext.BaseDirectory))
@@ -393,11 +406,14 @@ namespace OnlineCashRmk
         {
             if (good != null && good.IsDeleted==false)
             {
-                if (good.Unit != Units.PCE & good.SpecialType!=SpecialTypes.Beer)
+                if (good.Unit != Units.PCE & good.SpecialType != SpecialTypes.Beer)
                 {
                     FormEditCount frCountEdit = new FormEditCount();
-                    frCountEdit.textBoxCount.Text = "0,";
-                    frCountEdit.textBoxCount.SelectionStart = "0,".Length;
+                    if (good.Unit != Units.Litr)
+                    {
+                        frCountEdit.textBoxCount.Text = "0,";
+                        frCountEdit.textBoxCount.SelectionStart = "0,".Length;
+                    }
                     if (frCountEdit.ShowDialog() == DialogResult.OK)
                         count = frCountEdit.textBoxCount.Text.ToDouble();
                     else
@@ -492,6 +508,7 @@ namespace OnlineCashRmk
                 {
                     IsElectron=isElectron,
                     DateCreate = DateTime.Now,
+                    TypeSell=IsReturn==false ? TypeSell.Sell : TypeSell.Return,
                     Shift = shift,
                     Sum = sumAll,
                     SumDiscont = sumDiscount,
@@ -709,8 +726,20 @@ namespace OnlineCashRmk
         {
             FormCheckHistory fr = new FormCheckHistory();
             fr.ShowDialog();
+            /*
             fr.BringToFront();
             fr.Select();
+            */
+            if(fr.checkGoodsReturn.Count>0)
+            {
+                IsReturn = true;
+                btnSale_Click(btnSale1, null);
+                checkGoods.Clear();
+                foreach (var ch in fr.checkGoodsReturn)
+                    checkGoods.Add(new CheckGoodModel { 
+                        GoodId = ch.GoodId, Good = ch.Good, Count = ch.Count, Cost = ch.Cost
+                    });
+            }
         }
 
         private void списанияToolStripMenuItem_Click(object sender, EventArgs e)
@@ -786,13 +815,20 @@ namespace OnlineCashRmk
         private void выдачаДенегToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             var fr = serviceProvider.GetRequiredService<FormCashMoney>();
+            fr.Text = "Выдача";
             fr.Open(TypeCashMoneyOpertaion.Outcome);
         }
 
         private void внесениеДенегToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             var fr = serviceProvider.GetRequiredService<FormCashMoney>();
+            fr.Text = "Внесение";
             fr.Open(TypeCashMoneyOpertaion.Income);
+        }
+
+        private void buttonReturn_Click(object sender, EventArgs e)
+        {
+            IsReturn = !IsReturn;
         }
     }
 }
