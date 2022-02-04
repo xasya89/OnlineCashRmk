@@ -20,5 +20,6 @@ namespace OnlineCashRmk.DataModels
         public decimal Price { get; set; }
         public decimal Count { get; set; }
         public string Nds { get; set; }
+        public DateTime? ExpiresDate { get; set; }
     }
 }

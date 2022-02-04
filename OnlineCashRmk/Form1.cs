@@ -76,8 +76,6 @@ namespace OnlineCashRmk
                 var port = (SerialPort)s;
                 string code = port.ReadExisting().Trim();
                 var form = activeform as Form1;
-                MessageBox.Show("--"+code+"--");
-                form._logger.LogError($"code - {code}");
                 var barcode = await form.db.BarCodes.Include(b=>b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
                 Action<Good, double> addGood = form.AddGood;
                 if (barcode != null && barcode.Good.IsDeleted == false)
@@ -203,13 +201,12 @@ namespace OnlineCashRmk
             {
                 var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
                 shift.Stop = DateTime.Now;
-                var checklist = db.CheckSells.Where(c=>c.ShiftId==shift.Id).ToList();
-                shift.SumNoElectron = checklist.Where(s => !s.IsElectron).Sum(s => s.SumAll);
-                shift.SumElectron = checklist.Where(s => s.IsElectron).Sum(s => s.SumAll);
-                shift.SumSell = checklist.Sum(c => c.SumAll);
-                shift.SumAll = shift.SumIncome + shift.SumSell - shift.SumOutcome - shift.SummReturn;
-                if(db.Credits.Where(c=>c.ShiftId==shift.Id).Count()>0)
-                    shift.SumCredit = db.Credits.Where(c=>c.ShiftId==shift.Id).ToList().Sum(c => c.SumCredit);
+                var checklist = db.CheckSells.Include(c=>c.CheckPayments).Where(c=>c.ShiftId==shift.Id).ToList();
+                shift.SumNoElectron = checklist.Where(c=>c.IsReturn==false).Sum(c=>c.CheckPayments.Where(p=> p.TypePayment==TypePayment.Cash).Sum(p=>p.Sum));
+                shift.SumElectron = checklist.Where(c=>c.IsReturn==false).Sum(c => c.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum));
+                shift.SumSell = checklist.Where(c=>c.IsReturn==false).Sum(c => c.CheckPayments.Sum(p => p.Sum));
+                shift.SummReturn = checklist.Where(c => c.IsReturn == true).Sum(c => c.Sum);
+                shift.SumAll = shift.SumSell - shift.SummReturn;
                 db.SaveChanges();
                 synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
                 buttonShift.Text = "Открыть смену";
@@ -217,7 +214,7 @@ namespace OnlineCashRmk
                 labelStatusShift.BackColor = Color.LightPink;
                 _cashService.CloseShift();
                 //Вывод итогов смены
-                MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nОстаток в кассе:\t{shift.SumAll}\n ---------------- \nВыданы кредиты:\t{shift.SumCredit}");
+                MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nПродажи за сегодня:\t{shift.SumSell}\n ---------------- \nВозвраты:\t{shift.SummReturn}");
             }
         }
 

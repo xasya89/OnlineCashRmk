@@ -36,5 +36,6 @@ namespace OnlineCashRmk.Models
         public decimal Count { get; set; }
         public string Nds { get; set; } = "Без ндс";
         public decimal Sum { get => Price * Count; }
+        public DateTime? ExpiresDate { get; set; }
     }
 }

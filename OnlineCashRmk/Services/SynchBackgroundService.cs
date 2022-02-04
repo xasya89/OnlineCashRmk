@@ -173,12 +173,12 @@ namespace OnlineCashRmk.Services
                     GoodUuid = aGood.Good.Uuid,
                     Price = aGood.Price,
                     Count = aGood.Count,
-                    Nds=aGood.Nds
+                    Nds=aGood.Nds,
+                    ExpiresDate=aGood.ExpiresDate
                 });
             using (var client = new HttpClient())
             {
                 var resp = await client.PostAsJsonAsync($"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}", model);
-                System.Diagnostics.Debug.WriteLine(resp);
                 if (resp.IsSuccessStatusCode)
                     return true;
             }

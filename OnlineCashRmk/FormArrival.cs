@@ -83,6 +83,7 @@ namespace OnlineCashRmk
             Column_NdsPercent.DataPropertyName = nameof(ArrivalPositionDataModel.NdsPercent);
             Column_SumNds.DataPropertyName = nameof(ArrivalPositionDataModel.SumNdsStr);
             Column_SumSell.DataPropertyName = nameof(ArrivalPositionDataModel.SumSell);
+            Column_ExpiresDate.DataPropertyName = nameof(ArrivalPositionDataModel.ExpiresDate);
             BindingSource binding = new BindingSource();
             findGoods.CollectionChanged += (sender, e) =>
             {
@@ -217,6 +218,13 @@ namespace OnlineCashRmk
                     barcodeScan = "";
                 }
                 if (e.KeyCode == Keys.Delete)
+                    if((dataGridViewPositions.Focused & dataGridViewPositions.SelectedCells.Count>0) && dataGridViewPositions.Columns[dataGridViewPositions.SelectedCells[0].ColumnIndex].Name==Column_ExpiresDate.Name)
+                    {
+                        var position = ArrivalPositions[dataGridViewPositions.SelectedCells[0].RowIndex];
+                        position.ExpiresDate = null;
+                        dtp.Visible = false;
+                    }
+                else
                     button1_Click(null, null);
             };
             if (e.KeyCode == Keys.F4 & !e.Alt)
@@ -263,7 +271,7 @@ namespace OnlineCashRmk
                 db.Arrivals.Add(arrival);
                 foreach(var position in ArrivalPositions)
                 {
-                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds=position.NdsPercent };
+                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds=position.NdsPercent, ExpiresDate=position.ExpiresDate };
                     db.ArrivalGoods.Add(arrivalGood);
                 };
                 await db.SaveChangesAsync();
@@ -283,6 +291,42 @@ namespace OnlineCashRmk
             labelSumNds.Text = ArrivalPositions.Sum(a => a.SumNds).ToSellFormat();
             labelSumArrival.Text = ArrivalPositions.Sum(a => a.SumArrival).ToSellFormat();
             labelSumSell.Text = ArrivalPositions.Sum(a => a.SumSell).ToSellFormat();
+        }
+
+        private DateTimePicker dtp { get; set; }
+        private void dataGridViewPositions_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridViewPositions.Columns[e.ColumnIndex].Name == Column_ExpiresDate.Name)
+            {
+                // initialize DateTimePicker
+                dtp = new DateTimePicker();
+                dtp.Format = DateTimePickerFormat.Short;
+                dtp.Visible = true;
+                var position = ArrivalPositions[e.RowIndex];
+                dtp.Value = position.ExpiresDate == null ? DateTime.Now : (DateTime)position.ExpiresDate;
+                //dtp.Value = DateTime.Parse(dataGridViewPositions.CurrentCell?.Value?.ToString());
+
+                // set size and location
+                var rect = dataGridViewPositions.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, true);
+                dtp.Size = new Size(rect.Width, rect.Height);
+                dtp.Location = new Point(rect.X, rect.Y);
+
+                // attach events
+                dtp.CloseUp += new EventHandler(dtp_CloseUp);
+                dtp.TextChanged += new EventHandler(dtp_OnTextChange);
+
+                dataGridViewPositions.Controls.Add(dtp);
+            }
+        }
+        private void dtp_OnTextChange(object sender, EventArgs e)
+        {
+            dataGridViewPositions.CurrentCell.Value = dtp.Text.ToString();
+        }
+
+        // on close of cell, hide dtp
+        void dtp_CloseUp(object sender, EventArgs e)
+        {
+            dtp.Visible = false;
         }
     }
 }

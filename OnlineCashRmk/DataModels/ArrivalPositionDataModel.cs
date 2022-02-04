@@ -49,7 +49,27 @@ namespace OnlineCashRmk.DataModels
 
         public decimal SumArrival
         {
-            get => PriceArrival * (decimal)Count;
+            get
+            {
+                decimal sum=PriceArrival * (decimal)Count;
+                switch (NdsPercent)
+                {
+                    case "20%":
+                        //return SumArrival / 120 * 20;
+                        return sum+ sum * 0.2M;
+                        break;
+                    case "10%":
+                        //return SumArrival / 110 * 10;
+                        return sum+sum * 0.1M;
+                        break;
+                    case "0%":
+                        return sum;
+                        break;
+                    default:
+                        return sum;
+                        break;
+                }
+            }
         }
 
         private string ndsPercent="Без ндс";
@@ -62,17 +82,21 @@ namespace OnlineCashRmk.DataModels
                 NotifyPropertyChanged(nameof(ndsPercent));
             }
         }
+
         public decimal SumNds
         {
             get
             {
+                decimal sum = PriceArrival * (decimal)Count;
                 switch (NdsPercent)
                 {
                     case "20%":
-                        return SumArrival / 120 * 20;
+                        //return SumArrival / 120 * 20;
+                        return sum * 0.2M;
                         break;
                     case "10%":
-                        return SumArrival / 110 * 10;
+                        //return SumArrival / 110 * 10;
+                        return sum * 0.1M;
                         break;
                     case "0%":
                         return 0;
@@ -90,6 +114,7 @@ namespace OnlineCashRmk.DataModels
             get => PriceSell * (decimal)Count;
         }
 
+        public DateTime? ExpiresDate { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") =>
