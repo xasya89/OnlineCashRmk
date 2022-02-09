@@ -24,6 +24,7 @@ namespace OnlineCashRmk
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         ISynchService synch;
         DataContext db;
+        IServiceProvider _provider;
 
         SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
             var activeform = Form.ActiveForm;
@@ -40,10 +41,13 @@ namespace OnlineCashRmk
         });
         BarCodeScanner _barCodeScanner;
 
-        public FormArrival(ISynchService synchService, ILogger<FormArrival> logger, DataContext db, ISynchService synch, BarCodeScanner barCodeScanner)
+        public FormArrival(ISynchService synchService, ILogger<FormArrival> logger,
+            DataContext db, ISynchService synch, BarCodeScanner barCodeScanner, 
+            IServiceProvider provider)
         {
             this.synch = synch;
             this.db = db;
+            _provider = provider;
             InitializeComponent();
             CalcSumAll();
 
@@ -269,13 +273,24 @@ namespace OnlineCashRmk
             {
                 var arrival = new Arrival { Num = arrivalNum.Text, DateArrival = arrivalDate.Value, SupplierId = supplier.Id };
                 db.Arrivals.Add(arrival);
+                List<NewGoodFromCash> newGoodList = new List<NewGoodFromCash>();
                 foreach(var position in ArrivalPositions)
                 {
                     var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds=position.NdsPercent, ExpiresDate=position.ExpiresDate };
+                    var good = db.Goods.Where(g => g.Id == position.GoodId).FirstOrDefault();
+                    if(good.Price!=position.PriceSell)
+                    {
+                        good.Price = position.PriceSell;
+                        var newGood = new NewGoodFromCash { Good = good };
+                        db.NewGoodsFromCash.Add(newGood);
+                        newGoodList.Add(newGood);
+                    }
                     db.ArrivalGoods.Add(arrivalGood);
                 };
                 await db.SaveChangesAsync();
                 synch.AppendDoc(new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival });
+                foreach(var newGood in newGoodList)
+                    synch.AppendDoc(new DocSynch { DocId = newGood.Id, Create = DateTime.Now, TypeDoc = TypeDocs.NewGoodFromCash });
                 Close();
             }
         }
@@ -327,6 +342,12 @@ namespace OnlineCashRmk
         void dtp_CloseUp(object sender, EventArgs e)
         {
             dtp.Visible = false;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var fr =(FormNewGood) _provider.GetService(typeof(FormNewGood));
+            AddGood(fr.Show());
         }
     }
 }

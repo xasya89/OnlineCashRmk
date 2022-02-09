@@ -15,6 +15,7 @@ namespace OnlineCashRmk.Models
         WriteOf,
         Arrival,
         StockTaking,
-        CashMoney
+        CashMoney,
+        NewGoodFromCash
     }
 }

@@ -35,7 +35,9 @@ namespace OnlineCashRmk
                 .AddTransient<FormWriteOf>()
                 .AddTransient<FormArrival>()
                 .AddTransient<FormStocktaking>()
-                .AddTransient<FormCashMoney>();
+                .AddTransient<FormCashMoney>()
+                .AddTransient<FormNewGood>()
+                .AddTransient<FormFindGood>();
             
         }
     }

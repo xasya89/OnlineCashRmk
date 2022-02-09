@@ -39,5 +39,7 @@ namespace OnlineCashRmk.Models
         public List<ArrivalGood> ArrivalGoods { get; set; }
         [JsonIgnore]
         public List<StocktakingGood> StocktakingGoods { get; set; }
+        [JsonIgnore]
+        public List<NewGoodFromCash> NewGoodsFromCashe { get; set; }
     }
 }

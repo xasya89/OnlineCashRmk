@@ -32,12 +32,13 @@ namespace OnlineCashRmk
             this.panel1 = new System.Windows.Forms.Panel();
             this.textBoxFind = new System.Windows.Forms.TextBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.ColumnId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.ColumnId = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnEdit = new System.Windows.Forms.DataGridViewButtonColumn();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel2.SuspendLayout();
@@ -68,7 +69,8 @@ namespace OnlineCashRmk
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnId,
             this.ColumnName,
-            this.ColumnPrice});
+            this.ColumnPrice,
+            this.ColumnEdit});
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(0, 37);
@@ -78,25 +80,8 @@ namespace OnlineCashRmk
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(800, 370);
             this.dataGridView1.TabIndex = 1;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.DoubleClick += new System.EventHandler(this.dataGridView1_DoubleClick);
-            // 
-            // ColumnId
-            // 
-            this.ColumnId.HeaderText = "id";
-            this.ColumnId.Name = "ColumnId";
-            this.ColumnId.Visible = false;
-            // 
-            // ColumnName
-            // 
-            this.ColumnName.HeaderText = "Наименование";
-            this.ColumnName.Name = "ColumnName";
-            this.ColumnName.Width = 500;
-            // 
-            // ColumnPrice
-            // 
-            this.ColumnPrice.HeaderText = "Цена";
-            this.ColumnPrice.Name = "ColumnPrice";
-            this.ColumnPrice.Width = 200;
             // 
             // panel2
             // 
@@ -126,6 +111,29 @@ namespace OnlineCashRmk
             this.button1.Text = "Добавить (Enter)";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // ColumnId
+            // 
+            this.ColumnId.HeaderText = "id";
+            this.ColumnId.Name = "ColumnId";
+            this.ColumnId.Visible = false;
+            // 
+            // ColumnName
+            // 
+            this.ColumnName.HeaderText = "Наименование";
+            this.ColumnName.Name = "ColumnName";
+            this.ColumnName.Width = 500;
+            // 
+            // ColumnPrice
+            // 
+            this.ColumnPrice.HeaderText = "Цена";
+            this.ColumnPrice.Name = "ColumnPrice";
+            this.ColumnPrice.Width = 150;
+            // 
+            // ColumnEdit
+            // 
+            this.ColumnEdit.HeaderText = "Изменить";
+            this.ColumnEdit.Name = "ColumnEdit";
             // 
             // FormFindGood
             // 
@@ -158,5 +166,6 @@ namespace OnlineCashRmk
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnId;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnName;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPrice;
+        private System.Windows.Forms.DataGridViewButtonColumn ColumnEdit;
     }
 }

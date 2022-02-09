@@ -40,6 +40,7 @@ namespace OnlineCashRmk
             this.arrivalDate = new System.Windows.Forms.DateTimePicker();
             this.label3 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button2 = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -127,6 +128,7 @@ namespace OnlineCashRmk
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.button2);
             this.panel1.Controls.Add(this.panel4);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.arrivalNum);
@@ -140,6 +142,16 @@ namespace OnlineCashRmk
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1041, 77);
             this.panel1.TabIndex = 6;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(131, 51);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(115, 23);
+            this.button2.TabIndex = 13;
+            this.button2.Text = "Новый товар";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // panel4
             // 
@@ -350,7 +362,6 @@ namespace OnlineCashRmk
             // 
             this.Column_PriceSell.HeaderText = "Цена продажи";
             this.Column_PriceSell.Name = "Column_PriceSell";
-            this.Column_PriceSell.ReadOnly = true;
             // 
             // Column_PricePercent
             // 
@@ -461,6 +472,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label labelSumNds;
         private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column_GoodName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column_Unit;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column_PriceArrival;

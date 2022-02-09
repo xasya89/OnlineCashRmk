@@ -474,11 +474,15 @@ namespace OnlineCashRmk
 
         void FindGood()
         {
+            /*
             FormFindGood fr = new FormFindGood(GoodList);
             if (fr.ShowDialog() == DialogResult.OK && fr.SelectedGood!=null)
             {
                 AddGood(fr.SelectedGood);
             }
+            */
+            var fr = serviceProvider.GetService<FormFindGood>();
+            AddGood(fr.Show());
         }
 
         private void button1_Click_1(object sender, EventArgs e)

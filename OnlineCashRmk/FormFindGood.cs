@@ -14,24 +14,47 @@ namespace OnlineCashRmk
 {
     public partial class FormFindGood : Form
     {
-        List<Good> Goods;
-        public Good SelectedGood;
-        public FormFindGood(List<Good> goods)
+        DataContext _db;
+        IServiceProvider _provider;
+        public FormFindGood(DataContext db, IServiceProvider provider)
         {
-            Goods = goods;
-            InitializeComponent();
+            _db = db;
+            _provider = provider;
         }
 
-        private void FormFindGood_Load(object sender, EventArgs e)
+        List<Good> Goods = new List<Good>();
+        public Good Show()
         {
+            var goods = _db.Goods.Include(g => g.BarCodes).Where(g=>g.IsDeleted==false).ToList();
+            Goods = goods;
+            InitializeComponent();
             foreach (var good in Goods)
                 dataGridView1.Rows.Add(
                     good.Id,
                     good.Name,
-                    good.Price
+                    good.Price,
+                    "изменить"
                     );
             textBoxFind.Focus();
             textBoxFind.Select();
+            if (ShowDialog()==DialogResult.OK)
+                if (dataGridView1.SelectedRows.Count > 0)
+                {
+                    DataGridViewRow row = dataGridView1.SelectedRows[0];
+                    int idGood = Convert.ToInt32(row.Cells["ColumnId"].Value);
+                    return Goods.Where(g => g.Id == idGood).FirstOrDefault(); 
+                }
+            return null;
+        }
+
+        public FormFindGood()
+        {
+            
+        }
+
+        private void FormFindGood_Load(object sender, EventArgs e)
+        {
+            
         }
 
         private void textBoxFind_TextChanged(object sender, EventArgs e)
@@ -42,28 +65,31 @@ namespace OnlineCashRmk
                 dataGridView1.Rows.Add(
                     good.Id,
                     good.Name,
-                    good.Price
+                    good.Price,
+                    "Изменить"
                     );
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            SelectedGoodEvent();
-        }
-        void SelectedGoodEvent()
-        {
-            if (dataGridView1.SelectedRows.Count > 0)
-            {
-                DataGridViewRow row = dataGridView1.SelectedRows[0];
-                int idGood = Convert.ToInt32(row.Cells["ColumnId"].Value);
-                SelectedGood = Goods.Where(g => g.Id == idGood).FirstOrDefault();
-                DialogResult = DialogResult.OK;
-            }
+            DialogResult = DialogResult.OK;
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
         {
-            SelectedGoodEvent();
+            DialogResult = DialogResult.OK;
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == ColumnEdit.Index)
+            {
+                int goodId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells[ColumnId.Name].Value);
+                var good = Goods.Where(g => g.Id == goodId).FirstOrDefault();
+                var frNewGood =(FormNewGood) _provider.GetService(typeof(FormNewGood));
+                DialogResult = DialogResult.Cancel;
+                frNewGood.Show(good);
+            }
         }
     }
 }

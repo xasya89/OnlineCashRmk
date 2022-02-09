@@ -146,6 +146,12 @@ namespace OnlineCashRmk.Services
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
                                     break;
+                                case TypeDocs.NewGoodFromCash:
+                                    await SendNewGood(doc.DocId);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
                             }
 
                         await GetBuyersAsync();
@@ -267,6 +273,25 @@ namespace OnlineCashRmk.Services
             if (cashMoney == null)
                 throw new Exception("Не найден документ cashMoney");
             await $"{serverurl}/api/onlinecash/CashMoneys/{shopId}".PostJsonAsync(cashMoney);
+        }
+
+        public async Task SendNewGood(int docId)
+        {
+            var good = db.NewGoodsFromCash.Include(n => n.Good)
+                .ThenInclude(g=>g.BarCodes)
+                .Where(n => n.Id == docId).FirstOrDefault()?.Good;
+            var goodSynch = new GoodSynchDataModel
+            {
+                Uuid = good.Uuid,
+                Name = good.Name,
+                Unit = good.Unit,
+                SpecialType = good.SpecialType,
+                VPackage = good.VPackage,
+                Price = good.Price,
+                IsDeleted = false,
+                Barcodes=good.BarCodes.Select(b=>b.Code).ToList()
+            };
+            await $"{serverurl}/api/onlinecash/NewGoodFromCashSynch/{shopId}".PostJsonAsync(goodSynch);
         }
     }
 
