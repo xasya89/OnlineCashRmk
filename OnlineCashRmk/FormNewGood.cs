@@ -70,7 +70,7 @@ namespace OnlineCashRmk
                 return null;
             Dictionary<string, Units> unitDict = new Dictionary<string, Units>()
             {
-                {"шт",Units.PCE }, {"л",Units.PCE }, {"кг",Units.PCE }, {"м",Units.PCE }, {"уп",Units.PCE }, {"см",Units.PCE }
+                {"шт",Units.PCE }, {"л",Units.Litr }, {"кг",Units.KG }, {"м",Units.MTR }, {"уп",Units.NMP }, {"см",Units.CMT }
             };
             Dictionary<string, SpecialTypes> specialTypes = new Dictionary<string, SpecialTypes>()
             {
@@ -99,7 +99,7 @@ namespace OnlineCashRmk
         //Создать
         private void button1_Click(object sender, EventArgs e)
         {
-            if (goodName.Text == "" || goodUnit.Text=="" || goodType.Text=="" || decimal.TryParse(goodPrice.Text, out var price)==false)
+            if (goodName.Text == "" || goodUnit.Text=="" || decimal.TryParse(goodPrice.Text, out var price)==false)
                 return;
             if(flagNewGood)
             {

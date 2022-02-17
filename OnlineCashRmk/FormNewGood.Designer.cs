@@ -108,6 +108,7 @@ namespace OnlineCashRmk
             // 
             this.goodType.FormattingEnabled = true;
             this.goodType.Items.AddRange(new object[] {
+            "",
             "Пиво",
             "Пакет"});
             this.goodType.Location = new System.Drawing.Point(108, 99);
