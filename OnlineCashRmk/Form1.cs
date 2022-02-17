@@ -383,6 +383,8 @@ namespace OnlineCashRmk
                 button1_Click_1(null, null);
             if (e.KeyCode == Keys.F6)
                 button2_Click_1(null, null);
+            if (e.KeyCode == Keys.F7)
+                button7_Click(null, null);
             //Пакет
             if (e.KeyCode == Keys.F8)
                 btnAddPackage_Click(null, null);
@@ -395,7 +397,7 @@ namespace OnlineCashRmk
                 btnSale_Click(btnSale2, null); 
             if (e.KeyCode == Keys.F3)
                 btnSale_Click(btnSale3, null);
-            if (e.KeyCode == Keys.F7)
+            if (e.KeyCode == Keys.F9)
                 btnDiscount_Click(btnDiscount, null);
         }
 
@@ -773,6 +775,7 @@ namespace OnlineCashRmk
         //Новая оплата
         private void button7_Click(object sender, EventArgs e)
         {
+            /*
             var payForm = serviceProvider.GetRequiredService<PayForm>();
             try
             {
@@ -781,6 +784,11 @@ namespace OnlineCashRmk
             }
             catch(Exception)
             { };
+            */
+            var payFor = serviceProvider.GetRequiredService<FormPaymentCombine>();
+            var payments = payFor.Show(Math.Ceiling(checkGoods.Sum(c => c.Sum)));
+            if (payments != null)
+                CheckPrint(payments);
         }
 
         /// <summary>

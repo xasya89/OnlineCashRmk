@@ -13,7 +13,9 @@ namespace OnlineCashRmk
         {
             decimal dec = -1;
             if (!decimal.TryParse(str.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out dec))
-                throw new NotFiniteNumberException("Ошибка преобразования строки в decimal");
+                return 0;
+            //TODO: стоит ли использовать исключение при конвертиации из string to Decimal
+                //throw new NotFiniteNumberException("Ошибка преобразования строки в decimal");
             return dec;
         }
 

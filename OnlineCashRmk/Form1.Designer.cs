@@ -212,7 +212,7 @@ namespace OnlineCashRmk
             this.btnDiscount.Name = "btnDiscount";
             this.btnDiscount.Size = new System.Drawing.Size(132, 73);
             this.btnDiscount.TabIndex = 5;
-            this.btnDiscount.Text = "Скидка\r\nF7     ";
+            this.btnDiscount.Text = "Скидка\r\nF9     ";
             this.btnDiscount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnDiscount.UseVisualStyleBackColor = true;
             this.btnDiscount.Click += new System.EventHandler(this.btnDiscount_Click);
@@ -224,7 +224,7 @@ namespace OnlineCashRmk
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(132, 61);
             this.button7.TabIndex = 4;
-            this.button7.Text = "Сложная оплата\r\nF8";
+            this.button7.Text = "Сложная оплата\r\nF7";
             this.button7.UseVisualStyleBackColor = true;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
@@ -492,47 +492,47 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // приходыToolStripMenuItem
             // 
             this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
-            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.приходыToolStripMenuItem.Text = "Приходы";
             this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
             // 
             // инверторизацияToolStripMenuItem
             // 
             this.инверторизацияToolStripMenuItem.Name = "инверторизацияToolStripMenuItem";
-            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.инверторизацияToolStripMenuItem.Text = "Инверторизация";
             this.инверторизацияToolStripMenuItem.Click += new System.EventHandler(this.инверторизацияToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(163, 6);
             // 
             // выдачаДенегToolStripMenuItem1
             // 
             this.выдачаДенегToolStripMenuItem1.Name = "выдачаДенегToolStripMenuItem1";
-            this.выдачаДенегToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.выдачаДенегToolStripMenuItem1.Size = new System.Drawing.Size(166, 22);
             this.выдачаДенегToolStripMenuItem1.Text = "Выдача денег";
             this.выдачаДенегToolStripMenuItem1.Click += new System.EventHandler(this.выдачаДенегToolStripMenuItem1_Click);
             // 
             // внесениеДенегToolStripMenuItem1
             // 
             this.внесениеДенегToolStripMenuItem1.Name = "внесениеДенегToolStripMenuItem1";
-            this.внесениеДенегToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.внесениеДенегToolStripMenuItem1.Size = new System.Drawing.Size(166, 22);
             this.внесениеДенегToolStripMenuItem1.Text = "Внесение денег";
             this.внесениеДенегToolStripMenuItem1.Click += new System.EventHandler(this.внесениеДенегToolStripMenuItem1_Click);
             // 

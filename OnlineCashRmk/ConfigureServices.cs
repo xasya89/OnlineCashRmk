@@ -32,6 +32,7 @@ namespace OnlineCashRmk
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()
                 .AddTransient<PayForm>()
+                .AddTransient<FormPaymentCombine>()
                 .AddTransient<FormWriteOf>()
                 .AddTransient<FormArrival>()
                 .AddTransient<FormStocktaking>()
