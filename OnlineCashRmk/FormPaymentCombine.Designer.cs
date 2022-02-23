@@ -131,6 +131,7 @@ namespace OnlineCashRmk
             this.buttonCancel.Text = "Отмена";
             this.buttonCancel.UseVisualStyleBackColor = false;
             this.buttonCancel.Click += new System.EventHandler(this.button1_Click);
+            this.buttonCancel.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyDown);
             // 
             // textBoxSummary
             // 
@@ -162,6 +163,7 @@ namespace OnlineCashRmk
             this.buttonOk.Text = "Оплатить";
             this.buttonOk.UseVisualStyleBackColor = false;
             this.buttonOk.Click += new System.EventHandler(this.buttonOk_Click);
+            this.buttonOk.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyDown);
             // 
             // FormPaymentCombine
             // 

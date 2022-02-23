@@ -188,7 +188,7 @@ namespace OnlineCashRmk
         {
             if (db.Shifts.Where(s => s.Stop == null).Count() == 0)
             {
-                var shift = new Shift { Uuid=Guid.NewGuid(), Start = DateTime.Now, ShopId=idShop };
+                var shift = new Shift { Uuid = Guid.NewGuid(), Start = DateTime.Now, ShopId = idShop };
                 db.Shifts.Add(shift);
                 db.SaveChanges();
                 synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.OpenShift, DocId = shift.Id });
@@ -198,13 +198,14 @@ namespace OnlineCashRmk
                 _cashService.OpenShift();
             }
             else
+            if (MessageBox.Show("Вы точно хотите закрыть смену?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
                 shift.Stop = DateTime.Now;
-                var checklist = db.CheckSells.Include(c=>c.CheckPayments).Where(c=>c.ShiftId==shift.Id).ToList();
-                shift.SumNoElectron = checklist.Where(c=>c.IsReturn==false).Sum(c=>c.CheckPayments.Where(p=> p.TypePayment==TypePayment.Cash).Sum(p=>p.Sum));
-                shift.SumElectron = checklist.Where(c=>c.IsReturn==false).Sum(c => c.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum));
-                shift.SumSell = checklist.Where(c=>c.IsReturn==false).Sum(c => c.CheckPayments.Sum(p => p.Sum));
+                var checklist = db.CheckSells.Include(c => c.CheckPayments).Where(c => c.ShiftId == shift.Id).ToList();
+                shift.SumNoElectron = checklist.Where(c => c.IsReturn == false).Sum(c => c.CheckPayments.Where(p => p.TypePayment == TypePayment.Cash).Sum(p => p.Sum));
+                shift.SumElectron = checklist.Where(c => c.IsReturn == false).Sum(c => c.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum));
+                shift.SumSell = checklist.Where(c => c.IsReturn == false).Sum(c => c.CheckPayments.Sum(p => p.Sum));
                 shift.SummReturn = checklist.Where(c => c.IsReturn == true).Sum(c => c.Sum);
                 shift.SumAll = shift.SumSell - shift.SummReturn;
                 db.SaveChanges();
@@ -555,11 +556,13 @@ namespace OnlineCashRmk
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            decimal sumAll = checkGoods.Sum(c => c.Sum);
-            CheckPrint(
-                new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } },
-                isElectron:true
-                );
+            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+            FormPaymentElectron fr = new FormPaymentElectron(sumAll);
+            if (fr.ShowDialog() == DialogResult.OK)
+                CheckPrint(
+                    new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } },
+                    isElectron: true
+                    );
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
