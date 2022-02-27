@@ -77,6 +77,7 @@ namespace OnlineCashRmk
             this.toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelCashRegisterState = new System.Windows.Forms.ToolStripStatusLabel();
             this.findTextBox = new System.Windows.Forms.TextBox();
+            this.историяДокументовToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -482,7 +483,8 @@ namespace OnlineCashRmk
             this.инверторизацияToolStripMenuItem,
             this.toolStripMenuItem1,
             this.выдачаДенегToolStripMenuItem1,
-            this.внесениеДенегToolStripMenuItem1});
+            this.внесениеДенегToolStripMenuItem1,
+            this.историяДокументовToolStripMenuItem});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -492,47 +494,47 @@ namespace OnlineCashRmk
             // списанияToolStripMenuItem
             // 
             this.списанияToolStripMenuItem.Name = "списанияToolStripMenuItem";
-            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.списанияToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.списанияToolStripMenuItem.Text = "Списания";
             this.списанияToolStripMenuItem.Click += new System.EventHandler(this.списанияToolStripMenuItem_Click);
             // 
             // историяToolStripMenuItem
             // 
             this.историяToolStripMenuItem.Name = "историяToolStripMenuItem";
-            this.историяToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.историяToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.историяToolStripMenuItem.Text = "История";
             this.историяToolStripMenuItem.Click += new System.EventHandler(this.buttonCheckHistory_Click);
             // 
             // приходыToolStripMenuItem
             // 
             this.приходыToolStripMenuItem.Name = "приходыToolStripMenuItem";
-            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.приходыToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.приходыToolStripMenuItem.Text = "Приходы";
             this.приходыToolStripMenuItem.Click += new System.EventHandler(this.приходыToolStripMenuItem_Click);
             // 
             // инверторизацияToolStripMenuItem
             // 
             this.инверторизацияToolStripMenuItem.Name = "инверторизацияToolStripMenuItem";
-            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.инверторизацияToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.инверторизацияToolStripMenuItem.Text = "Инверторизация";
             this.инверторизацияToolStripMenuItem.Click += new System.EventHandler(this.инверторизацияToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(163, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(186, 6);
             // 
             // выдачаДенегToolStripMenuItem1
             // 
             this.выдачаДенегToolStripMenuItem1.Name = "выдачаДенегToolStripMenuItem1";
-            this.выдачаДенегToolStripMenuItem1.Size = new System.Drawing.Size(166, 22);
+            this.выдачаДенегToolStripMenuItem1.Size = new System.Drawing.Size(189, 22);
             this.выдачаДенегToolStripMenuItem1.Text = "Выдача денег";
             this.выдачаДенегToolStripMenuItem1.Click += new System.EventHandler(this.выдачаДенегToolStripMenuItem1_Click);
             // 
             // внесениеДенегToolStripMenuItem1
             // 
             this.внесениеДенегToolStripMenuItem1.Name = "внесениеДенегToolStripMenuItem1";
-            this.внесениеДенегToolStripMenuItem1.Size = new System.Drawing.Size(166, 22);
+            this.внесениеДенегToolStripMenuItem1.Size = new System.Drawing.Size(189, 22);
             this.внесениеДенегToolStripMenuItem1.Text = "Внесение денег";
             this.внесениеДенегToolStripMenuItem1.Click += new System.EventHandler(this.внесениеДенегToolStripMenuItem1_Click);
             // 
@@ -558,6 +560,13 @@ namespace OnlineCashRmk
             this.findTextBox.TabIndex = 0;
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
+            // 
+            // историяДокументовToolStripMenuItem
+            // 
+            this.историяДокументовToolStripMenuItem.Name = "историяДокументовToolStripMenuItem";
+            this.историяДокументовToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.историяДокументовToolStripMenuItem.Text = "История документов";
+            this.историяДокументовToolStripMenuItem.Click += new System.EventHandler(this.историяДокументовToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -636,6 +645,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelScannerIsOpen;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelCashRegisterState;
         private System.Windows.Forms.Button buttonReturn;
+        private System.Windows.Forms.ToolStripMenuItem историяДокументовToolStripMenuItem;
     }
 }
 

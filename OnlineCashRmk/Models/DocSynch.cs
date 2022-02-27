@@ -14,5 +14,7 @@ namespace OnlineCashRmk.Models
         public DateTime Create { get; set; } = DateTime.Now;
         public bool SynchStatus { get; set; } = false;
         public DateTime? Synch { get; set; }
+
+        public override string ToString() => $"{TypeDoc.GetDisplay()} {Create.ToString("dd.MM HH:mm")}";
     }
 }

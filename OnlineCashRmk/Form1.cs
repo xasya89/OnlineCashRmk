@@ -842,5 +842,11 @@ namespace OnlineCashRmk
         {
             IsReturn = !IsReturn;
         }
+
+        private void историяДокументовToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formHistory =(FormHistory) serviceProvider.GetRequiredService(typeof(FormHistory));
+            formHistory.Show();
+        }
     }
 }
