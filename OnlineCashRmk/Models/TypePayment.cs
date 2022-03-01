@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,10 @@ namespace OnlineCashRmk.Models
     public enum TypePayment
     {
         [Display(Name = "Электронные")]
+        [Description("Электронные")]
         Electron=0,
         [Display(Name = "Наличные")]
-        Cash=1
+        [Description("Электронные")]
+        Cash =1
     }
 }

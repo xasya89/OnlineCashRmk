@@ -41,6 +41,7 @@ namespace OnlineCashRmk
         DataContext db;
         ILogger<Form1> _logger;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
+        Buyer SelectedBuyer = null;
         bool __isReturn = false;
         bool IsReturn
         {
@@ -491,32 +492,51 @@ namespace OnlineCashRmk
         private void button1_Click_1(object sender, EventArgs e)
         {
             decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
-            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
+            decimal discount = GetDiscountSum();
+            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll - discount);
             if (fr.ShowDialog() != DialogResult.OK)
                 return;
             
-            CheckPrint(new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Income = fr.SumBuyerTextBox.Text.ToDecimal(), Sum = sumAll, TypePayment = TypePayment.Cash } });
+            CheckPrint(
+                new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Income = fr.SumBuyerTextBox.Text.ToDecimal(), Sum = sumAll, TypePayment = TypePayment.Cash } },
+                discount
+                );
+        }
+
+        private decimal GetDiscountSum()
+        {
+            var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+            decimal sumDiscount = 0;
+            if (SelectedBuyer != null && SelectedBuyer.DiscountSum != null && SelectedBuyer.DiscountSum > 0)
+            {
+                FormBuyerDiscount frDiscount = new FormBuyerDiscount((decimal)SelectedBuyer.DiscountSum, SelectedBuyer.Birthday == DateTime.Now.Date);
+                if (frDiscount.ShowDialog() == DialogResult.OK)
+                    sumDiscount = (decimal)SelectedBuyer.DiscountSum;
+            }
+            if (sumDiscount > sumBuy)
+                sumDiscount = sumBuy;
+            return sumDiscount;
         }
 
         public void CheckPrint(List<CheckPaymentDataModel> payments, decimal sumDiscount=0, bool isElectron=false)
         {
-
             var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
             if (shift == null)
                 MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
             if (checkGoods.Count > 0)
             {
-                var sumAll = checkGoods.Sum(c => c.Sum);
+                var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
                 CheckSell checkSell = new CheckSell
                 {
+                    Buyer = SelectedBuyer,
                     IsElectron=isElectron,
                     DateCreate = DateTime.Now,
                     TypeSell=IsReturn==false ? TypeSell.Sell : TypeSell.Return,
                     Shift = shift,
-                    Sum = sumAll,
+                    Sum = sumBuy,
                     SumDiscont = sumDiscount,
-                    SumAll = sumAll - sumDiscount
+                    SumAll = sumBuy - sumDiscount
                 };
                 db.CheckSells.Add(checkSell);
 
@@ -543,6 +563,10 @@ namespace OnlineCashRmk
                     db.CheckGoods.Add(check);
                     chgoods.Add(check);
                 };
+                if(SelectedBuyer!=null)
+                {
+                    SelectedBuyer.DiscountSum -= sumDiscount;
+                }
                 db.SaveChanges();
                 db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
                 db.SaveChanges();
@@ -551,16 +575,19 @@ namespace OnlineCashRmk
                 ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
                 _cashService.RegisterCheckSell(db.CheckSells.Include(s=>s.CheckPayments).Include(s => s.CheckGoods).ThenInclude(c => c.Good).Where(s=>s.Id==checkSell.Id).FirstOrDefault());
                 GetFiscalRegisterState();
+                SelectedBuyer = null;
             }
         }
 
         private void button2_Click_1(object sender, EventArgs e)
         {
             decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
-            FormPaymentElectron fr = new FormPaymentElectron(sumAll);
+            decimal discount = GetDiscountSum();
+            FormPaymentElectron fr = new FormPaymentElectron(sumAll - discount);
             if (fr.ShowDialog() == DialogResult.OK)
                 CheckPrint(
                     new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } },
+                    sumDiscount: discount,
                     isElectron: true
                     );
         }
@@ -789,9 +816,9 @@ namespace OnlineCashRmk
             { };
             */
             var payFor = serviceProvider.GetRequiredService<FormPaymentCombine>();
-            var payments = payFor.Show(Math.Ceiling(checkGoods.Sum(c => c.Sum)));
+            var payments = payFor.Show(Math.Ceiling(checkGoods.Sum(c => c.Sum)) - GetDiscountSum());
             if (payments != null)
-                CheckPrint(payments);
+                CheckPrint(payments, sumDiscount: GetDiscountSum());
         }
 
         /// <summary>
@@ -847,6 +874,22 @@ namespace OnlineCashRmk
         {
             var formHistory =(FormHistory) serviceProvider.GetRequiredService(typeof(FormHistory));
             formHistory.Show();
+        }
+
+        private void buttonDiscountCard_Click(object sender, EventArgs e)
+        {
+            FormBuyerRegistration fr = new FormBuyerRegistration();
+            if (fr.ShowDialog() == DialogResult.OK)
+            {
+                var buyer = db.Buyers.Where(b => b.Phone == fr.phoneNumberTextBox.Text).FirstOrDefault();
+                if (buyer == null)
+                {
+                    buyer = new Buyer { Uuid = Guid.NewGuid(), Phone = fr.phoneNumberTextBox.Text };
+                    db.Buyers.Add(buyer);
+                    db.SaveChanges();
+                }
+                SelectedBuyer = buyer;
+            }
         }
     }
 }

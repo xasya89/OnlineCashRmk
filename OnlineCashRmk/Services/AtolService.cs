@@ -55,7 +55,10 @@ namespace OnlineCashRmk.Services
             fptr.setParam(1021, cashierName);
             fptr.setParam(1203, cashierInn);
             fptr.operatorLogin();
-            fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL);
+            if(checkSell.TypeSell==TypeSell.Sell)
+                fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL);
+            else
+                fptr.setParam(Constants.LIBFPTR_PARAM_RECEIPT_TYPE, Constants.LIBFPTR_RT_SELL_RETURN);
             fptr.openReceipt();
             //Регистрация позиций
             decimal sumAll = 0;
@@ -97,6 +100,7 @@ namespace OnlineCashRmk.Services
 
             }
             fptr.closeReceipt();
+            /*
             JsonSerializerOptions options = new JsonSerializerOptions
             {
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -124,6 +128,7 @@ namespace OnlineCashRmk.Services
                     continue;
                 }
             }
+            */
         }
     }
 }

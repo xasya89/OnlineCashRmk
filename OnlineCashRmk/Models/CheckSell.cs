@@ -4,12 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineCashRmk.Models
 {
     public class CheckSell
     {
         public int Id { get; set; }
+        public int? BuyerId { get; set; }
+        [ForeignKey("BuyerId")]
+        public Buyer Buyer { get; set; }
         public DateTime DateCreate { get; set; } = DateTime.Now;
         public TypeSell TypeSell { get; set; } = TypeSell.Sell;
         public bool IsReturn

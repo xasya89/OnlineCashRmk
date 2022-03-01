@@ -23,7 +23,7 @@ namespace OnlineCashRmk
             InitializeComponent();
 
             docSynches = _db.DocSynches
-                .Where(d => DateTime.Compare(d.Create.Date, DateTime.Now.AddDays(-10).Date) == 0 || DateTime.Compare(d.Create.Date, DateTime.Now.Date) == 0)
+                .Where(d => DateTime.Compare(d.Create.Date, DateTime.Now.AddDays(-10).Date) > 0 || DateTime.Compare(d.Create.Date, DateTime.Now.Date) == 0)
                 .OrderBy(d=>d.Create).ToList();
             listBox1.DataSource = docSynches;
 
@@ -37,6 +37,8 @@ namespace OnlineCashRmk
                 RenderOpenShift(docSynch.DocId);
             if (docSynch.TypeDoc == TypeDocs.CloseShift)
                 RenderCloseShift(docSynch.DocId);
+            if (docSynch.TypeDoc == TypeDocs.Buy)
+                RenderBuy(docSynch.DocId);
             if (docSynch.TypeDoc == TypeDocs.WriteOf)
                 RenderWriteOf(docSynch.DocId);
             if (docSynch.TypeDoc == TypeDocs.Arrival)
@@ -146,11 +148,11 @@ namespace OnlineCashRmk
 {writeof.Note}
 
 @@@";
-            RtfTable table = new RtfTable(writeof.WriteofGoods.Count + 1, 11, 120);
-            table.SetColumnWidths(720, 720, 720, 720, 720);
             string[] cells = new string[5] { "Наименование", "Ед", "Кол-во", "Цена", "Сумма" };
+            RtfTable table = new RtfTable(writeof.WriteofGoods.Count + 1, cells.Length, 120);
+            table.SetColumnWidths(720, 720, 720, 720, 720);
             for (int r = 0; r < writeof.WriteofGoods.Count + 1; r++)
-                for (int c = 0; c < 11; c++)
+                for (int c = 0; c < cells.Length; c++)
                     if (r == 0)
                         table.Contents[r, c] = cells[c];
                     else
@@ -173,6 +175,48 @@ namespace OnlineCashRmk
                                 break;
                         };
             richTextBox1.Rtf = richTextBox1.Rtf.Replace("@@@", table.ToString());
+        }
+
+        private void RenderBuy(int docId)
+        {
+            var check = _db.CheckSells.Include(c=>c.CheckPayments).Include(c=>c.CheckGoods).ThenInclude(c=>c.Good)
+                .Where(c=>c.Id==docId).FirstOrDefault();
+            string document = $@"Покупка {check.DateCreate.ToString("dd.MM.yy HH:mm")} на сумму {check.CheckPayments.Sum(p=>p.Sum).ToSellFormat()}
+Оплаты
+@payments
+
+Чек
+@@@";
+            string paymentsStr = "";
+            foreach (var payment in check.CheckPayments)
+                paymentsStr += $"{payment.TypePaymentStr}  {payment.Sum}\n";
+            document = document.Replace("@payments", paymentsStr);
+            richTextBox1.Text = document;
+
+            string[] cells = new string[4] { "Наименование", "Цена", "Кол-во", "Стоимость" };
+            RtfTable tableCheckGoods = new RtfTable(check.CheckGoods.Count + 1, cells.Length, 120);
+            tableCheckGoods.SetColumnWidths(1500, 720, 950, 1100);
+            for (int r = 0; r < check.CheckGoods.Count + 1; r++)
+                for (int c = 0; c < cells.Length; c++)
+                    if (r == 0)
+                        tableCheckGoods.Contents[r, c] = cells[c];
+                    else
+                        switch (c)
+                        {
+                            case 0:
+                                tableCheckGoods.Contents[r, c] = check.CheckGoods[r-1].Good?.Name;
+                                break;
+                            case 1:
+                                tableCheckGoods.Contents[r, c] = check.CheckGoods[r-1].Cost.ToSellFormat();
+                                break;
+                            case 2:
+                                tableCheckGoods.Contents[r, c] = check.CheckGoods[r - 1].Count.ToString();
+                                break;
+                            case 3:
+                                tableCheckGoods.Contents[r, c] = check.CheckGoods[r - 1].Sum.ToSellFormat();
+                                break;
+                        };
+            richTextBox1.Rtf=richTextBox1.Rtf.Replace("@@@", tableCheckGoods.ToString());
         }
 
         private void RenderCashMoney(int docId)
