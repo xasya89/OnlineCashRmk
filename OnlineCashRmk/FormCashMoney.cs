@@ -49,7 +49,7 @@ namespace OnlineCashRmk
                 Close();
             }
             catch (SystemException) { }
-            catch (Exception ) { };
+            catch (Exception ex) { };
         }
 
         private void Create_ValueChanged(object sender, EventArgs e)

@@ -9,6 +9,7 @@ namespace OnlineCashRmk.Models
     public class DocSynch
     {
         public int Id { get; set; }
+        public Guid Uuid { get; set; } = Guid.NewGuid();
         public TypeDocs TypeDoc { get;set;  }
         public int DocId { get; set; }
         public DateTime Create { get; set; } = DateTime.Now;
