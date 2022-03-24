@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace OnlineCashRmk.Models
@@ -19,7 +20,7 @@ namespace OnlineCashRmk.Models
         public decimal? DiscountSum { get; set; }
         public decimal SumBuy { get; set; }
         public bool isChanged { get; set; } = false;
-
+        [JsonIgnore]
         public List<CheckSell> CheckSells { get; set; }
     }
 

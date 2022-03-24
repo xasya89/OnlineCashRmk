@@ -399,8 +399,10 @@ namespace OnlineCashRmk
                 btnSale_Click(btnSale2, null); 
             if (e.KeyCode == Keys.F3)
                 btnSale_Click(btnSale3, null);
+
             if (e.KeyCode == Keys.F9)
-                btnDiscount_Click(btnDiscount, null);
+                //btnDiscount_Click(btnDiscount, null);
+                buttonDiscountCard_Click(buttonDiscountCard, null);
         }
 
         void AddGood(Good good, double count=1)
@@ -876,6 +878,9 @@ namespace OnlineCashRmk
             formHistory.Show();
         }
 
+        /// <summary>
+        /// Карта лояльности
+        /// </summary>
         private void buttonDiscountCard_Click(object sender, EventArgs e)
         {
             FormBuyerRegistration fr = new FormBuyerRegistration();

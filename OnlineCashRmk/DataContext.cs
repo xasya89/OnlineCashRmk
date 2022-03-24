@@ -40,6 +40,9 @@ namespace OnlineCashRmk
 
         public DbSet<NewGoodFromCash> NewGoodsFromCash { get; set; }
 
+        public DbSet<Revaluation> Revaluations { get; set; }
+        public DbSet<RevaluationGood> RevaluationGoods { get; set; }
+
         public DataContext() 
         {
         }
@@ -126,6 +129,15 @@ namespace OnlineCashRmk
                 .HasOne(n => n.Good)
                 .WithMany(g => g.NewGoodsFromCashe)
                 .HasForeignKey(n => n.GoodId);
+
+            modelBuilder.Entity<RevaluationGood>()
+                .HasOne(r => r.Revaluation)
+                .WithMany(r => r.RevaluationGoods)
+                .HasForeignKey(r => r.RevaluationId);
+            modelBuilder.Entity<RevaluationGood>()
+                .HasOne(r => r.Good)
+                .WithMany(r => r.RevaluationGoods)
+                .HasForeignKey(r => r.GoodId);
         }
     }
 }

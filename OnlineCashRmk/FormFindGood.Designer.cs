@@ -32,13 +32,13 @@ namespace OnlineCashRmk
             this.panel1 = new System.Windows.Forms.Panel();
             this.textBoxFind = new System.Windows.Forms.TextBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
             this.ColumnId = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnEdit = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel2.SuspendLayout();
@@ -83,6 +83,29 @@ namespace OnlineCashRmk
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.DoubleClick += new System.EventHandler(this.dataGridView1_DoubleClick);
             // 
+            // ColumnId
+            // 
+            this.ColumnId.HeaderText = "id";
+            this.ColumnId.Name = "ColumnId";
+            this.ColumnId.Visible = false;
+            // 
+            // ColumnName
+            // 
+            this.ColumnName.HeaderText = "Наименование";
+            this.ColumnName.Name = "ColumnName";
+            this.ColumnName.Width = 500;
+            // 
+            // ColumnPrice
+            // 
+            this.ColumnPrice.HeaderText = "Цена";
+            this.ColumnPrice.Name = "ColumnPrice";
+            this.ColumnPrice.Width = 150;
+            // 
+            // ColumnEdit
+            // 
+            this.ColumnEdit.HeaderText = "Изменить";
+            this.ColumnEdit.Name = "ColumnEdit";
+            // 
             // panel2
             // 
             this.panel2.Controls.Add(this.button2);
@@ -112,29 +135,6 @@ namespace OnlineCashRmk
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // ColumnId
-            // 
-            this.ColumnId.HeaderText = "id";
-            this.ColumnId.Name = "ColumnId";
-            this.ColumnId.Visible = false;
-            // 
-            // ColumnName
-            // 
-            this.ColumnName.HeaderText = "Наименование";
-            this.ColumnName.Name = "ColumnName";
-            this.ColumnName.Width = 500;
-            // 
-            // ColumnPrice
-            // 
-            this.ColumnPrice.HeaderText = "Цена";
-            this.ColumnPrice.Name = "ColumnPrice";
-            this.ColumnPrice.Width = 150;
-            // 
-            // ColumnEdit
-            // 
-            this.ColumnEdit.HeaderText = "Изменить";
-            this.ColumnEdit.Name = "ColumnEdit";
-            // 
             // FormFindGood
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -146,6 +146,7 @@ namespace OnlineCashRmk
             this.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Name = "FormFindGood";
             this.Text = "FormFindGood";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormFindGood_FormClosing);
             this.Load += new System.EventHandler(this.FormFindGood_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

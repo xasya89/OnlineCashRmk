@@ -11,6 +11,7 @@ using OnlineCashRmk.DataModels;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using Flurl.Http;
+using System.Text.Json;
 
 namespace OnlineCashRmk.Services
 {
@@ -117,7 +118,7 @@ namespace OnlineCashRmk.Services
                                     var writeofsynch = new WriteofSynchDataModel { DateCreate = writeof.DateCreate, Note = writeof.Note, Goods = goods };
                                     using (var client = new HttpClient())
                                     {
-                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/WriteofSynch/{shopId}", writeofsynch);
+                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/onlinecash/WriteofSynch/{shopId}", writeofsynch);
                                         if (resp.IsSuccessStatusCode)
                                         {
                                             doc.SynchStatus = true;
@@ -148,6 +149,12 @@ namespace OnlineCashRmk.Services
                                     break;
                                 case TypeDocs.NewGoodFromCash:
                                     await SendNewGood(doc.DocId);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
+                                case TypeDocs.Revaluation:
+                                    await SendRevaluation(doc.DocId);
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
@@ -212,12 +219,20 @@ namespace OnlineCashRmk.Services
 
         public async Task SendCheckSell(int docId)
         {
-            var sell = db.CheckSells.Include(s => s.CheckGoods).ThenInclude(g=>g.Good).Include(s => s.CheckPayments).Where(s => s.Id == docId).FirstOrDefault();
+            var sell = db.CheckSells
+                .Include(s => s.CheckGoods).ThenInclude(g=>g.Good)
+                .Include(s => s.CheckPayments)
+                .Include(s=>s.Buyer)
+                .Where(s => s.Id == docId).FirstOrDefault();
             var shiftbuy = db.Shifts.Where(s => s.Id == sell.ShiftId).FirstOrDefault();
+            CashBoxCheckSellBuyer cashBuyer = null;
+            if (sell.Buyer != null)
+                cashBuyer = new CashBoxCheckSellBuyer { Uuid = sell.Buyer.Uuid, Phone = sell.Buyer.Phone };
             var sellPost = new CashBoxCheckSellModel
             {
                 IsReturn=sell.IsReturn,
                 Create = sell.DateCreate,
+                Buyer = cashBuyer,
                 SumCash = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Cash).Sum(p => p.Sum),
                 SumElectron = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum),
                 SumDiscount = sell.SumDiscont
@@ -293,6 +308,34 @@ namespace OnlineCashRmk.Services
             };
             await $"{serverurl}/api/onlinecash/NewGoodFromCashSynch/{shopId}".PostJsonAsync(goodSynch);
         }
+
+        public async Task SendRevaluation(int docId)
+        {
+            var revaluation = await db.Revaluations.Include(r => r.RevaluationGoods).ThenInclude(r => r.Good).Where(r => r.Id == docId).FirstOrDefaultAsync();
+            RevaluationDataModel dataModel = new RevaluationDataModel { Uuid=revaluation.Uuid, Create = revaluation.Create };
+            foreach (var rGood in revaluation.RevaluationGoods)
+                dataModel.RevaluationGoods.Add(new RevaluationGoodDataModel
+                {
+                    Uuid = rGood.Good.Uuid,
+                    PriceOld = rGood.PriceOld,
+                    PriceNew = rGood.PriceNew
+                });
+            var resp=await $"{serverurl}/api/onlinecash/revaluationSynch/{shopId}".PostJsonAsync(dataModel);
+            if (resp.StatusCode == 200)
+            {
+                string str = await resp.ResponseMessage.Content.ReadAsStringAsync();
+                RevaluationDataModel respRevaluation = JsonSerializer.Deserialize<RevaluationDataModel>(str);
+                foreach(var rGood in respRevaluation.RevaluationGoods)
+                    revaluation.RevaluationGoods.Where(r => r.Good.Uuid == rGood.Uuid).FirstOrDefault().Count = rGood.Count;
+            }
+            await db.SaveChangesAsync();
+        }
+    }
+
+    class CashBoxCheckSellBuyer
+    {
+        public Guid Uuid { get; set; }
+        public string Phone { get; set; }
     }
 
     class CashBoxCheckSellGood
@@ -307,6 +350,7 @@ namespace OnlineCashRmk.Services
     {
         public DateTime Create { get; set; }
         public bool IsReturn { get; set; } = false;
+        public CashBoxCheckSellBuyer Buyer { get; set; }
         public decimal SumCash { get; set; }
         public decimal SumElectron { get; set; }
         public decimal SumDiscount { get; set; }

@@ -36,6 +36,9 @@ namespace OnlineCashRmk.Models
         CashMoney,
         [Description("Новый товар")]
         [Display(Name = "Новый товар")]
-        NewGoodFromCash
+        NewGoodFromCash,
+        [Description("Переоценка")]
+        [Display(Name ="Переоценка")]
+        Revaluation
     }
 }

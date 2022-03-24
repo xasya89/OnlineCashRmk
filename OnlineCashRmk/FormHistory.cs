@@ -47,6 +47,8 @@ namespace OnlineCashRmk
                 RenderCashMoney(docSynch.DocId);
             if (docSynch.TypeDoc == TypeDocs.NewGoodFromCash)
                 RenderNewGood(docSynch.DocId);
+            if (docSynch.TypeDoc == TypeDocs.Revaluation)
+                RenderRevaluation(docSynch.DocId);
         }
 
         private void RenderOpenShift(int docId)
@@ -234,6 +236,47 @@ namespace OnlineCashRmk
 Ед - {newGood.Good.Unit.GetDisplay()}
 Тип - {newGood.Good.SpecialType.GetDisplay()}
 Цена - {newGood.Good.Price.ToSellFormat()}";
+        }
+
+        private void RenderRevaluation(int docId)
+        {
+            var revaluation = _db.Revaluations.Include(r=>r.RevaluationGoods).ThenInclude(r=>r.Good).Where(r => r.Id == docId).FirstOrDefault();
+            richTextBox1.Text = $@"Переоценка товара от {revaluation.Create.ToString("dd.MM.yy")}
+
+@@@";
+            string[] cells = new string[7] { "Наименование", "Ед", "Кол-во", "Цена", "Сумма", "Цена", "Сумма" };
+            RtfTable table = new RtfTable(revaluation.RevaluationGoods.Count + 1, cells.Length, 120);
+            table.SetColumnWidths(800, 720, 750, 750, 750, 750, 750);
+            for (int r = 0; r < revaluation.RevaluationGoods.Count + 1; r++)
+                for (int c = 0; c < cells.Length; c++)
+                    if (r == 0)
+                        table.Contents[r, c] = cells[c];
+                    else
+                        switch (c)
+                        {
+                            case 0:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].Good.Name;
+                                break;
+                            case 1:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].Good.Unit.GetDisplay();
+                                break;
+                            case 2:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].Count?.ToString();
+                                break;
+                            case 3:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].PriceOld.ToSellFormat();
+                                break;
+                            case 4:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].SumOld.ToSellFormat();
+                                break;
+                            case 5:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].PriceNew.ToSellFormat();
+                                break;
+                            case 6:
+                                table.Contents[r, c] = revaluation.RevaluationGoods[r - 1].SumNew.ToSellFormat();
+                                break;
+                        };
+            richTextBox1.Rtf = richTextBox1.Rtf.Replace("@@@", table.ToString());
         }
     }
 

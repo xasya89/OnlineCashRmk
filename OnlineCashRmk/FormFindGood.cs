@@ -16,6 +16,8 @@ namespace OnlineCashRmk
     {
         DataContext _db;
         IServiceProvider _provider;
+
+        List<RevaluationGood> RevaluationGoods = new List<RevaluationGood>();
         public FormFindGood(DataContext db, IServiceProvider provider)
         {
             _db = db;
@@ -86,9 +88,36 @@ namespace OnlineCashRmk
             {
                 int goodId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells[ColumnId.Name].Value);
                 var good = Goods.Where(g => g.Id == goodId).FirstOrDefault();
+                decimal priceOld = good.Price;
                 var frNewGood =(FormNewGood) _provider.GetService(typeof(FormNewGood));
-                DialogResult = DialogResult.Cancel;
-                frNewGood.Show(good);
+                //DialogResult = DialogResult.Cancel;
+                decimal? priceNew= frNewGood.Show(good)?.Price;
+                if (priceNew != null && priceOld != priceNew)
+                {
+                    RevaluationGood revaluationGood = RevaluationGoods.Where(r => r.Good.Id == goodId).FirstOrDefault();
+                    if (revaluationGood == null)
+                        RevaluationGoods.Add(new RevaluationGood { Good = good, PriceOld = priceOld, PriceNew = (decimal)priceNew });
+                    else
+                        revaluationGood.PriceNew = (decimal)priceNew;
+                }
+                        
+            }
+        }
+
+        private void FormFindGood_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (RevaluationGoods.Count > 0)
+            {
+                Revaluation revaluation = new Revaluation();
+                _db.Revaluations.Add(revaluation);
+                foreach(RevaluationGood revaluationGood in RevaluationGoods)
+                {
+                    revaluationGood.Revaluation = revaluation;
+                }
+                _db.RevaluationGoods.AddRange(RevaluationGoods);
+                _db.SaveChanges();
+                _db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.Revaluation, DocId = revaluation.Id });
+                _db.SaveChanges();
             }
         }
     }
