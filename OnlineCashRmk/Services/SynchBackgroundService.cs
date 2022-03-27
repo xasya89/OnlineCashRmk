@@ -131,21 +131,25 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                                 case TypeDocs.Arrival:
-                                    var model = await SendArrival(doc.Id);
-                                    using (var client = new HttpClient())
-                                    {
-                                        client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
-                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}", model);
-                                        if (resp.IsSuccessStatusCode)
-                                        {
-                                            doc.SynchStatus = true;
-                                            doc.Synch = DateTime.Now;
-                                            await db.SaveChangesAsync();
-                                        }
-                                    }
+                                    var model = await SendArrival(doc);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
                                     break;
                                 case TypeDocs.StockTaking:
                                     await SendStocktaking(doc);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
+                                case TypeDocs.StartStocktacking:
+                                    await SendStartStocktacking(doc);
+                                    doc.SynchStatus = true;
+                                    doc.Synch = DateTime.Now;
+                                    await db.SaveChangesAsync();
+                                    break;
+                                case TypeDocs.StopStocktacking:
+                                    await SendStopStocktacking(doc);
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
@@ -183,9 +187,9 @@ namespace OnlineCashRmk.Services
 
         }
 
-        private async Task<ArrivalSynchDataModel> SendArrival(int docId)
+        private async Task<ArrivalSynchDataModel> SendArrival(DocSynch docSynch)
         {
-            var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docId).FirstOrDefaultAsync();
+            var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docSynch.DocId).FirstOrDefaultAsync();
             if (arrival == null)
                 return null;
             var model = new ArrivalSynchDataModel { Num = arrival.Num, DateArrival = arrival.DateArrival, SupplierId = arrival.SupplierId, Uuid = arrival.Uuid };
@@ -198,6 +202,9 @@ namespace OnlineCashRmk.Services
                     Nds=aGood.Nds,
                     ExpiresDate=aGood.ExpiresDate
                 });
+            await $"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}"
+                .WithHeaders(new { Doc_uuid = docSynch.Uuid.ToString() })
+                .PostJsonAsync(model);
             return model;
         }
 
@@ -284,6 +291,39 @@ namespace OnlineCashRmk.Services
             catch (FlurlHttpException ex)
             {
             }
+        }
+
+        public async Task SendStartStocktacking(DocSynch docSynch)
+        {
+            var stocktaking = await db.Stocktakings.Where(s => s.Id == docSynch.DocId).FirstOrDefaultAsync();
+            StocktakingSendDataModel model = new StocktakingSendDataModel { 
+                Create = stocktaking.Create, Uuid=stocktaking.Uuid, CashMoney = stocktaking.CashMoney 
+            };
+            await $"{serverurl}/api/onlinecash/Stocktaking/start/{shopId}"
+                .WithHeaders(new { Doc_uuid = docSynch.Uuid.ToString() })
+                .PostJsonAsync(model);
+        }
+
+        public async Task SendStopStocktacking(DocSynch docSynch)
+        {
+            var stocktaking = await db.Stocktakings.Include(s => s.StocktakingGroups).ThenInclude(s => s.StocktakingGoods).ThenInclude(g => g.Good)
+                .Where(s => s.Id == docSynch.DocId).FirstOrDefaultAsync();
+            List<StocktakingGroupSendDataModel> groups = new List<StocktakingGroupSendDataModel>();
+            foreach (var group in stocktaking.StocktakingGroups)
+            {
+                var groupSend = new StocktakingGroupSendDataModel { Name = group.Name };
+                foreach (var good in group.StocktakingGoods)
+                {
+                    double countfact = 0;
+                    if (good.CountFact != null)
+                        countfact = (double)good.CountFact;
+                    groupSend.Goods.Add(new StocktakingGoodSendDataModel { Uuid = good.Uuid, CountFact = countfact });
+                };
+                groups.Add(groupSend);
+            }
+            await $"{serverurl}/api/onlinecash/Stocktaking/stop/{stocktaking.Uuid}"
+                .WithHeaders(new { Doc_uuid = docSynch.Uuid.ToString() })
+                .PostJsonAsync(groups);
         }
 
         public async Task SendCashMoney(DocSynch docSynch)

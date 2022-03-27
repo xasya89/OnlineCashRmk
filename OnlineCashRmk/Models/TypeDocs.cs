@@ -39,6 +39,12 @@ namespace OnlineCashRmk.Models
         NewGoodFromCash,
         [Description("Переоценка")]
         [Display(Name ="Переоценка")]
-        Revaluation
+        Revaluation,
+        [Description("Начало инверторизации")]
+        [Display(Name = "Начало инверторизации")]
+        StartStocktacking,
+        [Description("Окончание инверторизации")]
+        [Display(Name = "Окончание инверторизации")]
+        StopStocktacking
     }
 }

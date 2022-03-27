@@ -9,6 +9,8 @@ namespace OnlineCashRmk.DataModels
     public class StocktakingSendDataModel
     {
         public DateTime Create { get; set; }
+        public Guid Uuid { get; set; }
+        public decimal CashMoney { get; set; }
         public List<StocktakingGroupSendDataModel> Groups { get; set; } = new List<StocktakingGroupSendDataModel>();
     }
 

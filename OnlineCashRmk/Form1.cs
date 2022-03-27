@@ -850,7 +850,11 @@ namespace OnlineCashRmk
         private void инверторизацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var fr = serviceProvider.GetRequiredService<FormStocktaking>();
-            fr.Show();
+            try
+            {
+                fr.Show();
+            }
+            catch (Exception) { };
         }
 
         private void выдачаДенегToolStripMenuItem1_Click(object sender, EventArgs e)

@@ -83,15 +83,26 @@ namespace OnlineCashRmk
                 else
                 {
                     stocktaking.isSynch = true;
-                    stocktaking = new Stocktaking { Create = DateTime.Now, isSynch = false };
-                    db.Stocktakings.Add(stocktaking);
                     db.SaveChanges();
+                    stocktaking = null;
                 }
             if (stocktaking == null)
             {
-                stocktaking = new Stocktaking { Create = DateTime.Now, isSynch = false };
-                db.Stocktakings.Add(stocktaking);
-                db.SaveChanges();
+                FormText fr = new FormText();
+                fr.label1.Text = "Денег в кассе";
+                if (fr.ShowDialog() == DialogResult.OK)
+                {
+                    stocktaking = new Stocktaking { Create = DateTime.Now, CashMoney = fr.textBox1.Text.ToDecimal(), isSynch = false };
+                    db.Stocktakings.Add(stocktaking);
+
+                    db.SaveChanges();
+                    db.DocSynches.Add(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StartStocktacking });
+                    db.SaveChanges();
+                }
+                else
+                {
+                    return;
+                }
             }
             InitializeComponent();
 
@@ -324,7 +335,7 @@ namespace OnlineCashRmk
         {
             stocktaking.isSynch = true;
             _db.SaveChanges();
-            _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StockTaking });
+            _synchService.AppendDoc(new DocSynch { DocId = stocktaking.Id, TypeDoc = TypeDocs.StopStocktacking });
             Close();
         }
 
