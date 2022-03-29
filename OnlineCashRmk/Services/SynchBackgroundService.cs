@@ -37,6 +37,9 @@ namespace OnlineCashRmk.Services
                     try
                     {
                         foreach (var doc in docs)
+                        {
+                            if (doc.Uuid.ToString() == "00000000-0000-0000-0000-000000000000")
+                                doc.Uuid = Guid.NewGuid();
                             switch (doc.TypeDoc)
                             {
                                 case TypeDocs.OpenShift:
@@ -173,14 +176,14 @@ namespace OnlineCashRmk.Services
                                     await db.SaveChangesAsync();
                                     break;
                             }
-
+                        }
                         await GetBuyersAsync();
                         if (db.Buyers.Where(b => b.isChanged == true).Count() > 0)
                             await SendChangedAsync();
                     }
                     catch (FlurlHttpException) { }
                     catch (HttpRequestException) { }
-                    catch (Exception) { }
+                    catch (Exception ex) { }
                     await Task.Delay(TimeSpan.FromMinutes(cronSynch));
                 }
             });
