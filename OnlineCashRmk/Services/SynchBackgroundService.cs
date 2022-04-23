@@ -178,12 +178,10 @@ namespace OnlineCashRmk.Services
                             }
                         }
                         await GetBuyersAsync();
-                        if (db.Buyers.Where(b => b.isChanged == true).Count() > 0)
-                            await SendChangedAsync();
                     }
                     catch (FlurlHttpException) { }
                     catch (HttpRequestException) { }
-                    catch (Exception ex) { }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.StackTrace); }
                     await Task.Delay(TimeSpan.FromMinutes(cronSynch));
                 }
             });
@@ -220,11 +218,13 @@ namespace OnlineCashRmk.Services
             {
                 var buyerDb = buyersdb.Where(b => b.Uuid == buyer.Uuid).FirstOrDefault();
                 if (buyerDb == null)
+                {
+                    buyer.Id = 0;
                     db.Buyers.Add(buyer);
+                }
                 if (buyerDb != null && buyerDb.SumBuy < buyer.SumBuy)
                 {
                     buyerDb.SumBuy = buyer.SumBuy;
-                    buyerDb.isChanged = false;
                 }
             }
             await db.SaveChangesAsync();
@@ -259,15 +259,6 @@ namespace OnlineCashRmk.Services
                     Price = g.Cost
                 });
             await $"{serverurl}/api/onlinecash/CashBox/sell/{shiftbuy.Uuid}".PostJsonAsync(sellPost);
-        }
-
-        public async Task SendChangedAsync()
-        {
-            var buyers = await db.Buyers.Where(b => b.isChanged == true).ToListAsync();
-            await $"{serverurl}/api/onlinecash/Buyers".PutJsonAsync(buyers);
-            foreach (var buyer in buyers)
-                buyer.isChanged = false;
-            await db.SaveChangesAsync();
         }
 
         public async Task SendStocktaking(DocSynch docSynch)

@@ -14,12 +14,10 @@ namespace OnlineCashRmk.Models
         public string Name { get; set; }
         public DateTime? Birthday { get; set; } = null;
         public string Phone { get; set; }
-        public string DiscountCardNum { get; set; }
-        public DiscountType DiscountType { get; set; }
-        public int? DiscountPercant { get; set; }
-        public decimal? DiscountSum { get; set; }
+        public int TemporyPercent { get; set; }
+        public int SpecialPercent { get; set; }
+        public decimal DiscountSum { get; set; }
         public decimal SumBuy { get; set; }
-        public bool isChanged { get; set; } = false;
         [JsonIgnore]
         public List<CheckSell> CheckSells { get; set; }
     }

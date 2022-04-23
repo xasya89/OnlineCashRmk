@@ -32,14 +32,6 @@ namespace OnlineCashRmk
                 var port = (SerialPort)s;
                 string code = port.ReadExisting();
                 var form = activeform as PayForm;
-                var buyer = await form._db.Buyers.Where(b => b.DiscountCardNum == code).FirstOrDefaultAsync();
-                if(buyer!=null)
-                {
-                    form._buyer = buyer;
-                    //TODO: Скорее всего добавить buyer ы checksell
-                    Action action = form.ResetBinding;
-                    form.Invoke(action);
-                };
             }
         });
 

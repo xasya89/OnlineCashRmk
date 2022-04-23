@@ -32,18 +32,8 @@ namespace OnlineCashRmk.Services
                 if(buyerDb!=null && buyerDb.SumBuy < buyer.SumBuy)
                 {
                     buyerDb.SumBuy = buyer.SumBuy;
-                    buyerDb.isChanged = false;
                 }
             }
-            await _db.SaveChangesAsync();
-        }
-
-        public async Task SendChangedAsync()
-        {
-            var buyers = await _db.Buyers.Where(b => b.isChanged == true).ToListAsync();
-            await $"{serverName}/api/onlinecash/".PutJsonAsync(buyers);
-            foreach (var buyer in buyers)
-                buyer.isChanged = false;
             await _db.SaveChangesAsync();
         }
     }
