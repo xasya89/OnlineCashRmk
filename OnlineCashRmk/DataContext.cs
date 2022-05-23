@@ -43,9 +43,11 @@ namespace OnlineCashRmk
         public DbSet<Revaluation> Revaluations { get; set; }
         public DbSet<RevaluationGood> RevaluationGoods { get; set; }
 
+        /*
         public DataContext() 
         {
         }
+        */
         public DataContext(DbContextOptions options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

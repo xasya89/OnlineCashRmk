@@ -38,8 +38,8 @@ namespace OnlineCashRmk
                 ConfigureServices.ConfigureService(services);
                 using (ServiceProvider provider = services.BuildServiceProvider())
                 {
-                    var db = provider.GetRequiredService<DataContext>();
-                    db.Database.Migrate();
+                    using (var db = provider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext())
+                        db.Database.Migrate();
                     var form1 = provider.GetRequiredService<Form1>();
                     provider.GetRequiredService<Services.ISynchBackgroundService>();
                     Application.Run(form1);

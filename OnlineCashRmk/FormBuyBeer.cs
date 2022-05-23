@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 
 namespace OnlineCashRmk
@@ -17,7 +18,9 @@ namespace OnlineCashRmk
         {
             InitializeComponent();
             GoodNameLabel.Text = good.Name;
-            DataContext db = new DataContext();
+            var optBuilder = new DbContextOptionsBuilder();
+            optBuilder.UseSqlite("Data Source=CustomerDB.db;");
+            DataContext db = new DataContext(optBuilder.Options);
             BottleListBox.DataSource = db.Goods
                 .Where(g => g.SpecialType == SpecialTypes.Bottle & g.IsDeleted==false & g.VPackage!=null)
                 .OrderBy(g=>g.Name)

@@ -23,7 +23,9 @@ namespace OnlineCashRmk
         BindingSource bindingCheckGoods = new BindingSource();
         public FormCheckHistory()
         {
-            db = new DataContext();
+            var optBuilder = new DbContextOptionsBuilder();
+            optBuilder.UseSqlite("Data Source=CustomerDB.db;");
+            db = new DataContext(optBuilder.Options);
             InitializeComponent();
             binding.DataSource = checkSells;
             dataGridViewChecks.AutoGenerateColumns = false;

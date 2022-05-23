@@ -11,6 +11,7 @@ using OnlineCashRmk.Services;
 using System.IO;
 using Serilog;
 using Serilog.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace OnlineCashRmk
 {
@@ -21,7 +22,8 @@ namespace OnlineCashRmk
             var builder = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(AppContext.BaseDirectory))
             .AddJsonFile("appsettings.json", optional: true);
-            services.AddDbContext<DataContext>()
+            services
+                .AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))
                 .AddSingleton<BarCodeScanner>()
                 .AddSingleton<ICashRegisterService, AtolService>()
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
@@ -31,7 +33,7 @@ namespace OnlineCashRmk
                 .AddTransient<IConfiguration>(_ => builder.Build())
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()
-                .AddTransient<PayForm>()
+                //.AddTransient<PayForm>()
                 .AddTransient<FormPaymentCombine>()
                 .AddTransient<FormWriteOf>()
                 .AddTransient<FormArrival>()
@@ -39,7 +41,8 @@ namespace OnlineCashRmk
                 .AddTransient<FormCashMoney>()
                 .AddTransient<FormNewGood>()
                 .AddTransient<FormFindGood>()
-                .AddTransient<FormHistory>();
+                .AddTransient<FormHistory>()
+                ;
             
         }
     }

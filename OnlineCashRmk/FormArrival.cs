@@ -42,11 +42,11 @@ namespace OnlineCashRmk
         BarCodeScanner _barCodeScanner;
 
         public FormArrival(ISynchService synchService, ILogger<FormArrival> logger,
-            DataContext db, ISynchService synch, BarCodeScanner barCodeScanner, 
+            IDbContextFactory<DataContext> dbFactory, ISynchService synch, BarCodeScanner barCodeScanner, 
             IServiceProvider provider)
         {
             this.synch = synch;
-            this.db = db;
+            this.db = dbFactory.CreateDbContext();
             _provider = provider;
             InitializeComponent();
             CalcSumAll();
@@ -135,8 +135,10 @@ namespace OnlineCashRmk
                         var good = (Good)findListBox.SelectedItem;
                         if (good != null)
                             AddGood(good);
+                        /*
                         findTextBox.Text = "";
                         findGoods.Clear();
+                        */
                         break;
                     case Keys.Down:
                         int cursor = findListBox.SelectedIndex;
@@ -163,8 +165,10 @@ namespace OnlineCashRmk
             {
                 var good = (Good)findListBox.SelectedItem;
                 AddGood(good);
+                /*
                 findGoods.Clear();
                 findTextBox.Text = "";
+                */
             }
         }
 
@@ -314,6 +318,7 @@ namespace OnlineCashRmk
         {
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
+            db.Dispose();
         }
 
         void CalcSumAll()
@@ -363,6 +368,7 @@ namespace OnlineCashRmk
         {
             var fr =(FormNewGood) _provider.GetService(typeof(FormNewGood));
             AddGood(fr.Show());
+            fr.Dispose();
         }
     }
 }

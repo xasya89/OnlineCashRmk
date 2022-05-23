@@ -32,7 +32,10 @@ namespace OnlineCashRmk.ViewModels
             bool flagResult = true;
             if (await PostNewGood() == false)
                 return false;
-            DataContext db = new DataContext();
+
+            var optBuilder = new DbContextOptionsBuilder();
+            optBuilder.UseSqlite("Data Source=CustomerDB.db;");
+            DataContext db = new DataContext(optBuilder.Options);
             List<Shift> shifts = await db.Shifts.Include(s => s.CheckSells).ThenInclude(c => c.CheckGoods).ThenInclude(cg => cg.Good).Where(s => s.Stop != null & !s.isSynch).ToListAsync();
             foreach(var shift in shifts)
                 if(!shift.isSynch)
@@ -58,7 +61,9 @@ namespace OnlineCashRmk.ViewModels
         {
             try
             {
-                DataContext db = new DataContext();
+                var optBuilder = new DbContextOptionsBuilder();
+                optBuilder.UseSqlite("Data Source=CustomerDB.db;");
+                DataContext db = new DataContext(optBuilder.Options);
                 var goods = await db.Goods.Include(b=>b.BarCodes).Where(g => g.Uuid == Guid.Parse("00000000-0000-0000-0000-000000000000") ).ToListAsync();
                 
                 if(goods.Count>0)

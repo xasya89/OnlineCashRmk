@@ -18,40 +18,44 @@ namespace OnlineCashRmk
         IServiceProvider _provider;
 
         List<RevaluationGood> RevaluationGoods = new List<RevaluationGood>();
-        public FormFindGood(DataContext db, IServiceProvider provider)
+        public FormFindGood(IDbContextFactory<DataContext> dbFactory, IServiceProvider provider)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
+            FormClosed += (s, e) => { _db.Dispose(); };
             _provider = provider;
         }
 
         List<Good> Goods = new List<Good>();
-        public Good Show()
+        public int? Show()
         {
-            var goods = _db.Goods.Include(g => g.BarCodes).Where(g=>g.IsDeleted==false).ToList();
-            Goods = goods;
             InitializeComponent();
-            foreach (var good in Goods)
-                dataGridView1.Rows.Add(
-                    good.Id,
-                    good.Name,
-                    good.Price,
-                    "изменить"
-                    );
-            textBoxFind.Focus();
-            textBoxFind.Select();
+            resetGoods();
             if (ShowDialog()==DialogResult.OK)
                 if (dataGridView1.SelectedRows.Count > 0)
                 {
                     DataGridViewRow row = dataGridView1.SelectedRows[0];
                     int idGood = Convert.ToInt32(row.Cells["ColumnId"].Value);
-                    return Goods.Where(g => g.Id == idGood).FirstOrDefault(); 
+
+                    return idGood;
                 }
             return null;
         }
 
-        public FormFindGood()
+        void resetGoods()
         {
-            
+            var goods = _db.Goods.Include(g => g.BarCodes).Where(g => g.IsDeleted == false).ToList();
+            Goods = goods;
+            dataGridView1.Rows.Clear();
+            foreach (var good in Goods)
+                if (good.Name.ToLower().IndexOf(textBoxFind.Text.ToLower()) > -1)
+                    dataGridView1.Rows.Add(
+                        good.Id,
+                        good.Name,
+                        good.Price,
+                        "Изменить"
+                        );
+            textBoxFind.Focus();
+            textBoxFind.Select();
         }
 
         private void FormFindGood_Load(object sender, EventArgs e)
@@ -90,8 +94,10 @@ namespace OnlineCashRmk
                 var good = Goods.Where(g => g.Id == goodId).FirstOrDefault();
                 decimal priceOld = good.Price;
                 var frNewGood =(FormNewGood) _provider.GetService(typeof(FormNewGood));
-                //DialogResult = DialogResult.Cancel;
-                decimal? priceNew= frNewGood.Show(good)?.Price;
+                decimal? priceNew= frNewGood.Show(good.Id)?.Price;
+                frNewGood.Dispose();
+                good.Price = priceNew ?? priceOld;
+
                 if (priceNew != null && priceOld != priceNew)
                 {
                     RevaluationGood revaluationGood = RevaluationGoods.Where(r => r.Good.Id == goodId).FirstOrDefault();
@@ -99,8 +105,8 @@ namespace OnlineCashRmk
                         RevaluationGoods.Add(new RevaluationGood { Good = good, PriceOld = priceOld, PriceNew = (decimal)priceNew });
                     else
                         revaluationGood.PriceNew = (decimal)priceNew;
+                    resetGoods();
                 }
-                        
             }
         }
 
@@ -118,6 +124,7 @@ namespace OnlineCashRmk
                 _db.SaveChanges();
                 _db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.Revaluation, DocId = revaluation.Id });
                 _db.SaveChanges();
+                MessageBox.Show("Перезыпаустите программу, для работы по новым ценам");
             }
         }
     }

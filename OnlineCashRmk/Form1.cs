@@ -84,13 +84,15 @@ namespace OnlineCashRmk
             }
         });
 
-        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, DataContext db, ISynchService synchService, BarCodeScanner barCodeScanner, ICashRegisterService cashService)
+        FormScreenForBuyer formScreenForBuyer;
+
+        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, IDbContextFactory<DataContext> dbFactory, ISynchService synchService, BarCodeScanner barCodeScanner, ICashRegisterService cashService)
         {
             try
             {
                 _cashService = cashService;
                 this.serviceProvider = serviceProvider;
-                this.db = db;
+                db = dbFactory.CreateDbContext();
                 _logger = logger;
                 _logger.LogError("Start form");
                 this.synchService = synchService;
@@ -164,6 +166,14 @@ namespace OnlineCashRmk
                 ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
                 ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
                 ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
+
+
+                //Открытие второго окна для отображения покупки покупателю
+                if (configuration.GetSection("openScreenForBuyer").Value == true.ToString())
+                {
+                    formScreenForBuyer = new FormScreenForBuyer(checkGoods);
+                    formScreenForBuyer.Show();
+                }
             }
             catch(Exception ex)
             {
@@ -241,7 +251,9 @@ namespace OnlineCashRmk
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            formScreenForBuyer?.Close();
             _cashService.Close();
+            db.Dispose();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -478,17 +490,16 @@ namespace OnlineCashRmk
             });
         }
 
-        void FindGood()
+        async Task FindGood()
         {
-            /*
-            FormFindGood fr = new FormFindGood(GoodList);
-            if (fr.ShowDialog() == DialogResult.OK && fr.SelectedGood!=null)
-            {
-                AddGood(fr.SelectedGood);
-            }
-            */
             var fr = serviceProvider.GetService<FormFindGood>();
-            AddGood(fr.Show());
+            int goodId = fr.Show() ?? 0;
+            fr.Dispose();
+            await Task.Delay(100);
+            GoodList = await db.Goods.ToListAsync();
+            var goodadded = GoodList.Where(g => g.Id == goodId).FirstOrDefault();
+            if (goodadded !=null)
+                AddGood(goodadded);
         }
 
         private void button1_Click_1(object sender, EventArgs e)

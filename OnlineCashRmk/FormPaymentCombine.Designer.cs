@@ -187,6 +187,7 @@ namespace OnlineCashRmk
             this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "FormPaymentCombine";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormPaymentCombine_FormClosed);
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.FormPaymentCombine_PreviewKeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();

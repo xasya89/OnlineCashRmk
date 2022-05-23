@@ -17,10 +17,11 @@ namespace OnlineCashRmk
     {
         DataContext _db;
         List<DocSynch> docSynches = new List<DocSynch>();
-        public FormHistory(DataContext db)
+        public FormHistory(IDbContextFactory<DataContext> dbFactory)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
             InitializeComponent();
+            FormClosed += (s, e) => { _db.Dispose(); };
 
             docSynches = _db.DocSynches
                 .Where(d => DateTime.Compare(d.Create.Date, DateTime.Now.AddDays(-10).Date) > 0 || DateTime.Compare(d.Create.Date, DateTime.Now.Date) == 0)

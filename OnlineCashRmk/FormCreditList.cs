@@ -19,7 +19,9 @@ namespace OnlineCashRmk
         {
             InitializeComponent();
             TopMost = false;
-            db = new DataContext();
+            var optBuilder = new DbContextOptionsBuilder();
+            optBuilder.UseSqlite("Data Source=CustomerDB.db;");
+            db = new DataContext(optBuilder.Options);
             Select();
         }
 

@@ -14,9 +14,9 @@ namespace OnlineCashRmk.Services
     {
         string serverName;
         public DataContext _db;
-        public SynchBuyersService(DataContext db, IConfiguration configuration)
+        public SynchBuyersService(IDbContextFactory<DataContext> dbFactory, IConfiguration configuration)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
             serverName = configuration.GetSection("serverName").Value;
         }
 

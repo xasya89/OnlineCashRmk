@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace OnlineCashRmk.Services
 {
@@ -19,9 +20,9 @@ namespace OnlineCashRmk.Services
         int shopId;
         private static List<DocSynch> DocSynches = new List<DocSynch>();
 
-        public SynchService(DataContext db, ILogger<SynchService> logger, IConfiguration configuration)
+        public SynchService(IDbContextFactory<DataContext> dbFactory, ILogger<SynchService> logger, IConfiguration configuration)
         {
-            db_ = db;
+            db_ = dbFactory.CreateDbContext();
             logger_ = logger;
             this.configuration = configuration;
             hostname = configuration.GetSection("serverName").Value;

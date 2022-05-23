@@ -23,7 +23,7 @@ namespace OnlineCashRmk.Services
         int cronSynch;
         public SynchBackgroundService(IServiceProvider provider)
         {
-            db = provider.GetRequiredService<DataContext>();
+            db = provider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext();
             IConfiguration config = provider.GetRequiredService<IConfiguration>();
             SynchBuyersService buyersService = provider.GetRequiredService<SynchBuyersService>();
             serverurl = config.GetSection("serverName").Value;

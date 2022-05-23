@@ -28,24 +28,14 @@ namespace OnlineCashRmk
         int idShop = 1;
         string cashierName = "";
         string cashierInn = "";
-        public FormMenu(IConfiguration configuration, DataContext db)
+        public FormMenu(IConfiguration configuration, IDbContextFactory<DataContext> dbFactory)
         {
             serverName = configuration.GetSection("serverName").Value;
             idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
             _configuration = configuration;
-            _db = db;
-            /*
-            var builder = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(AppContext.BaseDirectory))
-            .AddJsonFile("appsettings.json", optional: true);
-            configuration = builder.Build();
-            serverName = configuration.GetSection("serverName").Value;
-            idShop = Convert.ToInt32(configuration.GetSection("idShop").Value);
-            cashierName = configuration.GetSection("cashierName").Value;
-            cashierInn = configuration.GetSection("cashierInn").Value;
-            */
+            _db = dbFactory.CreateDbContext();
             InitializeComponent();
         }
 
@@ -122,12 +112,12 @@ namespace OnlineCashRmk
                       button1.BackColor = statusSuccess ? Color.LightGreen : Color.LightPink;
                   });
                 Invoke(action);
+                MessageBox.Show("Перезыпаустите программу, для работы по новым ценам");
             });
         }
         //Приходы
         private void button3_Click(object sender, EventArgs e)
         {
-            //System.Diagnostics.Process.Start($"{serverName}/Arrivals/Create?ShopId={idShop}");
             const string userChoice = @"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice";
             string progId;
             BrowserApplication browser;
@@ -189,6 +179,11 @@ namespace OnlineCashRmk
             //fr.TopMost = true;
             fr.Show();
             Close();
+        }
+
+        private void FormMenu_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            _db.Dispose();
         }
     }
 }

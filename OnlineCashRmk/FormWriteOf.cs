@@ -41,9 +41,9 @@ namespace OnlineCashRmk
         WriteofGood writeofGoodSelected { get; set; }
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
 
-        public FormWriteOf(DataContext db, ILogger<FormWriteOf> logger, ISynchService synch, BarCodeScanner barCodeScanner)
+        public FormWriteOf(IDbContextFactory<DataContext> dbFactory, ILogger<FormWriteOf> logger, ISynchService synch, BarCodeScanner barCodeScanner)
         {
-            this.db = db;
+            this.db = dbFactory.CreateDbContext();
             this.logger = logger;
             this.synch = synch;
 
@@ -300,6 +300,7 @@ namespace OnlineCashRmk
 
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
+            db.Dispose();
         }
     }
 }

@@ -18,9 +18,10 @@ namespace OnlineCashRmk
         DataContext _db;
         ISynchService _synchBackground;
         TypeCashMoneyOpertaion typeOperation;
-        public FormCashMoney(DataContext db, ISynchService synchBackground)
+        public FormCashMoney(IDbContextFactory<DataContext> dbFactory, ISynchService synchBackground)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
+            FormClosed += (s,e)=> { _db.Dispose(); };
             _synchBackground = synchBackground;
             InitializeComponent();
         }

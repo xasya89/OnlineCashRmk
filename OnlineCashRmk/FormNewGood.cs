@@ -30,13 +30,16 @@ namespace OnlineCashRmk
             }
         });
         BarCodeScanner _barCodeScanner;
-        public FormNewGood(DataContext db, ISynchService synch, BarCodeScanner barCodeScanner)
+        public FormNewGood(IDbContextFactory<DataContext> dbFactory, ISynchService synch, BarCodeScanner barCodeScanner)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
+            //FormClosed += (s, e) => { _db.Dispose(); };
             _synch = synch;
             _barCodeScanner = barCodeScanner;
             InitializeComponent();
         }
+
+        public void Dispose() { }// => _db.Dispose();
 
         private void label2_Click(object sender, EventArgs e)
         {
@@ -44,8 +47,9 @@ namespace OnlineCashRmk
         }
 
         bool flagNewGood = false;
-        public Good Show(Good good)
+        public Good Show(int goodId)
         {
+            Good good = _db.Goods.Find(goodId);
             goodName.Text = good.Name;
             goodBarCode.Text = good.BarCodes.FirstOrDefault()?.Code;
             goodPrice.Text = good.Price.ToString();

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 using OnlineCashRmk.DataModels;
 
@@ -15,9 +16,9 @@ namespace OnlineCashRmk
     public partial class FormPaymentCombine : Form
     {
         DataContext _db;
-        public FormPaymentCombine(DataContext db)
+        public FormPaymentCombine(IDbContextFactory<DataContext> dbFactory)
         {
-            _db = db;
+            _db = dbFactory.CreateDbContext();
             InitializeComponent();
         }
 
@@ -92,6 +93,11 @@ namespace OnlineCashRmk
         {
             if (checkSumPay())
                 DialogResult = DialogResult.OK;
+        }
+
+        private void FormPaymentCombine_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            _db.Dispose();
         }
     }
 }
