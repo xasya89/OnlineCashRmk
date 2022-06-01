@@ -29,7 +29,6 @@ namespace OnlineCashRmk
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
                 .AddScoped<ISynchService, SynchService>()
                 .AddSingleton<ISynchBackgroundService, SynchBackgroundService>()
-                .AddSingleton<SynchBuyersService>()
                 .AddTransient<IConfiguration>(_ => builder.Build())
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()

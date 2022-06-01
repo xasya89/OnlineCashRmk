@@ -29,6 +29,7 @@ using Microsoft.Extensions.Logging;
 using OnlineCashRmk.Services;
 using System.Globalization;
 using System.IO.Ports;
+using Microsoft.AspNetCore.SignalR.Client;
 using OnlineCashRmk.DataModels;
 
 namespace OnlineCashRmk
@@ -58,6 +59,10 @@ namespace OnlineCashRmk
             {1,new List<CheckGoodModel>() },
             {2,new List<CheckGoodModel>() },
             {3,new List<CheckGoodModel>() }
+        };
+        Dictionary<int, Buyer> saleBuyers = new Dictionary<int, Buyer>()
+        {
+            {1,null },{2,null },{3,null }
         };
         ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
         Good goodPackcage = null;
@@ -154,7 +159,7 @@ namespace OnlineCashRmk
                 checkGoods.CollectionChanged += (s, e) =>
                 {
                     bindingCheckGoods.ResetBindings(false);
-                    labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => c.Sum)).ToString();
+                    CalcSumBuy();
                 };
                 bindingCheckGoods.DataSource = checkGoods;
                 dataGridView1.AutoGenerateColumns = false;
@@ -174,12 +179,50 @@ namespace OnlineCashRmk
                     formScreenForBuyer = new FormScreenForBuyer(checkGoods);
                     formScreenForBuyer.Show();
                 }
+
+                HubConnection hub = new HubConnectionBuilder().WithUrl("https://localhost:44394/discount_and_buyer_hub")
+                    .WithAutomaticReconnect()
+                    .Build();
+                hub.On<Buyer>("buyer", async b =>
+                {
+                    Action changeBuyer = () =>
+                    {
+                        var buyer = db.Buyers.Where(x => x.Uuid == b.Uuid).FirstOrDefault();
+                        if (buyer == null)
+                        {
+                            buyer.Id = 0;
+                            db.Buyers.Add(buyer);
+                        }
+                        buyer.DiscountSum = b.DiscountSum;
+                        buyer.SpecialPercent = b.SpecialPercent;
+                        buyer.TemporyPercent = b.TemporyPercent;
+                        db.SaveChanges();
+                    };
+                    Invoke(changeBuyer);
+                });
+                BuyerHubConnected(hub);
             }
             catch(Exception ex)
             {
                 logger.LogError("Form 1 error init \n"+ ex.StackTrace+"\n"+ ex.Message);
                 Close();
             }
+        }
+
+        async Task BuyerHubConnected(HubConnection hub)
+        {
+            bool flag = true;
+            while (flag)
+                try
+                {
+                    await hub.StartAsync();
+                    flag = false;
+                    Console.WriteLine("connected");
+                }
+                catch (Exception)
+                {
+                    //await Task.Delay(600000);
+                };
         }
 
         void GetFiscalRegisterState()
@@ -456,8 +499,7 @@ namespace OnlineCashRmk
                         checkgood.Count += count;
                     else
                         checkgood.Count = count;
-                    ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
-                    labelSumAll.Text = Math.Ceiling(checkGoods.Sum(c => (decimal)c.Count * c.Cost)).ToString();
+                    CalcSumBuy();
                 }
             }
         }
@@ -475,10 +517,18 @@ namespace OnlineCashRmk
                     double count = 0;
                     double.TryParse(fr.textBoxCount.Text.Replace(".", ","), out count);
                     checkGood.Count = count;
-                    ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
-                    labelSumAll.Text =Math.Round(checkGoods.Sum(c => c.Sum)).ToString();
+                    CalcSumBuy();
                 }
             }
+        }
+
+        private void CalcSumBuy()
+        {
+            ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
+            decimal discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
+            decimal sumBuy = checkGoods.Sum(c => c.Sum) - discount;
+            labelDiscountSum.Text = discount.ToSellFormat();
+            labelSumAll.Text = Math.Ceiling(sumBuy).ToString();
         }
 
         List<Good> GoodList = new List<Good>();
@@ -504,9 +554,16 @@ namespace OnlineCashRmk
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+            /*
+            //Проверим наличие постоянной скидки
+            decimal discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
+            //Проверим кол-во накоплений и стоит ли их списывать
+            if ((SelectedBuyer?.SpecialPercent ?? 0) == 0)
+                discount = GetDiscountSum();
+            */
             decimal discount = GetDiscountSum();
-            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll - discount);
+            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+            FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll );
             if (fr.ShowDialog() != DialogResult.OK)
                 return;
             
@@ -518,9 +575,12 @@ namespace OnlineCashRmk
 
         private decimal GetDiscountSum()
         {
+            decimal discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
+            if (discount > 0)
+                return discount;
             var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
             decimal sumDiscount = 0;
-            if (SelectedBuyer != null && SelectedBuyer.DiscountSum != null && SelectedBuyer.DiscountSum > 0)
+            if ((SelectedBuyer?.DiscountSum ?? 0)>0)
             {
                 FormBuyerDiscount frDiscount = new FormBuyerDiscount((decimal)SelectedBuyer.DiscountSum, SelectedBuyer.Birthday == DateTime.Now.Date);
                 if (frDiscount.ShowDialog() == DialogResult.OK)
@@ -594,9 +654,9 @@ namespace OnlineCashRmk
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum));
             decimal discount = GetDiscountSum();
-            FormPaymentElectron fr = new FormPaymentElectron(sumAll - discount);
+            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) -discount);
+            FormPaymentElectron fr = new FormPaymentElectron(sumAll );
             if (fr.ShowDialog() == DialogResult.OK)
                 CheckPrint(
                     new List<CheckPaymentDataModel>() { new CheckPaymentDataModel { Sum = sumAll, TypePayment = TypePayment.Electron } },
@@ -625,6 +685,7 @@ namespace OnlineCashRmk
         //Отменить весь чек
         private void button5_Click(object sender, EventArgs e)
         {
+            SelectedBuyer = null;
             checkGoods.Clear();
             ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
         }
@@ -803,8 +864,10 @@ namespace OnlineCashRmk
             saleCheckGoods[saleSelected].Clear();
             foreach (var ch in checkGoods)
                 saleCheckGoods[saleSelected].Add(ch);
+            saleBuyers[saleSelected] = SelectedBuyer;
             saleSelected = num;
             checkGoods.Clear();
+            SelectedBuyer = saleBuyers[saleSelected];
             foreach (var ch in saleCheckGoods[saleSelected])
                 checkGoods.Add(ch);
         }
@@ -818,20 +881,12 @@ namespace OnlineCashRmk
         //Новая оплата
         private void button7_Click(object sender, EventArgs e)
         {
-            /*
-            var payForm = serviceProvider.GetRequiredService<PayForm>();
-            try
-            {
-                List<CheckPaymentDataModel> checkpayments = payForm.Pay( Math.Ceiling(checkGoods.Sum(c => c.Sum)));
-                CheckPrint(checkpayments);
-            }
-            catch(Exception)
-            { };
-            */
+            decimal discount = GetDiscountSum();
+            decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
             var payFor = serviceProvider.GetRequiredService<FormPaymentCombine>();
-            var payments = payFor.Show(Math.Ceiling(checkGoods.Sum(c => c.Sum)) - GetDiscountSum());
+            var payments = payFor.Show(sumAll);
             if (payments != null)
-                CheckPrint(payments, sumDiscount: GetDiscountSum());
+                CheckPrint(payments, sumDiscount: discount);
         }
 
         /// <summary>
@@ -909,6 +964,7 @@ namespace OnlineCashRmk
                     db.SaveChanges();
                 }
                 SelectedBuyer = buyer;
+                CalcSumBuy();
             }
         }
     }

@@ -25,10 +25,19 @@ namespace OnlineCashRmk.Services
         {
             db = provider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext();
             IConfiguration config = provider.GetRequiredService<IConfiguration>();
-            SynchBuyersService buyersService = provider.GetRequiredService<SynchBuyersService>();
             serverurl = config.GetSection("serverName").Value;
             shopId = Convert.ToInt32(config.GetSection("idShop").Value);
             cronSynch = Convert.ToInt32(config.GetSection("Crons").GetSection("Synch").Value);
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await GetBuyersAsync();
+                }
+                catch (FlurlHttpException) { }
+                catch (HttpRequestException) { }
+                catch (Exception) { };
+            });
             Task.Run(async () =>
             {
                 while (true)
@@ -59,41 +68,6 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                                 case TypeDocs.Buy:
-                                    /*
-                                    var check = await db.CheckSells
-                                    .Include(c => c.CheckGoods).ThenInclude(cg => cg.Good)
-                                    .Where(c => c.Id == doc.DocId).FirstOrDefaultAsync();
-                                    var shiftbuy = await db.Shifts.Where(s => s.Id == check.ShiftId).FirstOrDefaultAsync();
-                                    List<CashBoxBuyReturnModel> bues = new List<CashBoxBuyReturnModel>();
-                                    foreach (var checkgood in check.CheckGoods)
-                                    {
-                                        bool isElectron = check.IsElectron;
-                                        Guid uuid = checkgood.Good.Uuid;
-                                        double count = checkgood.Count;
-                                        decimal price = checkgood.Cost;
-                                        var buy = bues.Where(b => b.Uuid == uuid).FirstOrDefault();
-                                        if (buy == null)
-                                            bues.Add(new CashBoxBuyReturnModel
-                                            {
-                                                IsElectron = isElectron,
-                                                Uuid = uuid,
-                                                Count = count,
-                                                Price = price
-                                            });
-                                        else
-                                            buy.Count += count;
-                                    };
-                                    using (var client = new HttpClient())
-                                    {
-                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/CashBox/buy/{shiftbuy.Uuid}", bues);
-                                        if (resp.IsSuccessStatusCode)
-                                        {
-                                            doc.SynchStatus = true;
-                                            doc.Synch = DateTime.Now;
-                                            await db.SaveChangesAsync();
-                                        }
-                                    }
-                                    */
                                     await SendCheckSell(doc.DocId);
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
@@ -177,7 +151,6 @@ namespace OnlineCashRmk.Services
                                     break;
                             }
                         }
-                        await GetBuyersAsync();
                     }
                     catch (FlurlHttpException) { }
                     catch (HttpRequestException) { }
@@ -222,12 +195,26 @@ namespace OnlineCashRmk.Services
                     buyer.Id = 0;
                     db.Buyers.Add(buyer);
                 }
-                if (buyerDb != null && buyerDb.SumBuy < buyer.SumBuy)
-                {
-                    buyerDb.SumBuy = buyer.SumBuy;
-                }
+                buyerDb.DiscountSum = buyer.DiscountSum;
+                buyerDb.SpecialPercent = buyer.SpecialPercent;
+                buyerDb.TemporyPercent = buyer.TemporyPercent;
             }
             await db.SaveChangesAsync();
+        }
+
+        public async Task GetDiscountSettings()
+        {
+            var discounts = await $"{serverurl}/api/onlinecash/Discounts".GetJsonAsync<DiscountParamContainerModel>();
+            var discountsDb = await db.DiscountSettings.FirstOrDefaultAsync();
+            if(discountsDb==null)
+            {
+                db.DiscountSettings.Add(new DiscountSetting { DiscountModel = discounts });
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                discountsDb.DiscountModel = discounts;
+            }
         }
 
         public async Task SendCheckSell(int docId)
@@ -241,6 +228,8 @@ namespace OnlineCashRmk.Services
             CashBoxCheckSellBuyer cashBuyer = null;
             if (sell.Buyer != null)
                 cashBuyer = new CashBoxCheckSellBuyer { Uuid = sell.Buyer.Uuid, Phone = sell.Buyer.Phone };
+            decimal sumCash = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Cash).Sum(p => p.Sum);
+            decimal sumElectron = sell.CheckPayments.Where(p => p.TypePayment == TypePayment.Electron).Sum(p => p.Sum);
             var sellPost = new CashBoxCheckSellModel
             {
                 IsReturn=sell.IsReturn,

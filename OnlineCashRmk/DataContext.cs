@@ -43,6 +43,7 @@ namespace OnlineCashRmk
         public DbSet<Revaluation> Revaluations { get; set; }
         public DbSet<RevaluationGood> RevaluationGoods { get; set; }
 
+        public DbSet<DiscountSetting> DiscountSettings { get; set; }
         /*
         public DataContext() 
         {

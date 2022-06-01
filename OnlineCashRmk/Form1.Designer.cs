@@ -30,11 +30,12 @@ namespace OnlineCashRmk
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.button4 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.buttonDiscountCard = new System.Windows.Forms.Button();
             this.buttonReturn = new System.Windows.Forms.Button();
             this.btnSale3 = new System.Windows.Forms.Button();
             this.btnSale2 = new System.Windows.Forms.Button();
@@ -48,8 +49,6 @@ namespace OnlineCashRmk
             this.btnAddPackage = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.labelSumAll = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.button6 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -78,7 +77,9 @@ namespace OnlineCashRmk
             this.toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelCashRegisterState = new System.Windows.Forms.ToolStripStatusLabel();
             this.findTextBox = new System.Windows.Forms.TextBox();
-            this.buttonDiscountCard = new System.Windows.Forms.Button();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.labelDiscountSum = new System.Windows.Forms.Label();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -88,6 +89,8 @@ namespace OnlineCashRmk
             this.splitContainer1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // button4
@@ -116,6 +119,17 @@ namespace OnlineCashRmk
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1105, 42);
             this.panel2.TabIndex = 3;
+            // 
+            // buttonDiscountCard
+            // 
+            this.buttonDiscountCard.BackColor = System.Drawing.SystemColors.Control;
+            this.buttonDiscountCard.Location = new System.Drawing.Point(849, 0);
+            this.buttonDiscountCard.Name = "buttonDiscountCard";
+            this.buttonDiscountCard.Size = new System.Drawing.Size(97, 41);
+            this.buttonDiscountCard.TabIndex = 3;
+            this.buttonDiscountCard.Text = "Карта лояльности";
+            this.buttonDiscountCard.UseVisualStyleBackColor = false;
+            this.buttonDiscountCard.Click += new System.EventHandler(this.buttonDiscountCard_Click);
             // 
             // buttonReturn
             // 
@@ -191,19 +205,18 @@ namespace OnlineCashRmk
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.groupBox3);
+            this.panel3.Controls.Add(this.groupBox2);
             this.panel3.Controls.Add(this.btnDiscount);
             this.panel3.Controls.Add(this.button7);
             this.panel3.Controls.Add(this.btnAddPackage);
             this.panel3.Controls.Add(this.button5);
-            this.panel3.Controls.Add(this.labelSumAll);
-            this.panel3.Controls.Add(this.label1);
-            this.panel3.Controls.Add(this.button6);
             this.panel3.Controls.Add(this.button2);
             this.panel3.Controls.Add(this.button1);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel3.Location = new System.Drawing.Point(952, 42);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(153, 547);
+            this.panel3.Size = new System.Drawing.Size(153, 583);
             this.panel3.TabIndex = 4;
             // 
             // btnDiscount
@@ -211,7 +224,7 @@ namespace OnlineCashRmk
             this.btnDiscount.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnDiscount.BackgroundImage")));
             this.btnDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.btnDiscount.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnDiscount.Location = new System.Drawing.Point(9, 247);
+            this.btnDiscount.Location = new System.Drawing.Point(9, 296);
             this.btnDiscount.Name = "btnDiscount";
             this.btnDiscount.Size = new System.Drawing.Size(132, 73);
             this.btnDiscount.TabIndex = 5;
@@ -223,7 +236,7 @@ namespace OnlineCashRmk
             // button7
             // 
             this.button7.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button7.Location = new System.Drawing.Point(9, 324);
+            this.button7.Location = new System.Drawing.Point(9, 373);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(132, 61);
             this.button7.TabIndex = 4;
@@ -235,7 +248,7 @@ namespace OnlineCashRmk
             // 
             this.btnAddPackage.Image = global::OnlineCashRmk.Properties.Resources.bag;
             this.btnAddPackage.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnAddPackage.Location = new System.Drawing.Point(9, 417);
+            this.btnAddPackage.Location = new System.Drawing.Point(9, 450);
             this.btnAddPackage.Name = "btnAddPackage";
             this.btnAddPackage.Size = new System.Drawing.Size(132, 56);
             this.btnAddPackage.TabIndex = 3;
@@ -248,7 +261,7 @@ namespace OnlineCashRmk
             // 
             this.button5.Image = global::OnlineCashRmk.Properties.Resources.clear;
             this.button5.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button5.Location = new System.Drawing.Point(9, 479);
+            this.button5.Location = new System.Drawing.Point(9, 516);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(132, 56);
             this.button5.TabIndex = 3;
@@ -261,41 +274,17 @@ namespace OnlineCashRmk
             // 
             this.labelSumAll.AutoSize = true;
             this.labelSumAll.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.labelSumAll.Location = new System.Drawing.Point(9, 44);
+            this.labelSumAll.Location = new System.Drawing.Point(6, 19);
             this.labelSumAll.Name = "labelSumAll";
             this.labelSumAll.Size = new System.Drawing.Size(57, 21);
             this.labelSumAll.TabIndex = 2;
             this.labelSumAll.Text = "label2";
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label1.Location = new System.Drawing.Point(9, 12);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(75, 21);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "К оплате:";
-            // 
-            // button6
-            // 
-            this.button6.Image = global::OnlineCashRmk.Properties.Resources.purchasing_64;
-            this.button6.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button6.Location = new System.Drawing.Point(9, 391);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(132, 20);
-            this.button6.TabIndex = 0;
-            this.button6.Text = "Кредит\r\nF7   ";
-            this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button6.UseVisualStyleBackColor = true;
-            this.button6.Visible = false;
-            this.button6.Click += new System.EventHandler(this.button6_Click);
-            // 
             // button2
             // 
             this.button2.Image = global::OnlineCashRmk.Properties.Resources.credit_cart;
             this.button2.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button2.Location = new System.Drawing.Point(9, 168);
+            this.button2.Location = new System.Drawing.Point(9, 217);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(132, 73);
             this.button2.TabIndex = 0;
@@ -308,7 +297,7 @@ namespace OnlineCashRmk
             // 
             this.button1.Image = global::OnlineCashRmk.Properties.Resources.money;
             this.button1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button1.Location = new System.Drawing.Point(9, 89);
+            this.button1.Location = new System.Drawing.Point(9, 138);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(132, 73);
             this.button1.TabIndex = 0;
@@ -321,14 +310,14 @@ namespace OnlineCashRmk
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnId,
@@ -338,14 +327,14 @@ namespace OnlineCashRmk
             this.ColumnDiscount,
             this.ColumnPrice,
             this.ColumnSum});
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.DefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
@@ -354,7 +343,7 @@ namespace OnlineCashRmk
             this.dataGridView1.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.dataGridView1.RowTemplate.Height = 25;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(950, 298);
+            this.dataGridView1.Size = new System.Drawing.Size(950, 317);
             this.dataGridView1.TabIndex = 5;
             this.dataGridView1.CellLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellLeave);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
@@ -386,9 +375,9 @@ namespace OnlineCashRmk
             // 
             // ColumnDiscount
             // 
-            dataGridViewCellStyle5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.MenuHighlight;
-            this.ColumnDiscount.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.MenuHighlight;
+            this.ColumnDiscount.DefaultCellStyle = dataGridViewCellStyle2;
             this.ColumnDiscount.HeaderText = "Скидка";
             this.ColumnDiscount.Name = "ColumnDiscount";
             this.ColumnDiscount.ReadOnly = true;
@@ -421,8 +410,8 @@ namespace OnlineCashRmk
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.groupBox1);
-            this.splitContainer1.Size = new System.Drawing.Size(952, 547);
-            this.splitContainer1.SplitterDistance = 300;
+            this.splitContainer1.Size = new System.Drawing.Size(952, 583);
+            this.splitContainer1.SplitterDistance = 319;
             this.splitContainer1.TabIndex = 6;
             // 
             // groupBox1
@@ -433,7 +422,7 @@ namespace OnlineCashRmk
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(950, 241);
+            this.groupBox1.Size = new System.Drawing.Size(950, 258);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Поиск товара (F4)";
@@ -446,7 +435,7 @@ namespace OnlineCashRmk
             this.findListBox.ItemHeight = 21;
             this.findListBox.Location = new System.Drawing.Point(3, 52);
             this.findListBox.Name = "findListBox";
-            this.findListBox.Size = new System.Drawing.Size(944, 164);
+            this.findListBox.Size = new System.Drawing.Size(944, 181);
             this.findListBox.TabIndex = 1;
             this.findListBox.DoubleClick += new System.EventHandler(this.findListBox_DoubleClick);
             // 
@@ -458,7 +447,7 @@ namespace OnlineCashRmk
             this.toolStripDropDownButton1,
             this.toolStripStatusLabelScannerIsOpen,
             this.toolStripStatusLabelCashRegisterState});
-            this.statusStrip1.Location = new System.Drawing.Point(3, 216);
+            this.statusStrip1.Location = new System.Drawing.Point(3, 233);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(944, 22);
             this.statusStrip1.TabIndex = 2;
@@ -570,22 +559,41 @@ namespace OnlineCashRmk
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
-            // buttonDiscountCard
+            // groupBox2
             // 
-            this.buttonDiscountCard.BackColor = System.Drawing.SystemColors.Control;
-            this.buttonDiscountCard.Location = new System.Drawing.Point(849, 0);
-            this.buttonDiscountCard.Name = "buttonDiscountCard";
-            this.buttonDiscountCard.Size = new System.Drawing.Size(97, 41);
-            this.buttonDiscountCard.TabIndex = 3;
-            this.buttonDiscountCard.Text = "Карта лояльности";
-            this.buttonDiscountCard.UseVisualStyleBackColor = false;
-            this.buttonDiscountCard.Click += new System.EventHandler(this.buttonDiscountCard_Click);
+            this.groupBox2.Controls.Add(this.labelSumAll);
+            this.groupBox2.Location = new System.Drawing.Point(9, 71);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(132, 56);
+            this.groupBox2.TabIndex = 6;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "К оплате";
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.labelDiscountSum);
+            this.groupBox3.Location = new System.Drawing.Point(9, 9);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(132, 56);
+            this.groupBox3.TabIndex = 7;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Скидка";
+            // 
+            // labelDiscountSum
+            // 
+            this.labelDiscountSum.AutoSize = true;
+            this.labelDiscountSum.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.labelDiscountSum.Location = new System.Drawing.Point(6, 19);
+            this.labelDiscountSum.Name = "labelDiscountSum";
+            this.labelDiscountSum.Size = new System.Drawing.Size(57, 21);
+            this.labelDiscountSum.TabIndex = 2;
+            this.labelDiscountSum.Text = "label2";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1105, 589);
+            this.ClientSize = new System.Drawing.Size(1105, 625);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
@@ -599,7 +607,6 @@ namespace OnlineCashRmk
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.Form1_PreviewKeyDown);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -609,6 +616,10 @@ namespace OnlineCashRmk
             this.groupBox1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -622,11 +633,9 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Label labelSumAll;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button6;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ListBox findListBox;
@@ -660,6 +669,9 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Button buttonReturn;
         private System.Windows.Forms.ToolStripMenuItem историяДокументовToolStripMenuItem;
         private System.Windows.Forms.Button buttonDiscountCard;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label labelDiscountSum;
+        private System.Windows.Forms.GroupBox groupBox2;
     }
 }
 
