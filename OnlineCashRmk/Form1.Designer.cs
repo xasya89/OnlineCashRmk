@@ -44,11 +44,14 @@ namespace OnlineCashRmk
             this.buttonMenu = new System.Windows.Forms.Button();
             this.buttonShift = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.labelDiscountSum = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.labelSumAll = new System.Windows.Forms.Label();
             this.btnDiscount = new System.Windows.Forms.Button();
             this.button7 = new System.Windows.Forms.Button();
             this.btnAddPackage = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
-            this.labelSumAll = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -74,14 +77,16 @@ namespace OnlineCashRmk
             this.выдачаДенегToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.внесениеДенегToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.историяДокументовToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.загрузитьТоварыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelCashRegisterState = new System.Windows.Forms.ToolStripStatusLabel();
             this.findTextBox = new System.Windows.Forms.TextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.labelDiscountSum = new System.Windows.Forms.Label();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -89,8 +94,6 @@ namespace OnlineCashRmk
             this.splitContainer1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // button4
@@ -219,6 +222,46 @@ namespace OnlineCashRmk
             this.panel3.Size = new System.Drawing.Size(153, 583);
             this.panel3.TabIndex = 4;
             // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.labelDiscountSum);
+            this.groupBox3.Location = new System.Drawing.Point(9, 9);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(132, 56);
+            this.groupBox3.TabIndex = 7;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Скидка";
+            // 
+            // labelDiscountSum
+            // 
+            this.labelDiscountSum.AutoSize = true;
+            this.labelDiscountSum.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.labelDiscountSum.Location = new System.Drawing.Point(6, 19);
+            this.labelDiscountSum.Name = "labelDiscountSum";
+            this.labelDiscountSum.Size = new System.Drawing.Size(57, 21);
+            this.labelDiscountSum.TabIndex = 2;
+            this.labelDiscountSum.Text = "label2";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.labelSumAll);
+            this.groupBox2.Location = new System.Drawing.Point(9, 71);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(132, 56);
+            this.groupBox2.TabIndex = 6;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "К оплате";
+            // 
+            // labelSumAll
+            // 
+            this.labelSumAll.AutoSize = true;
+            this.labelSumAll.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.labelSumAll.Location = new System.Drawing.Point(6, 19);
+            this.labelSumAll.Name = "labelSumAll";
+            this.labelSumAll.Size = new System.Drawing.Size(57, 21);
+            this.labelSumAll.TabIndex = 2;
+            this.labelSumAll.Text = "label2";
+            // 
             // btnDiscount
             // 
             this.btnDiscount.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnDiscount.BackgroundImage")));
@@ -269,16 +312,6 @@ namespace OnlineCashRmk
             this.button5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
-            // 
-            // labelSumAll
-            // 
-            this.labelSumAll.AutoSize = true;
-            this.labelSumAll.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.labelSumAll.Location = new System.Drawing.Point(6, 19);
-            this.labelSumAll.Name = "labelSumAll";
-            this.labelSumAll.Size = new System.Drawing.Size(57, 21);
-            this.labelSumAll.TabIndex = 2;
-            this.labelSumAll.Text = "label2";
             // 
             // button2
             // 
@@ -475,7 +508,10 @@ namespace OnlineCashRmk
             this.toolStripMenuItem1,
             this.выдачаДенегToolStripMenuItem1,
             this.внесениеДенегToolStripMenuItem1,
-            this.историяДокументовToolStripMenuItem});
+            this.историяДокументовToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.загрузитьТоварыToolStripMenuItem,
+            this.toolStripSeparator1});
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -536,6 +572,23 @@ namespace OnlineCashRmk
             this.историяДокументовToolStripMenuItem.Text = "История документов";
             this.историяДокументовToolStripMenuItem.Click += new System.EventHandler(this.историяДокументовToolStripMenuItem_Click);
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(186, 6);
+            // 
+            // загрузитьТоварыToolStripMenuItem
+            // 
+            this.загрузитьТоварыToolStripMenuItem.Name = "загрузитьТоварыToolStripMenuItem";
+            this.загрузитьТоварыToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.загрузитьТоварыToolStripMenuItem.Text = "Загрузить товары";
+            this.загрузитьТоварыToolStripMenuItem.Click += new System.EventHandler(this.загрузитьТоварыToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(186, 6);
+            // 
             // toolStripStatusLabelScannerIsOpen
             // 
             this.toolStripStatusLabelScannerIsOpen.Name = "toolStripStatusLabelScannerIsOpen";
@@ -559,36 +612,6 @@ namespace OnlineCashRmk
             this.findTextBox.TextChanged += new System.EventHandler(this.findTextBox_TextChanged);
             this.findTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.findTextBox_KeyDown);
             // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.labelSumAll);
-            this.groupBox2.Location = new System.Drawing.Point(9, 71);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(132, 56);
-            this.groupBox2.TabIndex = 6;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "К оплате";
-            // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.labelDiscountSum);
-            this.groupBox3.Location = new System.Drawing.Point(9, 9);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(132, 56);
-            this.groupBox3.TabIndex = 7;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Скидка";
-            // 
-            // labelDiscountSum
-            // 
-            this.labelDiscountSum.AutoSize = true;
-            this.labelDiscountSum.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.labelDiscountSum.Location = new System.Drawing.Point(6, 19);
-            this.labelDiscountSum.Name = "labelDiscountSum";
-            this.labelDiscountSum.Size = new System.Drawing.Size(57, 21);
-            this.labelDiscountSum.TabIndex = 2;
-            this.labelDiscountSum.Text = "label2";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -607,6 +630,10 @@ namespace OnlineCashRmk
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.Form1_PreviewKeyDown);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -616,10 +643,6 @@ namespace OnlineCashRmk
             this.groupBox1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -672,6 +695,9 @@ namespace OnlineCashRmk
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Label labelDiscountSum;
         private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem загрузитьТоварыToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     }
 }
 

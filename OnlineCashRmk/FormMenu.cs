@@ -53,6 +53,7 @@ namespace OnlineCashRmk
             Task.Run(async () =>
             {
                 bool statusSuccess = true;
+                string messageRequest = "";
                 try
                 {
                     var str = await new HttpClient().GetAsync($"{serverName}/api/Goodssynchnew/{idShop}").Result.Content.ReadAsStringAsync();
@@ -101,18 +102,20 @@ namespace OnlineCashRmk
                         }
                     };
                     await _db.SaveChangesAsync();
-                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(20));
+                    //System.Threading.Thread.Sleep(TimeSpan.FromSeconds(20));
+                    messageRequest = "Синхронизация успешно выполнена";
                 }
                 catch (SystemException ex)
                 {
                     statusSuccess = false;
+                    messageRequest = ex.Message;
                 }
                 var action = new Action(() =>
                   {
                       button1.BackColor = statusSuccess ? Color.LightGreen : Color.LightPink;
+                      errorTextBox.Text = messageRequest;
                   });
                 Invoke(action);
-                MessageBox.Show("Перезыпаустите программу, для работы по новым ценам");
             });
         }
         //Приходы
@@ -183,7 +186,7 @@ namespace OnlineCashRmk
 
         private void FormMenu_FormClosed(object sender, FormClosedEventArgs e)
         {
-            _db.Dispose();
+            //_db.Dispose();
         }
     }
 }

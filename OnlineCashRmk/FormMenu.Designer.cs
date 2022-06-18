@@ -31,6 +31,7 @@ namespace OnlineCashRmk
         {
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.errorTextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // button1
@@ -45,7 +46,7 @@ namespace OnlineCashRmk
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(12, 85);
+            this.button2.Location = new System.Drawing.Point(12, 157);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(260, 37);
             this.button2.TabIndex = 0;
@@ -53,11 +54,22 @@ namespace OnlineCashRmk
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // errorTextBox
+            // 
+            this.errorTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.errorTextBox.Location = new System.Drawing.Point(12, 55);
+            this.errorTextBox.Name = "errorTextBox";
+            this.errorTextBox.ReadOnly = true;
+            this.errorTextBox.Size = new System.Drawing.Size(260, 96);
+            this.errorTextBox.TabIndex = 1;
+            this.errorTextBox.Text = "";
+            // 
             // FormMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 136);
+            this.ClientSize = new System.Drawing.Size(284, 213);
+            this.Controls.Add(this.errorTextBox);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -76,5 +88,6 @@ namespace OnlineCashRmk
 
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.RichTextBox errorTextBox;
     }
 }

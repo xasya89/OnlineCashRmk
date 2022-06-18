@@ -124,7 +124,6 @@ namespace OnlineCashRmk
                 _db.SaveChanges();
                 _db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.Revaluation, DocId = revaluation.Id });
                 _db.SaveChanges();
-                MessageBox.Show("Перезыпаустите программу, для работы по новым ценам");
             }
         }
     }

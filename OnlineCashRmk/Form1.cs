@@ -536,7 +536,7 @@ namespace OnlineCashRmk
         {
             Task.Run(async () =>
             {
-                GoodList = await db.Goods.Where(g=>g.IsDeleted==false).ToListAsync();
+                GoodList = await db.Goods.Where(g=>g.IsDeleted==false).AsNoTracking().ToListAsync();
             });
         }
 
@@ -546,7 +546,7 @@ namespace OnlineCashRmk
             int goodId = fr.Show() ?? 0;
             fr.Dispose();
             await Task.Delay(100);
-            GoodList = await db.Goods.ToListAsync();
+            GoodList = await db.Goods.AsNoTracking().ToListAsync();
             var goodadded = GoodList.Where(g => g.Id == goodId).FirstOrDefault();
             if (goodadded !=null)
                 AddGood(goodadded);
@@ -680,6 +680,7 @@ namespace OnlineCashRmk
         {
             var fr = serviceProvider.GetRequiredService<FormMenu>();
             fr.ShowDialog();
+            //fr.Dispose();
             LoadGoods();
         }
         //Отменить весь чек
@@ -876,6 +877,7 @@ namespace OnlineCashRmk
         {
             var formarrival = serviceProvider.GetRequiredService<FormArrival>();
             formarrival.Show();
+            LoadGoods();
         }
 
         //Новая оплата
@@ -966,6 +968,71 @@ namespace OnlineCashRmk
                 SelectedBuyer = buyer;
                 CalcSumBuy();
             }
+        }
+
+        /// <summary>
+        /// Загрузить товары
+        /// </summary>
+        private void загрузитьТоварыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var str = await new HttpClient().GetAsync($"{serverName}/api/Goodssynchnew/{idShop}").Result.Content.ReadAsStringAsync();
+                    List<GoodSynchDataModel> goods = JsonSerializer.Deserialize<List<GoodSynchDataModel>>(str);
+                    foreach (var good in goods)
+                    {
+                        var goodDb = db.Goods.Include(g => g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
+                        if (goodDb == null)
+                        {
+                            var newgood = new Good
+                            {
+                                Uuid = good.Uuid,
+                                Name = good.Name,
+                                Article = good.Name,
+                                Unit = good.Unit,
+                                Price = good.Price,
+                                SpecialType = good.SpecialType,
+                                VPackage = good.VPackage,
+                                IsDeleted = good.IsDeleted
+                            };
+                            db.Goods.Add(newgood);
+                            //добавление штрих кодов
+                            foreach (string barcode in good.Barcodes)
+                                db.BarCodes.Add(new BarCode
+                                {
+                                    Good = newgood,
+                                    Code = barcode
+                                });
+                        }
+                        else
+                        {
+                            goodDb.Name = good.Name;
+                            goodDb.Unit = good.Unit;
+                            goodDb.Price = good.Price;
+                            goodDb.SpecialType = good.SpecialType;
+                            goodDb.VPackage = good.VPackage;
+                            goodDb.IsDeleted = good.IsDeleted;
+                            //добавление новых или измененных штрих кодов
+                            foreach (string barcode in good.Barcodes)
+                                if (goodDb.BarCodes.Count(b => b.Code == barcode) == 0)
+                                    db.BarCodes.Add(new BarCode { Good = goodDb, Code = barcode });
+                            //Удаление не зарегестрированных на сервере штрихкодов
+                            foreach (var barcodeDb in goodDb.BarCodes)
+                                if (good.Barcodes.Count(b => b == barcodeDb.Code) == 0)
+                                    db.BarCodes.Remove(barcodeDb);
+                        }
+                    };
+                    await db.SaveChangesAsync();
+                    MessageBox.Show("Загрузка успешно завершена", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (SystemException ex)
+                {
+                    _logger.LogError("Ошибка загрузки данных\n" + ex.Message);
+                    MessageBox.Show("Ошибка загрузки товаров","",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                }
+            });
         }
     }
 }
