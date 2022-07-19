@@ -12,22 +12,58 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using Flurl.Http;
 using System.Text.Json;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace OnlineCashRmk.Services
 {
-    class SynchBackgroundService : ISynchBackgroundService
+    class SynchBackgroundService : BackgroundService
     {
-        DataContext db;
+        private readonly DataContext db;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
         string serverurl;
         int shopId;
         int cronSynch;
-        public SynchBackgroundService(IServiceProvider provider)
+        private readonly IServiceScopeFactory _scopeFactory;
+
+        public SynchBackgroundService(IServiceScopeFactory scopeFactory, 
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
-            db = provider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext();
-            IConfiguration config = provider.GetRequiredService<IConfiguration>();
-            serverurl = config.GetSection("serverName").Value;
-            shopId = Convert.ToInt32(config.GetSection("idShop").Value);
-            cronSynch = Convert.ToInt32(config.GetSection("Crons").GetSection("Synch").Value);
+            _scopeFactory = scopeFactory;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
+            serverurl = _configuration.GetSection("serverName").Value;
+            shopId = Convert.ToInt32(_configuration.GetSection("idShop").Value);
+            cronSynch = Convert.ToInt32(_configuration.GetSection("Crons").GetSection("Synch").Value);
+        }
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetService<IDbContextFactory<DataContext>>().CreateDbContext();
+
+            var factory = new ConnectionFactory()
+            {
+                HostName = _configuration.GetSection("RabbitServer").Value,
+                UserName = _configuration.GetSection("RabbitUser").Value,
+                Password = _configuration.GetSection("RabbitPassword").Value
+            };
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.ExchangeDeclare("shop_test", "direct", true);
+            channel.QueueDeclare(queue: "shop_test_arrivals",
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+            channel.QueueBind("shop_test_arrivals", "shop_test", "shop_test_arrivals");
+            /*
             Task.Run(async () =>
             {
                 try
@@ -38,11 +74,10 @@ namespace OnlineCashRmk.Services
                 catch (HttpRequestException) { }
                 catch (Exception) { };
             });
-            Task.Run(async () =>
-            {
-                while (true)
+            */
+            while (!stoppingToken.IsCancellationRequested)
                 {
-                    IEnumerable<DocSynch> docs = db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create);
+                    IEnumerable<DocSynch> docs = await db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create).ToListAsync();
                     try
                     {
                         foreach (var doc in docs)
@@ -53,7 +88,7 @@ namespace OnlineCashRmk.Services
                             {
                                 case TypeDocs.OpenShift:
                                     var shift = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
-                                    using (var client = new HttpClient())
+                                    using (var client = _httpClientFactory.CreateClient())
                                     {
                                         client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
                                         var resp = await client.PostAsync($"{serverurl}/api/onlinecash/Cashbox/OpenShift/{shopId}/{shift.Uuid}/{shift.Start.ToString()}", null);
@@ -68,13 +103,13 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                                 case TypeDocs.Buy:
-                                    await SendCheckSell(doc.DocId);
+                                    await SendCheckSell(db, doc.DocId);
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
                                     break;
                                 case TypeDocs.CloseShift:
-                                    using (var client = new HttpClient())
+                                    using (var client = _httpClientFactory.CreateClient())
                                     {
                                         client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
                                         var shiftclose = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
@@ -108,7 +143,7 @@ namespace OnlineCashRmk.Services
                                     }
                                     break;
                                 case TypeDocs.Arrival:
-                                    var model = await SendArrival(doc);
+                                    var model = await SendArrival(channel, db, doc);
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
@@ -154,14 +189,16 @@ namespace OnlineCashRmk.Services
                     }
                     catch (FlurlHttpException) { }
                     catch (HttpRequestException) { }
-                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.StackTrace); }
+                    catch (Exception ex) 
+                    { 
+                        System.Diagnostics.Debug.WriteLine(ex.StackTrace); 
+                    }
                     await Task.Delay(TimeSpan.FromMinutes(cronSynch));
                 }
-            });
 
         }
 
-        private async Task<ArrivalSynchDataModel> SendArrival(DocSynch docSynch)
+        private async Task<ArrivalSynchDataModel> SendArrival(IModel channel, DataContext db, DocSynch docSynch)
         {
             var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docSynch.DocId).FirstOrDefaultAsync();
             if (arrival == null)
@@ -176,24 +213,33 @@ namespace OnlineCashRmk.Services
                     Nds=aGood.Nds,
                     ExpiresDate=aGood.ExpiresDate
                 });
+            /*
             await $"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}"
                 .WithHeaders(new { Doc_uuid = docSynch.Uuid.ToString() })
                 .PostJsonAsync(model);
+            */
+            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(model));
+            channel.BasicPublish(exchange: "shop_test",
+         routingKey: "shop_test_arrivals",
+         basicProperties: null,
+         body: body);
             return model;
         }
 
 
         public async Task GetBuyersAsync()
         {
-            var buyers = await $"{serverurl}/api/onlinecash/Buyers".GetJsonAsync<List<Buyer>>();
+            var client = _httpClientFactory.CreateClient();
+            var buyers =  await client.GetFromJsonAsync<List<Buyer>>($"{serverurl}/api/onlinecash/Buyers");
             var buyersdb = await db.Buyers.ToListAsync();
             foreach (var buyer in buyers)
             {
                 var buyerDb = buyersdb.Where(b => b.Uuid == buyer.Uuid).FirstOrDefault();
                 if (buyerDb == null)
                 {
-                    buyer.Id = 0;
-                    db.Buyers.Add(buyer);
+                    buyerDb = buyer;
+                    buyerDb.Id = 0;
+                    db.Buyers.Add(buyerDb);
                 }
                 buyerDb.DiscountSum = buyer.DiscountSum;
                 buyerDb.SpecialPercent = buyer.SpecialPercent;
@@ -217,7 +263,7 @@ namespace OnlineCashRmk.Services
             }
         }
 
-        public async Task SendCheckSell(int docId)
+        public async Task SendCheckSell(DataContext db, int docId)
         {
             var sell = db.CheckSells
                 .Include(s => s.CheckGoods).ThenInclude(g=>g.Good)

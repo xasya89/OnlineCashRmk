@@ -31,6 +31,8 @@ using System.Globalization;
 using System.IO.Ports;
 using Microsoft.AspNetCore.SignalR.Client;
 using OnlineCashRmk.DataModels;
+using Microsoft.Extensions.Http;
+using System.Net.Http.Json;
 
 namespace OnlineCashRmk
 {
@@ -41,6 +43,7 @@ namespace OnlineCashRmk
         ICashRegisterService _cashService;
         DataContext db;
         ILogger<Form1> _logger;
+        private readonly IHttpClientFactory _clientFactory;
         ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
         Buyer SelectedBuyer = null;
         bool __isReturn = false;
@@ -91,7 +94,13 @@ namespace OnlineCashRmk
 
         FormScreenForBuyer formScreenForBuyer;
 
-        public Form1(IServiceProvider serviceProvider, ILogger<Form1> logger, IDbContextFactory<DataContext> dbFactory, ISynchService synchService, BarCodeScanner barCodeScanner, ICashRegisterService cashService)
+        public Form1(IServiceProvider serviceProvider, 
+            ILogger<Form1> logger, 
+            IDbContextFactory<DataContext> dbFactory, 
+            ISynchService synchService, 
+            BarCodeScanner barCodeScanner, 
+            ICashRegisterService cashService,
+            IHttpClientFactory clientFactory)
         {
             try
             {
@@ -99,7 +108,7 @@ namespace OnlineCashRmk
                 this.serviceProvider = serviceProvider;
                 db = dbFactory.CreateDbContext();
                 _logger = logger;
-                _logger.LogError("Start form");
+                _clientFactory = clientFactory;
                 this.synchService = synchService;
                 var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(AppContext.BaseDirectory))
@@ -179,7 +188,9 @@ namespace OnlineCashRmk
                     formScreenForBuyer = new FormScreenForBuyer(checkGoods);
                     formScreenForBuyer.Show();
                 }
-
+                //Сначала загрузим список покупателей
+                //GetBuyers();
+                /*
                 HubConnection hub = new HubConnectionBuilder().WithUrl("https://localhost:44394/discount_and_buyer_hub")
                     .WithAutomaticReconnect()
                     .Build();
@@ -190,6 +201,7 @@ namespace OnlineCashRmk
                         var buyer = db.Buyers.Where(x => x.Uuid == b.Uuid).FirstOrDefault();
                         if (buyer == null)
                         {
+                            buyer = b;
                             buyer.Id = 0;
                             db.Buyers.Add(buyer);
                         }
@@ -201,11 +213,43 @@ namespace OnlineCashRmk
                     Invoke(changeBuyer);
                 });
                 BuyerHubConnected(hub);
+                */
             }
             catch(Exception ex)
             {
                 logger.LogError("Form 1 error init \n"+ ex.StackTrace+"\n"+ ex.Message);
                 Close();
+            }
+        }
+
+        private void GetBuyers()
+        {
+            try
+            {
+                var client = _clientFactory.CreateClient();
+                var buyers = client.GetFromJsonAsync<List<Buyer>>(serverName + "/api/onlinecash/buyers").Result;
+                var buyersDb = db.Buyers.ToList();
+                foreach (var buyerDb in buyersDb)
+                {
+                    var buyer = buyers.Where(x => x.Uuid == buyerDb.Uuid).FirstOrDefault();
+                    if (buyer == null)
+                    {
+                        buyer.Id = 0;
+                        db.Buyers.Add(buyer);
+                    }
+                    else
+                        if (buyerDb.DiscountSum != buyer.DiscountSum || buyerDb.SpecialPercent != buyer.SpecialPercent || buyerDb.TemporyPercent != buyer.TemporyPercent)
+                    {
+                        buyerDb.DiscountSum = buyer.DiscountSum;
+                        buyerDb.SpecialPercent = buyer.SpecialPercent;
+                        buyerDb.TemporyPercent = buyer.TemporyPercent;
+                    }
+                }
+                db.SaveChanges();
+            }
+            catch(SystemException ex)
+            {
+
             }
         }
 
@@ -217,7 +261,6 @@ namespace OnlineCashRmk
                 {
                     await hub.StartAsync();
                     flag = false;
-                    Console.WriteLine("connected");
                 }
                 catch (Exception)
                 {
@@ -297,6 +340,7 @@ namespace OnlineCashRmk
             formScreenForBuyer?.Close();
             _cashService.Close();
             db.Dispose();
+            Program.StopedHost();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -525,10 +569,10 @@ namespace OnlineCashRmk
         private void CalcSumBuy()
         {
             ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
-            decimal discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
-            decimal sumBuy = checkGoods.Sum(c => c.Sum) - discount;
+            decimal discount = GetDiscountSum();
+            decimal sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
             labelDiscountSum.Text = discount.ToSellFormat();
-            labelSumAll.Text = Math.Ceiling(sumBuy).ToString();
+            labelSumAll.Text = sumBuy.ToSellFormat();
         }
 
         List<Good> GoodList = new List<Good>();
@@ -575,7 +619,10 @@ namespace OnlineCashRmk
 
         private decimal GetDiscountSum()
         {
-            decimal discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
+            decimal discount = Math.Floor((SelectedBuyer?.TemporyPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
+            if (discount > 0)
+                return discount;
+            discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
             if (discount > 0)
                 return discount;
             var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
@@ -915,6 +962,7 @@ namespace OnlineCashRmk
             }
         }
 
+        // TODO: Проверить AsNoTracking при изменении цен в инверторизации
         private void инверторизацияToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var fr = serviceProvider.GetRequiredService<FormStocktaking>();

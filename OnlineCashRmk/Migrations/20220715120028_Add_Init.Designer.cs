@@ -6,35 +6,38 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
+#nullable disable
+
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220325072843_AlterStocktacking_AddUuid")]
-    partial class AlterStocktacking_AddUuid
+    [Migration("20220715120028_Add_Init")]
+    partial class Add_Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.7");
+                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("OnlineCashRmk.Models.Arrival", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateArrival")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Num")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("SupplierId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -47,25 +50,25 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("ArrivalId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Count")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime?>("ExpiresDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Nds")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -80,13 +83,13 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Code")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -99,37 +102,31 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("Birthday")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
-                    b.Property<string>("DiscountCardNum")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("DiscountPercant")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("DiscountSum")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("DiscountType")
-                        .HasColumnType("INTEGER");
+                    b.Property<decimal>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Phone")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("SpecialPercent")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("SumBuy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("TemporyPercent")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("isChanged")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -140,22 +137,22 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Create")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Note")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Sum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TypeOperation")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -166,19 +163,19 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("CheckSellId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Cost")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<double>("Count")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -186,29 +183,29 @@ namespace OnlineCashRmk.Migrations
 
                     b.HasIndex("GoodId");
 
-                    b.ToTable("CheckGoods");
+                    b.ToTable("CheckGoods", (string)null);
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.CheckPayment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("CheckSellId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Income")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("Retturn")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("Sum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TypePayment")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -221,31 +218,31 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("BuyerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateCreate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("IsElectron")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("ShiftId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Sum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumAll")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumDiscont")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TypeSell")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -253,38 +250,38 @@ namespace OnlineCashRmk.Migrations
 
                     b.HasIndex("ShiftId");
 
-                    b.ToTable("CheckSells");
+                    b.ToTable("CheckSells", (string)null);
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.Credit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Creditor")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("DateCreate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int?>("ShiftId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Sum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumAll")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumCredit")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumDiscont")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<bool>("isSynch")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -297,19 +294,19 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Cost")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<double>("Count")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double");
 
                     b.Property<int>("CreditId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -324,16 +321,16 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("CreditId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DatePayment")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("Sum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -342,29 +339,257 @@ namespace OnlineCashRmk.Migrations
                     b.ToTable("CreditPayments");
                 });
 
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamBirthdayModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("DayEnable")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsEnable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("TextSms")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("Uuid")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamBirthdayModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamContainerModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PercentFromSale")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DiscountParamContainerModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamHolidaysModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateHoliday")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsEnable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("TextSms")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("Uuid")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamHolidaysModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamNumBuyerModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsEnable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("NumBuyer")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TextSms")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("Uuid")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamNumBuyerModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamSumBuyModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsEnable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("SumBuyesMore")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<Guid?>("Uuid")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamSumBuyModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamSumOneBuyModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountSum")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsEnable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal>("SumBuy")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<Guid?>("Uuid")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamSumOneBuyModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamWeeksModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("DayName")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("DayNum")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountParamContainerModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TimeBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TimeWith")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountParamContainerModelId");
+
+                    b.ToTable("DiscountParamWeeksModel");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountModelId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Discounts")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountModelId");
+
+                    b.ToTable("DiscountSettings");
+                });
+
             modelBuilder.Entity("OnlineCashRmk.Models.DocSynch", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Create")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("DocId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("Synch")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("SynchStatus")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("TypeDoc")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -375,48 +600,48 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Article")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("BarCode")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("SpecialType")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("Unit")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.Property<double?>("VPackage")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Goods");
+                    b.ToTable("Goods", (string)null);
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.NewGoodFromCash", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -429,13 +654,13 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Create")
                         .HasColumnType("Date");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -446,22 +671,22 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("Count")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("PriceNew")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("PriceOld")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("RevaluationId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -476,72 +701,72 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("CashierId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("ShopId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Start")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("Stop")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("SumAll")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumCredit")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumElectron")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumIncome")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumNoElectron")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumOutcome")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SumSell")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("SummReturn")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("isSynch")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shifts");
+                    b.ToTable("Shifts", (string)null);
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.Stocktaking", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("CashMoney")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("Create")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("isSynch")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -552,19 +777,19 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("CountDocMove")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal?>("CountFact")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("StocktakingGroupId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -579,13 +804,13 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("StocktakingId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -598,16 +823,16 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Inn")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Kpp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -618,19 +843,19 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateCreate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Note")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("SumAll")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<Guid>("Uuid")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -641,19 +866,19 @@ namespace OnlineCashRmk.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<double>("Count")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double");
 
                     b.Property<int>("GoodId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("WriteofId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -791,6 +1016,57 @@ namespace OnlineCashRmk.Migrations
                     b.Navigation("Credit");
                 });
 
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamBirthdayModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("Birthdays")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamHolidaysModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("Holidays")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamNumBuyerModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("NumBuyer")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamSumBuyModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("SumBuys")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamSumOneBuyModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("SumOneBuys")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamWeeksModel", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", null)
+                        .WithMany("Weeks")
+                        .HasForeignKey("DiscountParamContainerModelId");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountSetting", b =>
+                {
+                    b.HasOne("OnlineCashRmk.Models.DiscountParamContainerModel", "DiscountModel")
+                        .WithMany()
+                        .HasForeignKey("DiscountModelId");
+
+                    b.Navigation("DiscountModel");
+                });
+
             modelBuilder.Entity("OnlineCashRmk.Models.NewGoodFromCash", b =>
                 {
                     b.HasOne("OnlineCashRmk.Models.Good", "Good")
@@ -892,6 +1168,21 @@ namespace OnlineCashRmk.Migrations
                     b.Navigation("CreditGoods");
 
                     b.Navigation("CreditPayments");
+                });
+
+            modelBuilder.Entity("OnlineCashRmk.Models.DiscountParamContainerModel", b =>
+                {
+                    b.Navigation("Birthdays");
+
+                    b.Navigation("Holidays");
+
+                    b.Navigation("NumBuyer");
+
+                    b.Navigation("SumBuys");
+
+                    b.Navigation("SumOneBuys");
+
+                    b.Navigation("Weeks");
                 });
 
             modelBuilder.Entity("OnlineCashRmk.Models.Good", b =>

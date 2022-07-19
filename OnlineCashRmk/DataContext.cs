@@ -44,16 +44,18 @@ namespace OnlineCashRmk
         public DbSet<RevaluationGood> RevaluationGoods { get; set; }
 
         public DbSet<DiscountSetting> DiscountSettings { get; set; }
-        /*
+        
         public DataContext() 
         {
         }
-        */
         public DataContext(DbContextOptions options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=CustomerDB.db;");
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseMySql("server=localhost;database=shop_rmk;uid=root;pwd=kt38hmapq", Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.30-mysql"));
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
