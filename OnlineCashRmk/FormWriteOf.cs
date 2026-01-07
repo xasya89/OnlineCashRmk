@@ -13,11 +13,13 @@ using System.Collections.ObjectModel;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 using System.IO.Ports;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk
 {
     public partial class FormWriteOf : Form
     {
+        private readonly IDbContextFactory<DataContext> dbContextFactory;
         DataContext db;
         ILogger<FormWriteOf> logger;
         ISynchService synch;
@@ -43,6 +45,7 @@ namespace OnlineCashRmk
 
         public FormWriteOf(IDbContextFactory<DataContext> dbFactory, ILogger<FormWriteOf> logger, ISynchService synch, BarCodeScanner barCodeScanner)
         {
+            dbContextFactory = dbFactory;
             this.db = dbFactory.CreateDbContext();
             this.logger = logger;
             this.synch = synch;
@@ -175,7 +178,7 @@ namespace OnlineCashRmk
                 }
                 if (good.SpecialType == SpecialTypes.Beer)
                 {
-                    FormBuyBeer frBuy = new FormBuyBeer(good);
+                    FormBuyBeer frBuy = new FormBuyBeer(dbContextFactory, good);
                     if (frBuy.ShowDialog() == DialogResult.OK)
                     {
                         var goodButtle = (Good)frBuy.BottleListBox.SelectedItem;

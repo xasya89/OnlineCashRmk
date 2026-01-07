@@ -23,18 +23,13 @@ namespace OnlineCashRmk
         }
 
         private decimal SumSell { get; set; }
-        public List<CheckPaymentDataModel> Show(decimal sumSeell)
+        public (decimal sumElectron, decimal sumCash)? Show(decimal sumSeell)
         {
             SumSell = sumSeell;
             label2.Text = sumSeell.ToSellFormat();
             if (ShowDialog() == DialogResult.OK)
             {
-                List<CheckPaymentDataModel> payments = new List<CheckPaymentDataModel>();
-                if (textBoxCash.Text.ToDecimal() != 0)
-                    payments.Add(new CheckPaymentDataModel { TypePayment = TypePayment.Cash, Sum = textBoxCash.Text.ToDecimal() });
-                if (textBoxElectron.Text.ToDecimal() != 0)
-                    payments.Add(new CheckPaymentDataModel { TypePayment = TypePayment.Electron, Sum = textBoxElectron.Text.ToDecimal() });
-                return payments;
+                return (textBoxElectron.Text.ToDecimal(), textBoxCash.Text.ToDecimal());
             }
             return null;
         }

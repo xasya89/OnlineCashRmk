@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk.DataModels
 {

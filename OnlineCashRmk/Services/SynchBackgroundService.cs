@@ -15,16 +15,14 @@ using System.Text.Json;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
+using OnlineCashTransportModels;
 
 namespace OnlineCashRmk.Services
 {
     class SynchBackgroundService : BackgroundService
     {
         private readonly DataContext db;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpClientFactory httpClientFactory;
         private readonly IConfiguration _configuration;
         string serverurl;
         int shopId;
@@ -36,7 +34,7 @@ namespace OnlineCashRmk.Services
             IConfiguration configuration)
         {
             _scopeFactory = scopeFactory;
-            _httpClientFactory = httpClientFactory;
+            this.httpClientFactory = httpClientFactory;
             _configuration = configuration;
             serverurl = _configuration.GetSection("serverName").Value;
             shopId = Convert.ToInt32(_configuration.GetSection("idShop").Value);
@@ -47,22 +45,6 @@ namespace OnlineCashRmk.Services
             var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetService<IDbContextFactory<DataContext>>().CreateDbContext();
 
-            var factory = new ConnectionFactory()
-            {
-                HostName = _configuration.GetSection("RabbitServer").Value,
-                UserName = _configuration.GetSection("RabbitUser").Value,
-                Password = _configuration.GetSection("RabbitPassword").Value
-            };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-
-            channel.ExchangeDeclare("shop_test", "direct", true);
-            channel.QueueDeclare(queue: "shop_test_arrivals",
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-            channel.QueueBind("shop_test_arrivals", "shop_test", "shop_test_arrivals");
             /*
             Task.Run(async () =>
             {
@@ -76,160 +58,145 @@ namespace OnlineCashRmk.Services
             });
             */
             while (!stoppingToken.IsCancellationRequested)
+            {
+                var httpClient = httpClientFactory.CreateClient(Program.HttpClientName);
+                IEnumerable<DocSynch> docs = await db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create).ToListAsync();
+                try
                 {
-                    IEnumerable<DocSynch> docs = await db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create).ToListAsync();
-                    try
+                    foreach (var doc in docs)
                     {
-                        foreach (var doc in docs)
+                        if (doc.Uuid.ToString() == "00000000-0000-0000-0000-000000000000")
+                            doc.Uuid = Guid.NewGuid();
+                        switch (doc.TypeDoc)
                         {
-                            if (doc.Uuid.ToString() == "00000000-0000-0000-0000-000000000000")
-                                doc.Uuid = Guid.NewGuid();
-                            switch (doc.TypeDoc)
-                            {
-                                case TypeDocs.OpenShift:
-                                    var shift = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
-                                    using (var client = _httpClientFactory.CreateClient())
+                            case TypeDocs.OpenShift:
+                                var shift = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
+                                await httpClient.PostAsJsonAsync("/open-shift", new OpenShiftTransportModel(shift.Start, shift.Uuid));
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.Buy:
+                                await SendCheckSell(httpClient, db, doc.DocId);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.CloseShift:
+                                var shiftclose = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
+                                await httpClient.PostAsJsonAsync("/close-shift", new CloseShiftTransportModel(shiftclose.Stop.Value, shiftclose.Uuid));
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.WriteOf:
+                                var writeof = await db.Writeofs
+                                    .Include(w => w.WriteofGoods).ThenInclude(wg => wg.Good)
+                                    .Where(w => w.Id == doc.DocId)
+                                    .AsNoTracking().FirstOrDefaultAsync();
+                                var body = new CreateWriteOfTransportModel
+                                {
+                                    DateCreate = writeof.DateCreate,
+                                    Note = writeof.Note,
+                                    Uuid = writeof.Uuid,
+                                    Positions = writeof.WriteofGoods.Select(x => new CreateWriteOfPositionTransportModel
                                     {
-                                        client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
-                                        var resp = await client.PostAsync($"{serverurl}/api/onlinecash/Cashbox/OpenShift/{shopId}/{shift.Uuid}/{shift.Start.ToString()}", null);
-                                        if (resp.IsSuccessStatusCode)
-                                        {
-                                            doc.SynchStatus = true;
-                                            doc.Synch = DateTime.Now;
-                                            await db.SaveChangesAsync();
-                                        }
-                                        else
-                                            throw new Exception("Ошибка отправки на сервер");
-                                    }
-                                    break;
-                                case TypeDocs.Buy:
-                                    await SendCheckSell(db, doc.DocId);
+                                        Uuid = x.Good.Uuid,
+                                        Price= x.Price,
+                                        Count = Convert.ToDecimal(x.Count),
+                                    })
+                                };
+                                var result = await httpClient.PostAsJsonAsync("/create-writeof", body);
+                                if (result.IsSuccessStatusCode)
+                                {
                                     doc.SynchStatus = true;
                                     doc.Synch = DateTime.Now;
                                     await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.CloseShift:
-                                    using (var client = _httpClientFactory.CreateClient())
-                                    {
-                                        client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
-                                        var shiftclose = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
-                                        var resp = await client.PostAsync($"{serverurl}/api/onlinecash/Cashbox/CloseShift/{shiftclose.Uuid}/{shiftclose.Stop.ToString()}", null);
-                                        if (resp.IsSuccessStatusCode)
-                                        {
-                                            doc.SynchStatus = true;
-                                            doc.Synch = DateTime.Now;
-                                            await db.SaveChangesAsync();
-                                        }
-                                        else
-                                            throw new Exception("Ошибка отправки на сервер");
-                                    }
-                                    break;
-                                case TypeDocs.WriteOf:
-                                    var writeof = await db.Writeofs.Include(w => w.WriteofGoods).ThenInclude(wg => wg.Good).Where(w => w.Id == doc.DocId).FirstOrDefaultAsync();
-                                    List<WriteofGoodSynchDataModel> goods = new List<WriteofGoodSynchDataModel>();
-                                    foreach (var wg in writeof.WriteofGoods)
-                                        goods.Add(new WriteofGoodSynchDataModel { Uuid = wg.Good.Uuid, Count = wg.Count, Price = wg.Price });
-                                    var writeofsynch = new WriteofSynchDataModel { DateCreate = writeof.DateCreate, Note = writeof.Note, Goods = goods };
-                                    using (var client = new HttpClient())
-                                    {
-                                        client.DefaultRequestHeaders.Add("doc-uuid", doc.Uuid.ToString());
-                                        var resp = await client.PostAsJsonAsync($"{serverurl}/api/onlinecash/WriteofSynch/{shopId}", writeofsynch);
-                                        if (resp.IsSuccessStatusCode)
-                                        {
-                                            doc.SynchStatus = true;
-                                            doc.Synch = DateTime.Now;
-                                            await db.SaveChangesAsync();
-                                        }
-                                    }
-                                    break;
-                                case TypeDocs.Arrival:
-                                    var model = await SendArrival(channel, db, doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.StockTaking:
-                                    await SendStocktaking(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.StartStocktacking:
-                                    await SendStartStocktacking(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.StopStocktacking:
-                                    await SendStopStocktacking(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.CashMoney:
-                                    await SendCashMoney(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.NewGoodFromCash:
-                                    await SendNewGood(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                                case TypeDocs.Revaluation:
-                                    await SendRevaluation(doc);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                    break;
-                            }
+                                }
+                                break;
+                            case TypeDocs.Arrival:
+                                await SendArrival(httpClient, db, doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.StockTaking:
+                                await SendStocktaking(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.StartStocktacking:
+                                await SendStartStocktacking(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.StopStocktacking:
+                                await SendStopStocktacking(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.CashMoney:
+                                await SendCashMoney(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.NewGoodFromCash:
+                                await SendNewGood(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
+                            case TypeDocs.Revaluation:
+                                await SendRevaluation(doc);
+                                doc.SynchStatus = true;
+                                doc.Synch = DateTime.Now;
+                                await db.SaveChangesAsync();
+                                break;
                         }
                     }
-                    catch (FlurlHttpException) { }
-                    catch (HttpRequestException) { }
-                    catch (Exception ex) 
-                    { 
-                        System.Diagnostics.Debug.WriteLine(ex.StackTrace); 
-                    }
-                    await Task.Delay(TimeSpan.FromMinutes(cronSynch));
                 }
+                catch (FlurlHttpException) { }
+                catch (HttpRequestException) { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                }
+                await Task.Delay(TimeSpan.FromMinutes(cronSynch));
+            }
 
         }
 
-        private async Task<ArrivalSynchDataModel> SendArrival(IModel channel, DataContext db, DocSynch docSynch)
+        private async Task SendArrival(HttpClient httpClient, DataContext db, DocSynch docSynch)
         {
             var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docSynch.DocId).FirstOrDefaultAsync();
-            if (arrival == null)
-                return null;
-            var model = new ArrivalSynchDataModel { Num = arrival.Num, DateArrival = arrival.DateArrival, SupplierId = arrival.SupplierId, Uuid = arrival.Uuid };
-            foreach (var aGood in arrival.ArrivalGoods)
-                model.ArrivalGoods.Add(new ArrivalGoodSynchDataModel
+            var body = new CreateArrivalTransportModel
+            {
+                DocumentUuid = arrival.Uuid,
+                Num = arrival.Num,
+                DateArrival = DateTime.Now,
+                SupplierId = arrival.SupplierId,
+                Positions = arrival.ArrivalGoods.Select(x => new CreateArrivalPositionTransportModel
                 {
-                    GoodUuid = aGood.Good.Uuid,
-                    Price = aGood.Price,
-                    Count = aGood.Count,
-                    Nds=aGood.Nds,
-                    ExpiresDate=aGood.ExpiresDate
-                });
-            /*
-            await $"{serverurl}/api/onlinecash/ArrivalSynch/{shopId}"
-                .WithHeaders(new { Doc_uuid = docSynch.Uuid.ToString() })
-                .PostJsonAsync(model);
-            */
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(model));
-            channel.BasicPublish(exchange: "shop_test",
-         routingKey: "shop_test_arrivals",
-         basicProperties: null,
-         body: body);
-            return model;
+                    Uuid = x.Good.Uuid,
+                    PriceArrival = x.Price,
+                    PriceSell=0,
+                    Count = x.Count,
+                    Nds = x.Nds,
+                })
+            };
+            var result = await httpClient.PostAsJsonAsync("/create-arrival", body);
+            if (!result.IsSuccessStatusCode)
+                throw new SystemException("Ошибка отправки");
         }
 
 
         public async Task GetBuyersAsync()
         {
-            var client = _httpClientFactory.CreateClient();
+            var client = httpClientFactory.CreateClient();
             var buyers =  await client.GetFromJsonAsync<List<Buyer>>($"{serverurl}/api/onlinecash/Buyers");
             var buyersdb = await db.Buyers.ToListAsync();
             foreach (var buyer in buyers)
@@ -263,7 +230,7 @@ namespace OnlineCashRmk.Services
             }
         }
 
-        public async Task SendCheckSell(DataContext db, int docId)
+        public async Task SendCheckSell(HttpClient httpClient, DataContext db, int docId)
         {
             var sell = db.CheckSells
                 .Include(s => s.CheckGoods).ThenInclude(g=>g.Good)
@@ -271,6 +238,24 @@ namespace OnlineCashRmk.Services
                 .Include(s=>s.Buyer)
                 .Where(s => s.Id == docId).FirstOrDefault();
             var shiftbuy = db.Shifts.Where(s => s.Id == sell.ShiftId).FirstOrDefault();
+            var body = new CreateCheckTransportModel
+            {
+                DateCreate = sell.DateCreate,
+                TypeSell = sell.TypeSell,
+                SumDiscont = sell.SumDiscont,
+                SumCash = sell.SumCash,
+                SumElectron = sell.SumElectron,
+                Positions = sell.CheckGoods.Select(x => new CreateCheckPositionTransportModel
+                {
+                    Uuid = x.Good.Uuid,
+                    Price = x.Cost,
+                    Quantity = x.Count
+                })
+            };
+            var result = await httpClient.PostAsJsonAsync("/create-check", body);
+            if (!result.IsSuccessStatusCode)
+                throw new SystemException("Ошибка");
+            /*
             CashBoxCheckSellBuyer cashBuyer = null;
             if (sell.Buyer != null)
                 cashBuyer = new CashBoxCheckSellBuyer { Uuid = sell.Buyer.Uuid, Phone = sell.Buyer.Phone };
@@ -294,6 +279,7 @@ namespace OnlineCashRmk.Services
                     Price = g.Cost
                 });
             await $"{serverurl}/api/onlinecash/CashBox/sell/{shiftbuy.Uuid}".PostJsonAsync(sellPost);
+            */
         }
 
         public async Task SendStocktaking(DocSynch docSynch)

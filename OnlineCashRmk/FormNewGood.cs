@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 using OnlineCashRmk.Services;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk
 {

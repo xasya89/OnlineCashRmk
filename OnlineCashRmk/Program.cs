@@ -13,11 +13,13 @@ using Microsoft.EntityFrameworkCore;
 using Serilog.Events;
 using Microsoft.Extensions.Hosting;
 using OnlineCashRmk.Services;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace OnlineCashRmk
 {
     static class Program
     {
+        public static string HttpClientName = "api";
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -26,6 +28,10 @@ namespace OnlineCashRmk
         {
             if (InstanceCheck())
             {
+                var config = new ConfigurationBuilder()
+    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory) // важно для WinForms!
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -35,24 +41,29 @@ namespace OnlineCashRmk
                     .WriteTo.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Day).CreateLogger();
 
                 var host = Host.CreateDefaultBuilder()
-             .ConfigureAppConfiguration((context, builder) =>
+             /*
+              * .ConfigureAppConfiguration((context, builder) =>
              {
                  // Add other configuration files...
                  builder.AddJsonFile("appsettings.json", optional: true);
              })
+             */
              .ConfigureServices((context, services) =>
              {
+                 services.AddSingleton<IConfiguration>(config);
+                 services.AddHttpClient(HttpClientName, (sp, client) =>
+                 {
+                     var _config = sp.GetRequiredService<IConfiguration>();
+                     client.BaseAddress = new Uri(config.GetConnectionString("ServerApi"));
+                     client.DefaultRequestHeaders.Add("X-shopDbName", "shop7");
+                 });
                  services.AddHttpClient()
                 //.AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))
-                .AddDbContextFactory<DataContext>(opt => opt.UseMySql(
-                    context.Configuration.GetConnectionString("MySQL"), Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.30-mysql")
-                    ))
+                .AddDbContextFactory<DataContext>(opt => opt.UseSqlite("Data Source=app.db;"))
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
-
+                
                 .AddSingleton<BarCodeScanner>()
-                .AddSingleton<ICashRegisterService, AtolService>()
                 .AddScoped<ISynchService, SynchService>()
-                .AddTransient<IConfiguration>(_ => context.Configuration)
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()
                 //.AddTransient<PayForm>()
@@ -64,7 +75,7 @@ namespace OnlineCashRmk
                 .AddTransient<FormNewGood>()
                 .AddTransient<FormFindGood>()
                 .AddTransient<FormHistory>()
-                .AddHostedService<RabbitBackgroundService>()
+                .AddSingleton<ICashRegisterService, CashRgisterService>()
                 .AddHostedService<SynchBackgroundService>()
                 .AddHostedService<ApplicationBackgroundService>();
              })
@@ -75,22 +86,14 @@ namespace OnlineCashRmk
              .UseSerilog()
              .UseConsoleLifetime()
              .Build();
+
+                using (var scope = host.Services.CreateScope())
+                using (var db = scope.ServiceProvider.GetRequiredService<DataContext>())
+                    db.Database.Migrate();
+
                 CurrentHost = host;
-                await host.RunAsync();
-                /*
 
-                var services = new ServiceCollection();
-
-                ConfigureServices.ConfigureService(services);
-                using (ServiceProvider provider = services.BuildServiceProvider())
-                {
-                    using (var db = provider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext())
-                        db.Database.Migrate();
-                    var form1 = provider.GetRequiredService<Form1>();
-                    provider.GetRequiredService<Services.ISynchBackgroundService>();
-                    Application.Run(form1);
-                }
-                */
+                await host.StartAsync();
             }
         }
         // держим в переменной, чтобы сохранить владение им до конца пробега программы
@@ -103,6 +106,10 @@ namespace OnlineCashRmk
         }
 
         private static IHost CurrentHost;
-        public static async Task StopedHost() => await CurrentHost.StopAsync();
+        public static async Task StopedHost()
+        {
+            Application.Exit();
+            await CurrentHost.StopAsync();
+        }
     }
 }

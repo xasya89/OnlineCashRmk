@@ -182,6 +182,7 @@ namespace OnlineCashRmk
 
         private void RenderBuy(int docId)
         {
+            /*
             var check = _db.CheckSells.Include(c=>c.CheckPayments).Include(c=>c.CheckGoods).ThenInclude(c=>c.Good)
                 .Where(c=>c.Id==docId).FirstOrDefault();
             string document = $@"Покупка {check.DateCreate.ToString("dd.MM.yy HH:mm")} на сумму {check.CheckPayments.Sum(p=>p.Sum).ToSellFormat()}
@@ -197,9 +198,9 @@ namespace OnlineCashRmk
             richTextBox1.Text = document;
 
             string[] cells = new string[4] { "Наименование", "Цена", "Кол-во", "Стоимость" };
-            RtfTable tableCheckGoods = new RtfTable(check.CheckGoods.Count + 1, cells.Length, 120);
+            RtfTable tableCheckGoods = new RtfTable(check.CheckGoods.Count() + 1, cells.Length, 120);
             tableCheckGoods.SetColumnWidths(1500, 720, 950, 1100);
-            for (int r = 0; r < check.CheckGoods.Count + 1; r++)
+            for (int r = 0; r < check.CheckGoods.Count() + 1; r++)
                 for (int c = 0; c < cells.Length; c++)
                     if (r == 0)
                         tableCheckGoods.Contents[r, c] = cells[c];
@@ -220,6 +221,7 @@ namespace OnlineCashRmk
                                 break;
                         };
             richTextBox1.Rtf=richTextBox1.Rtf.Replace("@@@", tableCheckGoods.ToString());
+            */
         }
 
         private void RenderCashMoney(int docId)

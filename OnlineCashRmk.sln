@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31229.75
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineCashRmk", "OnlineCashRmk\OnlineCashRmk.csproj", "{63731FB7-289E-4F48-A4BC-DF9E2FAAE02A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineCashBackendApiService", "OnlineCashBackendApiService\OnlineCashBackendApiService.csproj", "{97F8F845-22DA-44BE-AC6B-1D380E904DCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineCashTransportModels", "OnlineCashTransportModels\OnlineCashTransportModels.csproj", "{D74383DB-FEA1-4134-988A-0B6DAAAEC5E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{63731FB7-289E-4F48-A4BC-DF9E2FAAE02A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63731FB7-289E-4F48-A4BC-DF9E2FAAE02A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63731FB7-289E-4F48-A4BC-DF9E2FAAE02A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97F8F845-22DA-44BE-AC6B-1D380E904DCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97F8F845-22DA-44BE-AC6B-1D380E904DCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97F8F845-22DA-44BE-AC6B-1D380E904DCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97F8F845-22DA-44BE-AC6B-1D380E904DCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D74383DB-FEA1-4134-988A-0B6DAAAEC5E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D74383DB-FEA1-4134-988A-0B6DAAAEC5E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D74383DB-FEA1-4134-988A-0B6DAAAEC5E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D74383DB-FEA1-4134-988A-0B6DAAAEC5E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

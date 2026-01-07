@@ -16,4 +16,29 @@ namespace OnlineCashRmk.Services
         public void RegisterCheckSell(CheckSell checkSell);
         public void RegisterCheckReturn(CheckSell checkSell);
     }
+
+    public class CashRgisterService : ICashRegisterService
+    {
+        public void Close()
+        {
+        }
+
+        public void CloseShift()
+        {
+        }
+
+        public bool IsOpen() => true;
+
+        public void OpenShift()
+        {
+        }
+
+        public void RegisterCheckReturn(CheckSell checkSell)
+        {
+        }
+
+        public void RegisterCheckSell(CheckSell checkSell)
+        {
+        }
+    }
 }

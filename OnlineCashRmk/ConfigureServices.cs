@@ -28,11 +28,8 @@ namespace OnlineCashRmk
             services
                 .AddHttpClient()
                 //.AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))
-                .AddDbContextFactory<DataContext>(opt => opt.UseMySql(
-                    configuration.GetConnectionString("MySQL"), Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.30-mysql")
-                    ))
+                .AddDbContextFactory<DataContext>(opt => opt.UseSqlite("Data Source=shop-database.db"))
                 .AddSingleton<BarCodeScanner>()
-                .AddSingleton<ICashRegisterService, AtolService>()
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
                 .AddScoped<ISynchService, SynchService>()
                 //.AddSingleton<ISynchBackgroundService, SynchBackgroundService>()
@@ -48,8 +45,6 @@ namespace OnlineCashRmk
                 .AddTransient<FormNewGood>()
                 .AddTransient<FormFindGood>()
                 .AddTransient<FormHistory>()
-
-                .AddSingleton<IHostedService, RabbitBackgroundService>()
                 ;
             
         }

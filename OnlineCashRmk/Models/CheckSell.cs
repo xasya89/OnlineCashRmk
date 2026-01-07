@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk.Models
 {
@@ -24,17 +25,14 @@ namespace OnlineCashRmk.Models
         public bool IsElectron { get; set; }
         public decimal Sum { get; set; }
         public decimal SumDiscont { get; set; } = 0;
+        public decimal SumElectron { get; set; }
+        public decimal SumCash { get; set; }
         public decimal SumAll { get; set; }
         [JsonPropertyName("Goods")]
-        public List<CheckGood> CheckGoods { get; set; } = new List<CheckGood>();
-        public List<CheckPayment> CheckPayments { get; set; } = new List<CheckPayment>();
+        public ICollection<CheckGood> CheckGoods { get; set; }
+        public ICollection<CheckPayment> CheckPayments { get; set; }
         public int ShiftId { get; set; }
         [JsonIgnore]
         public Shift Shift { get; set; }
-    }
-    public enum TypeSell
-    {
-        Sell=0,
-        Return=1
     }
 }

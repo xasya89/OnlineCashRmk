@@ -54,7 +54,7 @@ namespace OnlineCashRmk
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql("server=localhost;database=shop_rmk;uid=root;pwd=kt38hmapq", Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.30-mysql"));
+                optionsBuilder.UseSqlite("app.db");
             }
         }
 

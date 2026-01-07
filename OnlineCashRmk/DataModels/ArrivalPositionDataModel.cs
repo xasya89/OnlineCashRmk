@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using OnlineCashRmk.Models;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk.DataModels
 {
