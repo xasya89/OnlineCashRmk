@@ -158,7 +158,7 @@ namespace OnlineCashRmk.Services
                 {
                     Uuid = x.Good.Uuid,
                     Price = x.Price,
-                    Count = Convert.ToDecimal(x.Count),
+                    Count = x.Count,
                 })
             };
             var result = await httpClient.PostAsJsonAsync("/create-writeof", body);
@@ -238,7 +238,7 @@ namespace OnlineCashRmk.Services
                     Goods = x.StocktakingGoods.Select(x => new StocktakingGoodTransportModel
                     {
                         Uuid = x.Good.Uuid,
-                        CountFact = Convert.ToDecimal(x.CountFact),
+                        CountFact = x.CountFact ?? 0,
                     })
                 })
             };

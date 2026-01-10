@@ -161,7 +161,7 @@ namespace OnlineCashRmk
 
         void AddGood(Good good) => AddGood(good,1 );
 
-        void AddGood(Good good, double count)
+        void AddGood(Good good, decimal count)
         {
             if (good != null)
             {
@@ -171,7 +171,7 @@ namespace OnlineCashRmk
                     if (frCountEdit.ShowDialog() == DialogResult.OK)
                     {
                         frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
-                        double.TryParse(frCountEdit.textBoxCount.Text, out count);
+                        decimal.TryParse(frCountEdit.textBoxCount.Text, out count);
                     }
                     else
                         return;
@@ -182,9 +182,9 @@ namespace OnlineCashRmk
                     if (frBuy.ShowDialog() == DialogResult.OK)
                     {
                         var goodButtle = (Good)frBuy.BottleListBox.SelectedItem;
-                        double.TryParse(frBuy.CountTextBox.Text, out count);
+                        decimal.TryParse(frBuy.CountTextBox.Text, out count);
                         AddGood(goodButtle, count);
-                        count = Math.Round((goodButtle.VPackage == null ? 0 : (double)goodButtle.VPackage) * count, 2);
+                        count = Math.Round((goodButtle.VPackage == null ? 0 : Convert.ToDecimal(goodButtle.VPackage)) * count, 2);
                     }
                     else
                         return;
