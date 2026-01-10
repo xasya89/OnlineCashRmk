@@ -43,6 +43,7 @@ namespace OnlineCashBackendApiService
             app.MapGet("/manuals/suppliers", ManualSupplierQuery.Query);
             app.MapPost("/create-arrival", CreateArrivalCommand.Handler).WithName("create-arrival").WithOpenApi();
             app.MapPost("/create-writeof", CreateWriteOfCommand.Handler).WithName("create-writeof").WithOpenApi();
+            app.MapPost("/create-stocktacking", CreateWriteOfCommand.Handler).WithName("create-stocktacking").WithOpenApi();
 
             app.Run();
         }
