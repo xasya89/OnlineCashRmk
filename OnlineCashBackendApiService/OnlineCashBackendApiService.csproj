@@ -9,12 +9,19 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.22" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.1" />
     <PackageReference Include="MySql.Data" Version="9.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineCashTransportModels\OnlineCashTransportModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="install-service.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -23,30 +23,34 @@ namespace OnlineCashRmk
         ObservableCollection<ArrivalPositionDataModel> ArrivalPositions { get; set; } = new ObservableCollection<ArrivalPositionDataModel>();
         ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         ISynchService synch;
-        DataContext db;
+        private readonly IDbContextFactory<DataContext> _dbFactory;
         IServiceProvider _provider;
 
-        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) => {
+        SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) =>
+        {
             var activeform = Form.ActiveForm;
             if (activeform != null && nameof(FormArrival) == activeform.Name)
             {
                 var port = (SerialPort)s;
                 string code = port.ReadExisting();
                 var form = activeform as FormArrival;
-                var barcode = await form.db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                var db = await form._dbFactory.CreateDbContextAsync();
+                var barcode = await db.BarCodes.Include(b => b.Good)
+                .Where(b => b.Code == code & !b.Good.IsDeleted)
+                .AsNoTracking().FirstOrDefaultAsync();
                 Action<Good, decimal> addGood = form.AddGood;
                 if (barcode != null && barcode.Good.IsDeleted == false)
-                    Task.Run(() => form.Invoke(addGood, barcode.Good, 1M));
+                    await Task.Run(() => form.Invoke(addGood, barcode.Good, 1M));
             }
         });
         BarCodeScanner _barCodeScanner;
 
         public FormArrival(ISynchService synchService, ILogger<FormArrival> logger,
-            IDbContextFactory<DataContext> dbFactory, ISynchService synch, BarCodeScanner barCodeScanner, 
+            IDbContextFactory<DataContext> dbFactory, ISynchService synch, BarCodeScanner barCodeScanner,
             IServiceProvider provider)
         {
             this.synch = synch;
-            this.db = dbFactory.CreateDbContext();
+            _dbFactory = dbFactory;
             _provider = provider;
             InitializeComponent();
             CalcSumAll();
@@ -55,19 +59,7 @@ namespace OnlineCashRmk
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived += serialDataReceivedEventHandler;
 
-            Task<List<Supplier>> taskSynchSuppliers = Task.Run(async () => await synchService.SynchSuppliersAsync());
-            taskSynchSuppliers.ContinueWith(task =>
-            {
-                foreach (var supplier in task.Result)
-                    Suppliers.Add(supplier);
-                var action = new Action(() =>
-                  {
-                      SupplierComboBox.DataSource = Suppliers;
-                      SupplierComboBox.DisplayMember = nameof(Supplier.Name);
-                      SupplierComboBox.ValueMember = nameof(Supplier.Id);
-                  });
-                Invoke(action);
-            });
+            GetSuupliers();
             BindingSource positionBinding = new BindingSource();
             ArrivalPositions.CollectionChanged += (s, e) =>
             {
@@ -88,6 +80,16 @@ namespace OnlineCashRmk
             Column_SumNds.DataPropertyName = nameof(ArrivalPositionDataModel.SumNdsStr);
             Column_SumSell.DataPropertyName = nameof(ArrivalPositionDataModel.SumSell);
             Column_ExpiresDate.DataPropertyName = nameof(ArrivalPositionDataModel.ExpiresDate);
+            dataGridViewPositions.CellFormatting += (sender, e) =>
+            {
+                if (e.RowIndex < 0) return;
+                var position = ArrivalPositions[e.RowIndex];
+                if (dataGridViewPositions.Columns[e.ColumnIndex].Name == nameof(Column_PricePercent))
+                    if (position.PricePercentDecimal == 0 || position.PricePercentDecimal > 56)
+                        e.CellStyle.BackColor = Color.LightGreen;
+                    else
+                        e.CellStyle.BackColor = Color.LightPink;
+            };
             BindingSource binding = new BindingSource();
             findGoods.CollectionChanged += (sender, e) =>
             {
@@ -98,17 +100,36 @@ namespace OnlineCashRmk
             findListBox.DisplayMember = nameof(Good.Name);
         }
 
-        private void findTextBox_TextChanged(object sender, EventArgs e)
+        private async void GetSuupliers()
+        {
+            using var db = _dbFactory.CreateDbContext();
+            var suupliers = await db.Suppliers.OrderBy(x => x.Name)
+                .AsNoTracking().ToListAsync();
+            foreach (var supplier in suupliers)
+                Suppliers.Add(supplier);
+            SupplierComboBox.DataSource = Suppliers;
+            SupplierComboBox.DisplayMember = nameof(Supplier.Name);
+            SupplierComboBox.ValueMember = nameof(Supplier.Id);
+        }
+
+        private async void findTextBox_TextChanged(object sender, EventArgs e)
         {
             if (findTextBox.Text != "")
                 if (findTextBox.Text.Length >= 2)
                 {
                     findGoods.Clear();
-                    var goods = db.Goods.OrderBy(g => g.Name).ToList();
-                    foreach (var good in goods.Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
-                        if (good.IsDeleted == false)
-                            findGoods.Add(good);
-                    foreach (var barcode in db.BarCodes.Include(g => g.Good).Where(b => b.Code == findTextBox.Text).ToList())
+                    var db = _dbFactory.CreateDbContext();
+                    var goods = await db.Goods
+                        .Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1 && !g.IsDeleted)
+                        .Take(20).OrderBy(g => g.Name)
+                        .AsNoTracking().ToListAsync();
+                    foreach (var good in goods)//goods.Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
+                                               //if (good.IsDeleted == false)
+                        findGoods.Add(good);
+                    var barcodes = await db.BarCodes.Include(g => g.Good)
+                        .Where(b => b.Code == findTextBox.Text & !b.Good.IsDeleted)
+                        .AsNoTracking().ToListAsync();
+                    foreach (var barcode in barcodes)
                         if (barcode.Good?.IsDeleted == false)
                             findGoods.Add(barcode.Good);
                 }
@@ -118,12 +139,12 @@ namespace OnlineCashRmk
         {
             if (good != null /*&& ArrivalPositions.FirstOrDefault(p => p.GoodId == good.Id) == null*/)
             {
-                var newArrival = new ArrivalPositionDataModel { GoodId = good.Id, GoodName = good.Name, Unit = good.Unit, Count = count, PriceSell = good.Price };
+                var newArrival = new ArrivalPositionDataModel { GoodId = good.Id, GoodName = good.Name, Unit = good.Unit, Count = count, PriceArrival=good.PriceArrival, PriceSell = good.Price };
                 ArrivalPositions.Add(newArrival);
                 newArrival.PropertyChanged += (s, e) => CalcSumAll();
                 dataGridViewPositions.FirstDisplayedScrollingRowIndex = ArrivalPositions.Count - 1;
             }
-                
+
         }
 
         private void findTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -173,7 +194,7 @@ namespace OnlineCashRmk
         }
 
         string barcodeScan = "";
-        private void FormArrival_KeyDown(object sender, KeyEventArgs e)
+        private async void FormArrival_KeyDown(object sender, KeyEventArgs e)
         {
             if (!findTextBox.Focused)
             {
@@ -222,19 +243,25 @@ namespace OnlineCashRmk
                 }
                 if (e.KeyCode == Keys.Enter)
                 {
-                    AddGood(db.BarCodes.Include(b => b.Good).Where(b => b.Code == barcodeScan & b.Good.IsDeleted == false).FirstOrDefault()?.Good);
+                    using var db = _dbFactory.CreateDbContext();
+                    var barcode = await db.BarCodes
+                        .Include(b => b.Good)
+                        .Where(b => b.Code == barcodeScan & b.Good.IsDeleted == false)
+                        .AsNoTracking().FirstOrDefaultAsync();
+                    AddGood(barcode?.Good);
                     barcodeScan = "";
                 }
                 if (e.KeyCode == Keys.Delete)
-                    if((dataGridViewPositions.Focused & dataGridViewPositions.SelectedCells.Count>0) && dataGridViewPositions.Columns[dataGridViewPositions.SelectedCells[0].ColumnIndex].Name==Column_ExpiresDate.Name)
+                    if ((dataGridViewPositions.Focused & dataGridViewPositions.SelectedCells.Count > 0) && dataGridViewPositions.Columns[dataGridViewPositions.SelectedCells[0].ColumnIndex].Name == Column_ExpiresDate.Name)
                     {
                         var position = ArrivalPositions[dataGridViewPositions.SelectedCells[0].RowIndex];
                         position.ExpiresDate = null;
                         dtp.Visible = false;
                     }
-                else
-                    button1_Click(null, null);
-            };
+                    else
+                        button1_Click(null, null);
+            }
+            ;
             if (e.KeyCode == Keys.F4 & !e.Alt)
                 if (!findTextBox.Focused)
                 {
@@ -273,17 +300,18 @@ namespace OnlineCashRmk
         private async void buttonSave_Click(object sender, EventArgs e)
         {
             var supplier = SupplierComboBox.SelectedItem as Supplier;
-            if (arrivalNum.Text != "" && supplier!=null)
+            if (arrivalNum.Text != "" && supplier != null)
             {
+                using var db = _dbFactory.CreateDbContext();
                 var arrival = new Arrival { Num = arrivalNum.Text, DateArrival = arrivalDate.Value, SupplierId = supplier.Id };
                 db.Arrivals.Add(arrival);
-                List<NewGoodFromCash> newGoodList = new List<NewGoodFromCash>();
                 Revaluation revaluation = new Revaluation();
                 List<RevaluationGood> revaluationGoods = new List<RevaluationGood>();
-                foreach(var position in ArrivalPositions)
+                foreach (var position in ArrivalPositions)
                 {
-                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds=position.NdsPercent, ExpiresDate=position.ExpiresDate };
+                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds = position.NdsPercent, ExpiresDate = position.ExpiresDate };
                     var good = db.Goods.Where(g => g.Id == position.GoodId).FirstOrDefault();
+                    /*
                     if(good.Price!=position.PriceSell)
                     {
                         RevaluationGood revaluationGood = revaluationGoods.Where(r => r.Good.Id == good.Id).FirstOrDefault();
@@ -297,19 +325,31 @@ namespace OnlineCashRmk
                         db.NewGoodsFromCash.Add(newGood);
                         newGoodList.Add(newGood);
                     }
+                    */
                     db.ArrivalGoods.Add(arrivalGood);
                 };
+                //Сохраним закупочную цену
+                var goodIdsWithPrice = ArrivalPositions.Select(x => new { GoodId = x.GoodId, PriceArrival = x.PriceArrival })
+                    .ToDictionary(x=>x.GoodId);
+                var ids = ArrivalPositions.Select(x => x.GoodId).ToArray();
+                var goods = await db.Goods.Where(x => ids.Contains(x.Id))
+                    .ToListAsync();
+                foreach(var good in goods)
+                    good.PriceArrival = goodIdsWithPrice[good.Id].PriceArrival;
+
+                /*
                 if (revaluationGoods.Count > 0)
                 {
                     db.Revaluations.Add(revaluation);
                     db.RevaluationGoods.AddRange(revaluationGoods);
                 }
+                */
                 await db.SaveChangesAsync();
                 if (revaluationGoods.Count > 0)
-                    synch.AppendDoc(new DocSynch { DocId=revaluation.Id, TypeDoc=TypeDocs.Revaluation});
-                foreach (var newGood in newGoodList)
-                    synch.AppendDoc(new DocSynch { DocId = newGood.Id, Create = DateTime.Now, TypeDoc = TypeDocs.NewGoodFromCash });
-                synch.AppendDoc(new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival });
+                    synch.AppendDoc(new DocSynch { DocId = revaluation.Id, TypeDoc = TypeDocs.Revaluation });
+                var doc = new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival };
+                db.DocSynches.Add(doc);
+                await db.SaveChangesAsync();
                 Close();
             }
         }
@@ -318,7 +358,6 @@ namespace OnlineCashRmk
         {
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
-            db.Dispose();
         }
 
         void CalcSumAll()
@@ -366,9 +405,34 @@ namespace OnlineCashRmk
 
         private void button2_Click(object sender, EventArgs e)
         {
-            var fr =(FormNewGood) _provider.GetService(typeof(FormNewGood));
+            var fr = (FormNewGood)_provider.GetService(typeof(FormNewGood));
             AddGood(fr.Show());
             fr.Dispose();
+        }
+
+        /// <summary>
+        /// Раскраска наценки в заивисимости от процента
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void dataGridViewPositions_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            RecolorRows();
+        }
+
+        // Перекраска ячеек, в завиисомти от наценки
+        private void RecolorRows()
+        {
+            /*
+            for (int i = 0; i < ArrivalPositions.Count; i++)
+            {
+                var position = ArrivalPositions[i];
+                if (position.PricePercentDecimal == 0 || position.PricePercentDecimal > 56)
+                    dataGridViewPositions.Rows[i].Cells["Column_PricePercent"].Style.BackColor = Color.LightGreen;
+                else
+                    dataGridViewPositions.Rows[i].Cells["Column_PricePercent"].Style.BackColor = Color.LightPink;
+            }
+            */
         }
     }
 }

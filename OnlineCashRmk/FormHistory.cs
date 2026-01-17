@@ -119,7 +119,7 @@ namespace OnlineCashRmk
                                 table.Contents[r, c] = positions[r - 1].PriceSell.ToSellFormat();
                                 break;
                             case 4:
-                                table.Contents[r, c] = positions[r - 1].PricePercent?.ToSellFormat();
+                                table.Contents[r, c] = positions[r - 1].PricePercent;
                                 break;
                             case 5:
                                 table.Contents[r, c] = positions[r - 1].Count.ToSellFormat();

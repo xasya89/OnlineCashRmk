@@ -18,9 +18,10 @@ public static class CreateStockTackingCommand
         var goodsUuidPrice = (await db.QueryAsync<GoodPrice>("SELECT id, uuid, price FROM goods")).ToDictionary(x=>x.uuid);
         var sumFact = body.Groups.SelectMany(x => x.Goods).Sum(x => x.CountFact * goodsUuidPrice[x.Uuid].price);
         var stocktackingId = await db.QuerySingleAsync<int>(@"INSERT INTO stocktakings
-            (Num, Create, ShopId, isSuccess, Status, CountDb, CountFact, SumDb, SumFact, Start, CashMoneyDb, CashMoneyFact, Uuid)
+            (Num, `Create`, ShopId, isSuccess, Status, CountDb, CountFact, SumDb, SumFact, Start, CashMoneyDb, CashMoneyFact, Uuid)
             VALUES
-            (@Num, @Create, 1, 1, 2, 0, @CountFact, 0, @SumFact, @Create, 0, @CashMoneyFact, @Uuid)",
+            (@Num, @Create, 1, 1, 2, 0, @CountFact, 0, @SumFact, @Create, 0, @CashMoneyFact, @Uuid);
+            SELECT LAST_INSERT_ID();",
             new
             {
                 Num=num,
@@ -35,7 +36,8 @@ public static class CreateStockTackingCommand
         foreach (var group in body.Groups)
         {
             var groupId = await db.QuerySingleAsync<int>(@"INSERT INTO stocktakinggroups (StocktakingId, Name) VALUES 
-                (@StocktakingId, @Name)",
+                (@StocktakingId, @Name);
+                SELECT LAST_INSERT_ID();",
                 new { StocktakingId = stocktackingId, Name = group.Name });
 
 

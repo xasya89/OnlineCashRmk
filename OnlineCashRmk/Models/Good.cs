@@ -22,6 +22,7 @@ namespace OnlineCashRmk.Models
         [JsonPropertyName("unit")]
         public Units Unit { get; set; }
         public string UnitDescription { get => Unit.GetDisplay(); }
+        public decimal PriceArrival { get; set; } = 0;
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
         [JsonPropertyName("specialType")]

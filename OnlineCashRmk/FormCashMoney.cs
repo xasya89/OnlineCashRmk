@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OnlineCashRmk.Models;
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Services;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk
 {

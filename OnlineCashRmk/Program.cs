@@ -54,8 +54,10 @@ namespace OnlineCashRmk
                  services.AddHttpClient(HttpClientName, (sp, client) =>
                  {
                      var _config = sp.GetRequiredService<IConfiguration>();
-                     client.BaseAddress = new Uri(config.GetConnectionString("ServerApi"));
-                     client.DefaultRequestHeaders.Add("X-shopDbName", "shop7");
+                     var serverApi = config.GetConnectionString("ServerApi");
+                     client.BaseAddress = new Uri(serverApi);
+                     var shopDbName = _config.GetSection("ShopDbName").Value;
+                     client.DefaultRequestHeaders.Add("X-ShopDbName", shopDbName);
                  });
                  services.AddHttpClient()
                 //.AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))
@@ -64,6 +66,7 @@ namespace OnlineCashRmk
                 
                 .AddSingleton<BarCodeScanner>()
                 .AddScoped<ISynchService, SynchService>()
+                .AddSingleton<IDocumentSenderService, DocumentSenderService>()
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()
                 //.AddTransient<PayForm>()

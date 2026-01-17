@@ -232,6 +232,7 @@ namespace OnlineCashRmk
             dataGridViewPositions.Size = new System.Drawing.Size(1041, 340);
             dataGridViewPositions.TabIndex = 0;
             dataGridViewPositions.CellClick += dataGridViewPositions_CellClick;
+            dataGridViewPositions.CellValueChanged += dataGridViewPositions_CellValueChanged;
             // 
             // Column_GoodName
             // 

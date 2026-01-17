@@ -45,6 +45,7 @@ public partial class Form1 : Form
     ISynchService synchService;
     ICashRegisterService _cashService;
     private readonly IDbContextFactory<DataContext> dbContextFactory;
+    private readonly IDocumentSenderService _documentSenderServer;
     //DataContext db;
     ILogger<Form1> _logger;
     ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
@@ -56,7 +57,7 @@ public partial class Form1 : Form
         set
         {
             __isReturn = value;
-            buttonReturn.BackColor = __isReturn==true ? Color.Red : SystemColors.Control;
+            buttonReturn.BackColor = __isReturn == true ? Color.Red : SystemColors.Control;
         }
     }
     int saleSelected = 1;
@@ -70,7 +71,7 @@ public partial class Form1 : Form
     {
         {1,null },{2,null },{3,null }
     };
-    ObservableCollection<Good> findGoods  = new ObservableCollection<Good>();
+    ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
     Good goodPackcage = null;
     IConfiguration configuration;
     string serverName = "";
@@ -81,15 +82,16 @@ public partial class Form1 : Form
     public delegate void SellNotifyHandler(List<CheckGood> Goods);
     //public event SellNotifyHandler SellNotify;
 
-    SerialDataReceivedEventHandler serialDataReceivedEventHandler=  new SerialDataReceivedEventHandler(async (s, e) => {
+    SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) =>
+    {
         var activeform = Form.ActiveForm;
-        if (activeform!=null && nameof(Form1) == activeform.Name)
+        if (activeform != null && nameof(Form1) == activeform.Name)
         {
             var port = (SerialPort)s;
             string code = port.ReadExisting().Trim();
             var form = activeform as Form1;
             using var db = form.dbContextFactory.CreateDbContext();
-            var barcode = await db.BarCodes.Include(b=>b.Good).Where(b => b.Code == code)
+            var barcode = await db.BarCodes.Include(b => b.Good).Where(b => b.Code == code)
             .AsNoTracking().FirstOrDefaultAsync();
             Action<Good, double> addGood = form.AddGood;
             if (barcode != null && barcode.Good.IsDeleted == false)
@@ -99,15 +101,17 @@ public partial class Form1 : Form
 
     FormScreenForBuyer formScreenForBuyer;
 
-    public Form1(IServiceProvider serviceProvider, 
-        ILogger<Form1> logger, 
-        IDbContextFactory<DataContext> _dbFactory, 
+    public Form1(IServiceProvider serviceProvider,
+        IDocumentSenderService documentSenderService,
+        ILogger<Form1> logger,
+        IDbContextFactory<DataContext> _dbFactory,
         IHttpClientFactory httpClientFactory,
-        ISynchService synchService, 
-        BarCodeScanner barCodeScanner, 
+        ISynchService synchService,
+        BarCodeScanner barCodeScanner,
         ICashRegisterService cashService,
         IHttpClientFactory clientFactory)
     {
+        _documentSenderServer = documentSenderService;
         try
         {
             _cashService = cashService;
@@ -130,9 +134,9 @@ public partial class Form1 : Form
             //DataContext db = new DataContext();
             Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
             if (uuidGoodPackage != Guid.Empty)
-                using(var db = dbContextFactory.CreateDbContext())
-                goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage)
-                        .AsNoTracking().FirstOrDefault();
+                using (var db = dbContextFactory.CreateDbContext())
+                    goodPackcage = db.Goods.Where(g => g.Uuid == uuidGoodPackage)
+                            .AsNoTracking().FirstOrDefault();
             InitializeComponent();
 
             if (barCodeScanner.port != null)
@@ -145,8 +149,9 @@ public partial class Form1 : Form
                     _logger.LogError("Barcode scanner port is not openned");
                     toolStripStatusLabelScannerIsOpen.BackColor = Color.Red;
                 }
-                    
-            };
+
+            }
+            ;
 
             if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
             {
@@ -224,9 +229,9 @@ public partial class Form1 : Form
             BuyerHubConnected(hub);
             */
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            logger.LogError("Form 1 error init \n"+ ex.StackTrace+"\n"+ ex.Message);
+            logger.LogError("Form 1 error init \n" + ex.StackTrace + "\n" + ex.Message);
             Close();
         }
     }
@@ -256,7 +261,7 @@ public partial class Form1 : Form
             }
             db.SaveChanges();
         }
-        catch(SystemException ex)
+        catch (SystemException ex)
         {
 
         }
@@ -285,12 +290,12 @@ public partial class Form1 : Form
         if (MessageBox.Show("Вы точно хотите закрыть смену?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             var shift = db.Shifts.Where(s => s.Stop == null)
-                .Include(x=>x.CheckSells).FirstOrDefault();
+                .Include(x => x.CheckSells).FirstOrDefault();
             shift.Stop = DateTime.Now;
-            shift.SumNoElectron = shift.CheckSells.Where(x=>!x.IsReturn).Sum(x=>x.SumCash);
-            shift.SumElectron = shift.CheckSells.Where(x=>!x.IsReturn).Sum(x=>x.SumElectron);
-            shift.SumSell = shift.CheckSells.Where(x=>!x.IsReturn).Sum(x=>x.SumCash + x.SumElectron);
-            shift.SummReturn = shift.CheckSells.Where(x=>x.IsReturn).Sum(x=>x.SumCash + x.SumElectron);
+            shift.SumNoElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash);
+            shift.SumElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumElectron);
+            shift.SumSell = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
+            shift.SummReturn = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
             shift.SumAll = shift.SumSell - shift.SummReturn;
             db.SaveChanges();
             synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
@@ -361,7 +366,8 @@ public partial class Form1 : Form
                     goodDb.BarCode = good.BarCode;
                     goodDb.Price = good.Price;
                 }
-            };
+            }
+            ;
             await db.SaveChangesAsync();
             MessageBox.Show("Обновление заврешено");
             LoadGoods();
@@ -373,7 +379,7 @@ public partial class Form1 : Form
         if (dataGridView1.SelectedCells.Count > 0)
         {
             var cell = dataGridView1.SelectedCells[0];
-            if(dataGridView1.Columns[cell.ColumnIndex].Name== "ColumnCount" && cell.Value!=null)
+            if (dataGridView1.Columns[cell.ColumnIndex].Name == "ColumnCount" && cell.Value != null)
             {
                 cell.Value = cell.Value.ToString().Replace(",", ".");
             }
@@ -444,11 +450,12 @@ public partial class Form1 : Form
                     .AsNoTracking().FirstOrDefault()?.Good;
                 AddGood(good);
                 barcodeScan = "";
-            }    
-        };
+            }
+        }
+        ;
         if (e.KeyCode == Keys.F2 & e.Control && dataGridView1.SelectedRows.Count > 0)
             EditGood(dataGridView1.SelectedRows[0]);
-        if(e.KeyCode==Keys.Delete && dataGridView1.SelectedRows.Count>0)
+        if (e.KeyCode == Keys.Delete && dataGridView1.SelectedRows.Count > 0)
         {
             int pos = dataGridView1.SelectedRows[0].Index;
             checkGoods.RemoveAt(pos);
@@ -477,10 +484,10 @@ public partial class Form1 : Form
         //Очистить чек
         if (e.KeyCode == Keys.Escape)
             checkGoods.Clear();
-        if(e.KeyCode==Keys.F1)
+        if (e.KeyCode == Keys.F1)
             btnSale_Click(btnSale1, null);
         if (e.KeyCode == Keys.F2 & !e.Control)
-            btnSale_Click(btnSale2, null); 
+            btnSale_Click(btnSale2, null);
         if (e.KeyCode == Keys.F3)
             btnSale_Click(btnSale3, null);
 
@@ -489,9 +496,9 @@ public partial class Form1 : Form
             buttonDiscountCard_Click(buttonDiscountCard, null);
     }
 
-    void AddGood(Good good, double count=1)
+    void AddGood(Good good, double count = 1)
     {
-        if (good != null && good.IsDeleted==false)
+        if (good != null && good.IsDeleted == false)
         {
             if (good.Unit != Units.PCE & good.SpecialType != SpecialTypes.Beer)
             {
@@ -506,7 +513,7 @@ public partial class Form1 : Form
                 else
                     return;
             }
-            if(good.SpecialType==SpecialTypes.Beer)
+            if (good.SpecialType == SpecialTypes.Beer)
             {
                 FormBuyBeer frBuy = new FormBuyBeer(dbContextFactory, good);
                 if (frBuy.ShowDialog() == DialogResult.OK)
@@ -524,7 +531,7 @@ public partial class Form1 : Form
             else
             {
                 var checkgood = checkGoods.FirstOrDefault(g => g.GoodId == good.Id);
-                if (good.Unit == Units.PCE || good.SpecialType==SpecialTypes.Beer)
+                if (good.Unit == Units.PCE || good.SpecialType == SpecialTypes.Beer)
                     checkgood.Count += count;
                 else
                     checkgood.Count = count;
@@ -566,7 +573,7 @@ public partial class Form1 : Form
         Task.Run(async () =>
         {
             using var db = dbContextFactory.CreateDbContext();
-            GoodList = await db.Goods.Where(g=>g.IsDeleted==false).AsNoTracking().ToListAsync();
+            GoodList = await db.Goods.Where(g => g.IsDeleted == false).AsNoTracking().ToListAsync();
         });
     }
 
@@ -580,7 +587,7 @@ public partial class Form1 : Form
         FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
         if (fr.ShowDialog() != DialogResult.OK)
             return;
-        
+
         await CheckPrint(discount, 0, sumAll);
     }
 
@@ -594,7 +601,7 @@ public partial class Form1 : Form
             return discount;
         var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
         decimal sumDiscount = 0;
-        if ((SelectedBuyer?.DiscountSum ?? 0)>0)
+        if ((SelectedBuyer?.DiscountSum ?? 0) > 0)
         {
             FormBuyerDiscount frDiscount = new FormBuyerDiscount((decimal)SelectedBuyer.DiscountSum, SelectedBuyer.Birthday == DateTime.Now.Date);
             if (frDiscount.ShowDialog() == DialogResult.OK)
@@ -678,8 +685,8 @@ public partial class Form1 : Form
     private async void button2_Click_1(object sender, EventArgs e)
     {
         decimal discount = GetDiscountSum();
-        decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) -discount);
-        FormPaymentElectron fr = new FormPaymentElectron(sumAll );
+        decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+        FormPaymentElectron fr = new FormPaymentElectron(sumAll);
         if (fr.ShowDialog() == DialogResult.OK)
             await CheckPrint(discount, sumAll, 0);
     }
@@ -799,14 +806,18 @@ public partial class Form1 : Form
         fr.BringToFront();
         fr.Select();
         */
-        if(fr.checkGoodsReturn.Count>0)
+        if (fr.checkGoodsReturn.Count > 0)
         {
             IsReturn = true;
             btnSale_Click(btnSale1, null);
             checkGoods.Clear();
             foreach (var ch in fr.checkGoodsReturn)
-                checkGoods.Add(new CheckGoodModel { 
-                    GoodId = ch.GoodId, Good = ch.Good, Count = ch.Count, Cost = ch.Cost
+                checkGoods.Add(new CheckGoodModel
+                {
+                    GoodId = ch.GoodId,
+                    Good = ch.Good,
+                    Count = ch.Count,
+                    Cost = ch.Cost
                 });
         }
     }
@@ -865,7 +876,7 @@ public partial class Form1 : Form
             var chekGood = checkGoods[pos];
             FormText fr = new FormText();
             fr.label1.Text = "Скидка";
-            if (fr.ShowDialog()==DialogResult.OK)
+            if (fr.ShowDialog() == DialogResult.OK)
             {
                 decimal discount = 0M;
                 var cultureInfo = CultureInfo.InvariantCulture;
@@ -886,7 +897,8 @@ public partial class Form1 : Form
         {
             fr.Show();
         }
-        catch (Exception) { };
+        catch (Exception) { }
+        ;
     }
 
     private void выдачаДенегToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -910,7 +922,7 @@ public partial class Form1 : Form
 
     private void историяДокументовToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        var formHistory =(FormHistory) serviceProvider.GetRequiredService(typeof(FormHistory));
+        var formHistory = (FormHistory)serviceProvider.GetRequiredService(typeof(FormHistory));
         formHistory.Show();
     }
 
@@ -989,15 +1001,27 @@ public partial class Form1 : Form
                             if (good.Barcodes.Count(b => b == barcodeDb.Code) == 0)
                                 db.BarCodes.Remove(barcodeDb);
                     }
-                };
+                }
+                ;
                 await db.SaveChangesAsync();
                 MessageBox.Show("Загрузка успешно завершена", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (SystemException ex)
             {
-                MessageBox.Show("Ошибка загрузки товаров","",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("Ошибка загрузки товаров", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         });
+    }
+
+    private async void отправитьДокументыНаСерверToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        отправитьДокументыНаСерверToolStripMenuItem.BackColor = Color.LightBlue;
+        try
+        {
+            await _documentSenderServer.SendDocuments();
+        }
+        catch { };
+        отправитьДокументыНаСерверToolStripMenuItem.BackColor = Color.LightGreen;
     }
 }
 
@@ -1006,7 +1030,7 @@ static class DbCashFormExtensions
 {
     public static async Task SynchGoods(DataContext context, HttpClient httpClient)
     {
-        var goods = await httpClient.GetFromJsonAsync<IEnumerable<GoodsResponseTransportModel>>($"/manuals/goods");
+        var goods = await httpClient.GetFromJsonAsync<IEnumerable<GoodsResponseTransportModel>>($"manuals/goods");
         foreach (var good in goods)
         {
             var goodDb = context.Goods.Include(g => g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();

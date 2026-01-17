@@ -23,7 +23,7 @@ public class DbContextFactory : IDbContextFactory
     {
 
         var tenantName = contextAccessor.HttpContext?
-            .Request.Headers["X-shopDbName"].FirstOrDefault();
+            .Request.Headers["X-ShopDbName"].FirstOrDefault();
 
         if (string.IsNullOrWhiteSpace(tenantName))
             throw new InvalidOperationException("Заголовок X-shopDbName не указан.");

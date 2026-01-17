@@ -20,127 +20,105 @@ using Microsoft.Extensions.Logging;
 
 namespace OnlineCashRmk.Services
 {
-    class SynchBackgroundService : BackgroundService
+    class SynchBackgroundService(IDocumentSenderService documentSenderService, ILogger<SynchBackgroundService> logger) : BackgroundService
     {
-        private readonly IHttpClientFactory httpClientFactory;
-        private readonly IConfiguration _configuration;
-        private readonly ILogger<SynchBackgroundService> _logger;
-        string serverurl;
-        int shopId;
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public SynchBackgroundService(IServiceScopeFactory scopeFactory, 
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration,
-            ILogger<SynchBackgroundService> logger)
-        {
-            _scopeFactory = scopeFactory;
-            this.httpClientFactory = httpClientFactory;
-            _configuration = configuration;
-            _logger = logger;
-            serverurl = _configuration.GetSection("serverName").Value;
-            shopId = Convert.ToInt32(_configuration.GetSection("idShop").Value);
-        }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(5));
+            while (await periodicTimer.WaitForNextTickAsync() & !stoppingToken.IsCancellationRequested)
+                try
+                {
+                    await documentSenderService.SendDocuments();
+                }
+                catch(SystemException ex)
+                {
+                    logger.LogError("Ошибка обмена с сервером");
+                }
+                catch (Exception ex) {
+                    logger.LogError("Ошибка обмена с сервером");
+                }
+        }
+    
+
+        /*
+        public async Task DoWork()
         {
             var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetService<IDbContextFactory<DataContext>>().CreateDbContext();
-            PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(5));
-            /*
-            Task.Run(async () =>
+            var httpClient = httpClientFactory.CreateClient(Program.HttpClientName);
+            IEnumerable<DocSynch> docs = await db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create).ToListAsync();
+            try
             {
-                try
+                foreach (var doc in docs)
                 {
-                    await GetBuyersAsync();
-                }
-                catch (FlurlHttpException) { }
-                catch (HttpRequestException) { }
-                catch (Exception) { };
-            });
-            */
-            while (await periodicTimer.WaitForNextTickAsync() & !stoppingToken.IsCancellationRequested)
-            {
-                var httpClient = httpClientFactory.CreateClient(Program.HttpClientName);
-                IEnumerable<DocSynch> docs = await db.DocSynches.Where(d => d.SynchStatus == false).OrderBy(d => d.Create).ToListAsync();
-                try
-                {
-                    foreach (var doc in docs)
+                    if (doc.Uuid.ToString() == "00000000-0000-0000-0000-000000000000")
+                        doc.Uuid = Guid.NewGuid();
+                    switch (doc.TypeDoc)
                     {
-                        if (doc.Uuid.ToString() == "00000000-0000-0000-0000-000000000000")
-                            doc.Uuid = Guid.NewGuid();
-                        switch (doc.TypeDoc)
-                        {
-                            case TypeDocs.OpenShift:
-                                var shift = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
-                                await httpClient.PostAsJsonAsync("/open-shift", new OpenShiftTransportModel(shift.Start, shift.Uuid));
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.Buy:
-                                await SendCheckSell(httpClient, db, doc.DocId);
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.CloseShift:
-                                var shiftclose = await db.Shifts.Where(s => s.Id == doc.DocId).FirstOrDefaultAsync();
-                                await httpClient.PostAsJsonAsync("/close-shift", new CloseShiftTransportModel(shiftclose.Stop.Value, shiftclose.Uuid));
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.WriteOf:
-                                await SendWriteOf(httpClient, db, doc.DocId);
-                                    doc.SynchStatus = true;
-                                    doc.Synch = DateTime.Now;
-                                    await db.SaveChangesAsync();
-                                
-                                break;
-                            case TypeDocs.Arrival:
-                                await SendArrival(httpClient, db, doc);
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.StockTaking:
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.StopStocktacking:
-                                await SendStopStocktacking(httpClient, db, doc);
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.CashMoney:
-                                //await SendCashMoney(doc);
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                            case TypeDocs.Revaluation:
-                                //await SendRevaluation(doc);
-                                doc.SynchStatus = true;
-                                doc.Synch = DateTime.Now;
-                                await db.SaveChangesAsync();
-                                break;
-                        }
-                    }
-                }
-                catch (FlurlHttpException) { }
-                catch (HttpRequestException) { }
-                catch (SystemException ex)
-                {
-                    _logger.LogError(nameof(SynchBackgroundService) + " \nОшибка: " + ex.Message);   
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(nameof(SynchBackgroundService) + " \nОшибка: " + ex.Message);
-                }
-            }
+                        case TypeDocs.OpenShift:
+                            await SendOpenShift(httpClient, db, doc.DocId);
+                            break;
+                        case TypeDocs.Buy:
+                            await SendCheckSell(httpClient, db, doc.DocId);
+                            break;
+                        case TypeDocs.CloseShift:
+                            await SendCloseShift(httpClient, db, doc.DocId);
+                            break;
+                        case TypeDocs.WriteOf:
+                            await SendWriteOf(httpClient, db, doc.DocId);
 
+                            break;
+                        case TypeDocs.Arrival:
+                            await SendArrival(httpClient, db, doc);
+                            break;
+                        case TypeDocs.StockTaking:
+                            break;
+                        case TypeDocs.StopStocktacking:
+                            await SendStocktacking(httpClient, db, doc);
+                            break;
+                        case TypeDocs.CashMoney:
+                            //await SendCashMoney(doc);
+                            break;
+                        case TypeDocs.Revaluation:
+                            //await SendRevaluation(doc);
+                            break;
+                    }
+                    doc.SynchStatus = true;
+                    doc.Synch = DateTime.Now;
+                    await db.SaveChangesAsync();
+                }
+
+                await GetSuppliers(httpClient, db);
+            }
+            catch (FlurlHttpException) { }
+            catch (HttpRequestException) { }
+            catch (SystemException ex)
+            {
+                _logger.LogError(nameof(SynchBackgroundService) + " \nОшибка: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(nameof(SynchBackgroundService) + " \nОшибка: " + ex.Message);
+            }
+        }
+        */
+        private async Task SendOpenShift(HttpClient httpClient, DataContext db, int shiftId)
+        {
+            var shift = await db.Shifts.Where(s => s.Id ==shiftId)
+                .AsNoTracking().FirstOrDefaultAsync();
+            var result = await httpClient.PostAsJsonAsync("open-shift", new OpenShiftTransportModel(shift.Start, shift.Uuid));
+            
+            if (!result.IsSuccessStatusCode)
+                throw new SystemException("Ошибка отправки открытия смены");
+        }
+
+        private async Task SendCloseShift(HttpClient httpClient, DataContext db, int shiftId)
+        {
+            var shiftclose = await db.Shifts.Where(s => s.Id == shiftId)
+                .AsNoTracking().FirstOrDefaultAsync();
+            var result = await httpClient.PostAsJsonAsync("close-shift", new CloseShiftTransportModel(shiftclose.Stop.Value, shiftclose.Uuid));
+            if (!result.IsSuccessStatusCode)
+                throw new SystemException("Ошибка отправки закрытия смены");
         }
 
         private async Task SendWriteOf(HttpClient httpClient, DataContext db, int writeOfId)
@@ -161,14 +139,17 @@ namespace OnlineCashRmk.Services
                     Count = x.Count,
                 })
             };
-            var result = await httpClient.PostAsJsonAsync("/create-writeof", body);
+            var result = await httpClient.PostAsJsonAsync("create-writeof", body);
             if (!result.IsSuccessStatusCode)
                 throw new SystemException("Ошибка отправки");
         }
 
         private async Task SendArrival(HttpClient httpClient, DataContext db, DocSynch docSynch)
         {
-            var arrival = await db.Arrivals.Include(a => a.ArrivalGoods).ThenInclude(a => a.Good).Where(a => a.Id == docSynch.DocId).FirstOrDefaultAsync();
+            var arrival = await db.Arrivals
+                .Include(a => a.ArrivalGoods).ThenInclude(a => a.Good)
+                .Where(a => a.Id == docSynch.DocId)
+                .AsNoTracking().FirstOrDefaultAsync();
             var body = new CreateArrivalTransportModel
             {
                 DocumentUuid = arrival.Uuid,
@@ -184,7 +165,7 @@ namespace OnlineCashRmk.Services
                     Nds = x.Nds,
                 })
             };
-            var result = await httpClient.PostAsJsonAsync("/create-arrival", body);
+            var result = await httpClient.PostAsJsonAsync("create-arrival", body);
             if (!result.IsSuccessStatusCode)
                 throw new SystemException("Ошибка отправки");
         }
@@ -198,7 +179,8 @@ namespace OnlineCashRmk.Services
                 .Include(s => s.CheckGoods).ThenInclude(g=>g.Good)
                 .Include(s => s.CheckPayments)
                 .Include(s=>s.Buyer)
-                .Where(s => s.Id == docId).FirstOrDefault();
+                .Where(s => s.Id == docId)
+                .AsNoTracking().FirstOrDefault();
             var shiftbuy = db.Shifts.Where(s => s.Id == sell.ShiftId).FirstOrDefault();
             var body = new CreateCheckTransportModel
             {
@@ -214,19 +196,19 @@ namespace OnlineCashRmk.Services
                     Quantity = x.Count
                 })
             };
-            var result = await httpClient.PostAsJsonAsync("/create-check", body);
+            var result = await httpClient.PostAsJsonAsync("create-check", body);
             if (!result.IsSuccessStatusCode)
-                throw new SystemException("Ошибка");
+                throw new SystemException("Ошибка отправки чека\n"+result.StatusCode);
         }
 
-        public async Task SendStopStocktacking(HttpClient httpClient, DataContext db, DocSynch docSynch)
+        public async Task SendStocktacking(HttpClient httpClient, DataContext db, DocSynch docSynch)
         {
             var stocktaking = await db.Stocktakings
                 .Include(s => s.StocktakingGroups)
                 .ThenInclude(s => s.StocktakingGoods)
                 .ThenInclude(g => g.Good)
                 .Where(s => s.Id == docSynch.DocId)
-                .FirstOrDefaultAsync();
+                .AsNoTracking().FirstOrDefaultAsync();
             var body = new StocktackingTransportModel
             {
                 Create = stocktaking.Create,
@@ -242,9 +224,22 @@ namespace OnlineCashRmk.Services
                     })
                 })
             };
-            var result = await httpClient.PostAsJsonAsync("/create-stocktacking", body);
+            var result = await httpClient.PostAsJsonAsync("create-stocktacking", body);
             if (!result.IsSuccessStatusCode)
                 throw new SystemException("Ошибка отправки");
+        }
+
+        public async Task GetSuppliers(HttpClient httpClient, DataContext db)
+        {
+            var suppliers = await httpClient.GetFromJsonAsync<IEnumerable<SupplierResponseTransportModel>>("manuals/suppliers");
+            foreach (var supplier in suppliers)
+            {
+                var supplierDb = await db.Suppliers.Where(s => s.Id == supplier.Id).FirstOrDefaultAsync();
+                if (supplierDb == null)
+                    db.Suppliers.Add(new Supplier { Id = supplier.Id, Name = supplier.Name, Inn = "", Kpp = "" });
+
+            }
+            await db.SaveChangesAsync();
         }
     }
 }

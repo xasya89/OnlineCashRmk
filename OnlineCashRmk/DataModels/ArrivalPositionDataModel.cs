@@ -36,9 +36,13 @@ namespace OnlineCashRmk.DataModels
             set { priceSell = value; NotifyPropertyChanged(nameof(PriceSell)); }
         }
 
-        public decimal? PricePercent
+        public decimal PricePercentDecimal
         {
-            get => PriceArrival == 0 ? null : Math.Round(PriceSell / PriceArrival * 100, 2);
+            get => PriceArrival == 0 ? 0 : Math.Round(PriceSell / PriceArrival * 100 - 100, 2);
+        }
+        public string PricePercent
+        {
+            get => PricePercentDecimal==0 ? "" : PricePercentDecimal.ToString();
         }
 
         private decimal count;
