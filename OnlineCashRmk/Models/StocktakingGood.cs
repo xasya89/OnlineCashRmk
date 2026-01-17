@@ -20,29 +20,9 @@ namespace OnlineCashRmk.Models
         public Good Good { get; set; }
         public Guid Uuid { get => Good.Uuid; }
         public string GoodName { get => Good?.Name; }
-        public string UnitStr { get => Good?.Unit.DisplayName(); }
-        [NotMapped]
-        public string CountFactStr { 
-            get => CountFact?.ToString();
-            set
-            {
-                try
-                {
-                    CountFact = value.ToDecimal();
-                }
-                catch (NotFiniteNumberException)
-                {
-                    CountFact = null;
-                }
-                OnPropertyChanged(nameof(CountFact));
-            }
-        }
-        public decimal? CountFact { get; set; }
-        [JsonIgnore]
-        public decimal? Price { get => Good?.Price; }
-        [JsonIgnore]
-        public decimal? Sum { get => Price * CountFact; }
-        [JsonIgnore]
+        //public string UnitStr { get => Good?.Unit.DisplayName(); }
+        public decimal CountFact { get; set; }
+        public decimal Price { get; set; }
         public decimal? CountDocMove { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;

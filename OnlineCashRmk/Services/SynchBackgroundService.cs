@@ -220,7 +220,7 @@ namespace OnlineCashRmk.Services
                     Goods = x.StocktakingGoods.Select(x => new StocktakingGoodTransportModel
                     {
                         Uuid = x.Good.Uuid,
-                        CountFact = x.CountFact ?? 0,
+                        CountFact = x.CountFact,
                     })
                 })
             };

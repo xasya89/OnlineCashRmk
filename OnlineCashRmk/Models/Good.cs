@@ -15,6 +15,7 @@ namespace OnlineCashRmk.Models
         public Guid Uuid { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
+        public string NameLower { get; set; }
         [JsonPropertyName("article")]
         public string Article { get; set; }
         [JsonPropertyName("barCode")]

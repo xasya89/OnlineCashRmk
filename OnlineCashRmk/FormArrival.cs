@@ -1,19 +1,20 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using OnlineCashRmk.DataModels;
+using OnlineCashRmk.Models;
+using OnlineCashRmk.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using OnlineCashRmk.Services;
-using OnlineCashRmk.Models;
-using OnlineCashRmk.DataModels;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System.IO.Ports;
 
 namespace OnlineCashRmk
 {
@@ -25,6 +26,7 @@ namespace OnlineCashRmk
         ISynchService synch;
         private readonly IDbContextFactory<DataContext> _dbFactory;
         IServiceProvider _provider;
+        private List<Good> _goods {  get; set; }
 
         SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) =>
         {
@@ -112,27 +114,50 @@ namespace OnlineCashRmk
             SupplierComboBox.ValueMember = nameof(Supplier.Id);
         }
 
+        private CancellationTokenSource _searchCts;
         private async void findTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (findTextBox.Text != "")
+            // Отменяем предыдущий запрос (если он ещё не завершился)
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+
+            var currentText = findTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(currentText))
+            {
+                // Очистить таблицу или скрыть результаты
+                findGoods.Clear();
+                return;
+            }
+
+            try
+            {
+                // Ждём паузу ввода (debounce)
+                await Task.Delay(400, _searchCts.Token); // 400 мс — хороший баланс
+                findGoods.Clear();
+                // Выполняем запрос к БД асинхронноif (findTextBox.Text != "")
                 if (findTextBox.Text.Length >= 2)
                 {
                     findGoods.Clear();
                     var db = _dbFactory.CreateDbContext();
+                    var term = findTextBox.Text.ToLowerInvariant();
+
                     var goods = await db.Goods
-                        .Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1 && !g.IsDeleted)
-                        .Take(20).OrderBy(g => g.Name)
-                        .AsNoTracking().ToListAsync();
-                    foreach (var good in goods)//goods.Where(g => g.Name != null && g.Name.ToLower().IndexOf(findTextBox.Text.ToLower()) > -1).Take(20).ToList())
-                                               //if (good.IsDeleted == false)
+                        .Where(g => g.NameLower.Contains(term) && !g.IsDeleted)
+                        .OrderBy(g => g.Name)
+                        .Take(20)
+                        .AsNoTracking()
+                        .ToListAsync();
+                    foreach (var good in goods)
                         findGoods.Add(good);
-                    var barcodes = await db.BarCodes.Include(g => g.Good)
-                        .Where(b => b.Code == findTextBox.Text & !b.Good.IsDeleted)
-                        .AsNoTracking().ToListAsync();
-                    foreach (var barcode in barcodes)
-                        if (barcode.Good?.IsDeleted == false)
-                            findGoods.Add(barcode.Good);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception)
+            {
+            }
+            
         }
 
         void AddGood(Good good, decimal count = 1)
@@ -147,19 +172,24 @@ namespace OnlineCashRmk
 
         }
 
-        private void findTextBox_KeyDown(object sender, KeyEventArgs e)
+        private async void findTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (findTextBox.Text != "")
                 switch (e.KeyCode)
                 {
                     case Keys.Enter:
                         var good = (Good)findListBox.SelectedItem;
-                        if (good != null)
                             AddGood(good);
-                        /*
-                        findTextBox.Text = "";
+                        if(int.TryParse(findTextBox.Text, out var _))
+                        {
+                            using var db= _dbFactory.CreateDbContext();
+                            var barcode = await db.BarCodes.Include(g => g.Good)
+                                .Where(b => b.Code == findTextBox.Text & !b.Good.IsDeleted)
+                                .AsNoTracking().FirstOrDefaultAsync();
+                            AddGood(barcode?.Good);
+                        }
+                        findTextBox.Clear();
                         findGoods.Clear();
-                        */
                         break;
                     case Keys.Down:
                         int cursor = findListBox.SelectedIndex;
@@ -306,26 +336,9 @@ namespace OnlineCashRmk
                 var arrival = new Arrival { Num = arrivalNum.Text, DateArrival = arrivalDate.Value, SupplierId = supplier.Id };
                 db.Arrivals.Add(arrival);
                 Revaluation revaluation = new Revaluation();
-                List<RevaluationGood> revaluationGoods = new List<RevaluationGood>();
                 foreach (var position in ArrivalPositions)
                 {
                     var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds = position.NdsPercent, ExpiresDate = position.ExpiresDate };
-                    var good = db.Goods.Where(g => g.Id == position.GoodId).FirstOrDefault();
-                    /*
-                    if(good.Price!=position.PriceSell)
-                    {
-                        RevaluationGood revaluationGood = revaluationGoods.Where(r => r.Good.Id == good.Id).FirstOrDefault();
-                        if (revaluationGood == null)
-                            revaluationGoods.Add(new RevaluationGood { Revaluation = revaluation, Good = good, PriceOld = good.Price, PriceNew = position.PriceSell });
-                        else
-                            if (revaluationGood.PriceNew < position.PriceSell)
-                            revaluationGood.PriceNew = position.PriceSell;
-                        good.Price = position.PriceSell;
-                        var newGood = new NewGoodFromCash { Good = good };
-                        db.NewGoodsFromCash.Add(newGood);
-                        newGoodList.Add(newGood);
-                    }
-                    */
                     db.ArrivalGoods.Add(arrivalGood);
                 };
                 //Сохраним закупочную цену
@@ -337,16 +350,7 @@ namespace OnlineCashRmk
                 foreach(var good in goods)
                     good.PriceArrival = goodIdsWithPrice[good.Id].PriceArrival;
 
-                /*
-                if (revaluationGoods.Count > 0)
-                {
-                    db.Revaluations.Add(revaluation);
-                    db.RevaluationGoods.AddRange(revaluationGoods);
-                }
-                */
                 await db.SaveChangesAsync();
-                if (revaluationGoods.Count > 0)
-                    synch.AppendDoc(new DocSynch { DocId = revaluation.Id, TypeDoc = TypeDocs.Revaluation });
                 var doc = new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival };
                 db.DocSynches.Add(doc);
                 await db.SaveChangesAsync();

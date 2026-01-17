@@ -1040,6 +1040,7 @@ static class DbCashFormExtensions
                 {
                     Uuid = good.Uuid,
                     Name = good.Name,
+                    NameLower=good.Name.Trim().ToLower(),
                     Article = good.Name,
                     Unit = good.Unit,
                     Price = good.Price,
@@ -1059,6 +1060,7 @@ static class DbCashFormExtensions
             else
             {
                 goodDb.Name = good.Name;
+                goodDb.NameLower = good.Name.Trim().ToLower();
                 goodDb.Unit = good.Unit;
                 goodDb.Price = good.Price;
                 goodDb.SpecialType = good.SpecialType;

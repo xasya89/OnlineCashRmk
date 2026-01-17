@@ -1,26 +1,27 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using OnlineCashRmk.Models;
+using OnlineCashRmk.Services;
+using OnlineCashTransportModels.Shared;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using OnlineCashRmk.Services;
-using System.Collections.ObjectModel;
-using Microsoft.EntityFrameworkCore;
-using OnlineCashRmk.Models;
-using System.IO.Ports;
-using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashRmk
 {
     public partial class FormWriteOf : Form
     {
         private readonly IDbContextFactory<DataContext> dbContextFactory;
-        DataContext db;
+        //DataContext db;
         ILogger<FormWriteOf> logger;
         ISynchService synch;
 
@@ -31,10 +32,11 @@ namespace OnlineCashRmk
                 var port = (SerialPort)s;
                 string code = port.ReadExisting();
                 var form = activeform as FormWriteOf;
-                var barcode = await form.db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
+                using var db = form.dbContextFactory.CreateDbContext();
+                var barcode = await db.BarCodes.Include(b => b.Good).Where(b => b.Code == code).FirstOrDefaultAsync();
                 Action<Good> addGood = form.AddGood;
                 if (barcode != null && barcode.Good.IsDeleted == false)
-                    Task.Run(() => form.Invoke(addGood, barcode.Good));
+                    form.Invoke(addGood, barcode.Good);
             }
         });
         BarCodeScanner _barCodeScanner;
@@ -46,7 +48,6 @@ namespace OnlineCashRmk
         public FormWriteOf(IDbContextFactory<DataContext> dbFactory, ILogger<FormWriteOf> logger, ISynchService synch, BarCodeScanner barCodeScanner)
         {
             dbContextFactory = dbFactory;
-            this.db = dbFactory.CreateDbContext();
             this.logger = logger;
             this.synch = synch;
 
@@ -83,7 +84,7 @@ namespace OnlineCashRmk
         }
 
         string barcodeScan = "";
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        private async void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (!findInpText.Focused)
             {
@@ -132,7 +133,11 @@ namespace OnlineCashRmk
                 }
                 if (e.KeyCode == Keys.Enter)
                 {
-                    AddGood(db.BarCodes.Include(b => b.Good).Where(b => b.Code == barcodeScan & b.Good.IsDeleted == false).FirstOrDefault()?.Good);
+                    using var db = dbContextFactory.CreateDbContext();
+                    var barcode = await db.BarCodes.Include(b => b.Good)
+                        .Where(b => b.Code == barcodeScan & b.Good.IsDeleted == false)
+                        .AsNoTracking().FirstOrDefaultAsync();
+                    AddGood(barcode?.Good);
                     barcodeScan = "";
                 }
             };
@@ -165,6 +170,7 @@ namespace OnlineCashRmk
         {
             if (good != null)
             {
+                /*
                 if (good.Unit != Units.PCE & good.SpecialType != SpecialTypes.Beer)
                 {
                     FormEditCount frCountEdit = new FormEditCount();
@@ -188,6 +194,14 @@ namespace OnlineCashRmk
                     }
                     else
                         return;
+                }
+                */
+
+                FormEditCount frCountEdit = new FormEditCount();
+                if (frCountEdit.ShowDialog() == DialogResult.OK)
+                {
+                    frCountEdit.textBoxCount.Text = frCountEdit.textBoxCount.Text.Replace(".", ",");
+                    decimal.TryParse(frCountEdit.textBoxCount.Text, out count);
                 }
                 if (writeofGoods.Count(g => g.GoodId == good.Id) == 0)
                     writeofGoods.Add(new WriteofGood { GoodId = good.Id, Good = good, Count = count, Price = good.Price });
@@ -247,11 +261,13 @@ namespace OnlineCashRmk
                 }
         }
 
+        private CancellationTokenSource _searchCts;
         private async void findInpText_TextChanged(object sender, EventArgs e)
         {
             if (findInpText.Text.Length >= 3)
             {
                 findGoods.Clear();
+                using var db = dbContextFactory.CreateDbContext();
                 var goods = await db.Goods.OrderBy(g => g.Name).ToListAsync();
                 foreach (var good in goods.Where(g => g.Name.ToLower().IndexOf(findInpText.Text.ToLower()) > -1).Take(20).ToList())
                     if(good.IsDeleted==false)
@@ -264,6 +280,7 @@ namespace OnlineCashRmk
 
         private async void button1_Click(object sender, EventArgs e)
         {
+            using var db = dbContextFactory.CreateDbContext();
             Writeof writeof = new Writeof { DateCreate = DateTime.Now, SumAll = writeofGoods.Sum(w => w.Sum), Note = NoteInp.Text };
             db.Writeofs.Add(writeof);
             foreach (var wgood in writeofGoods)
@@ -303,7 +320,6 @@ namespace OnlineCashRmk
 
             if (_barCodeScanner.port != null)
                 _barCodeScanner.port.DataReceived -= serialDataReceivedEventHandler;
-            db.Dispose();
         }
     }
 }

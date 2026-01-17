@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
@@ -10,9 +11,11 @@ using OnlineCashRmk;
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260117125945_Add_Column_NameLower")]
+    partial class Add_Column_NameLower
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
@@ -824,14 +827,11 @@ namespace OnlineCashRmk.Migrations
                     b.Property<decimal?>("CountDocMove")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("CountFact")
+                    b.Property<decimal?>("CountFact")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("GoodId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("StocktakingGroupId")
                         .HasColumnType("INTEGER");
