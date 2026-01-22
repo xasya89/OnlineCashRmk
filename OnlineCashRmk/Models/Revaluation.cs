@@ -13,7 +13,7 @@ namespace OnlineCashRmk.Models
         [Column(TypeName = "Date")]
         public DateTime Create { get; set; } = DateTime.Now;
         public Guid Uuid { get; set; } = Guid.NewGuid();
-        public List<RevaluationGood> RevaluationGoods { get; set; } = new List<RevaluationGood>();
+        public ICollection<RevaluationGood> RevaluationGoods { get; set; } = new List<RevaluationGood>();
     }
 
     public class RevaluationGood

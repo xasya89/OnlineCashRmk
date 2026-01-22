@@ -65,7 +65,7 @@ namespace OnlineCashRmk
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
                 
                 .AddSingleton<BarCodeScanner>()
-                .AddScoped<ISynchService, SynchService>()
+                .AddTransient<ISynchService, SynchService>()
                 .AddSingleton<IDocumentSenderService, DocumentSenderService>()
                 .AddScoped<Form1>()
                 .AddScoped<FormMenu>()
@@ -78,6 +78,7 @@ namespace OnlineCashRmk
                 .AddTransient<FormNewGood>()
                 .AddTransient<FormFindGood>()
                 .AddTransient<FormHistory>()
+                .AddTransient<FormRevaluation>()
                 .AddSingleton<ICashRegisterService, CashRgisterService>()
                 .AddHostedService<SynchBackgroundService>()
                 .AddHostedService<ApplicationBackgroundService>();

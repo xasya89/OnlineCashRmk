@@ -63,7 +63,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
                          httpRequestMessage = await SendCashMoney(httpClient, db, doc.DocId);
                         break;
                     case TypeDocs.Revaluation:
-                        //await SendRevaluation(doc);
+                        httpRequestMessage = await SendRevaluation(httpClient, db, doc.DocId);
                         break;
                 }
                 httpRequestMessage.Headers.Add("X-Document-UUID", doc.Uuid.ToString());
@@ -164,13 +164,12 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Positions = arrival.ArrivalGoods.Select(x => new CreateArrivalPositionTransportModel
             {
                 Uuid = x.Good.Uuid,
-                PriceArrival = x.Price,
-                PriceSell = 0,
+                PriceArrival = x.PriceArrival,
+                PriceSell = x.PriceSell,
                 Count = x.Count,
                 Nds = x.Nds,
             })
         };
-
         return new HttpRequestMessage(HttpMethod.Post, "create-arrival")
         {
             Content = new StringContent(
@@ -178,9 +177,34 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("create-arrival", body);
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки");
+    }
+
+    private async Task<HttpRequestMessage> SendRevaluation(HttpClient httpClient, DataContext db, int docId)
+    {
+        var revaluation = await db.Revaluations.Include(x=>x.RevaluationGoods)
+            .ThenInclude(x => x.Good)
+            .Where(x=>x.Id==docId)
+            .AsNoTracking().FirstAsync();
+        var body = new CreateRevaluationTransportModel
+        {
+            Create = revaluation.Create,
+            Uuid = revaluation.Uuid,
+            Items = revaluation.RevaluationGoods.Select(x => new CreateRevaluationItemTransportModel
+            {
+                GoodUuid = x.Good.Uuid,
+                PriceNew = x.PriceNew,
+                PriceOld = x.PriceOld,
+                Quantity = x.Count ?? 0,
+            })
+        };
+
+        return new HttpRequestMessage(HttpMethod.Post, "create-revaluation")
+        {
+            Content = new StringContent(
+            JsonSerializer.Serialize(body),
+            Encoding.UTF8,
+            "application/json")
+        };
     }
 
 

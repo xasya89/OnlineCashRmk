@@ -338,7 +338,7 @@ namespace OnlineCashRmk
                 Revaluation revaluation = new Revaluation();
                 foreach (var position in ArrivalPositions)
                 {
-                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, Price = position.PriceArrival, Nds = position.NdsPercent, ExpiresDate = position.ExpiresDate };
+                    var arrivalGood = new ArrivalGood { Arrival = arrival, GoodId = position.GoodId, Count = position.Count, PriceArrival = position.PriceArrival, PriceSell=position.PriceSell, Nds = position.NdsPercent, ExpiresDate = position.ExpiresDate };
                     db.ArrivalGoods.Add(arrivalGood);
                 };
                 //Сохраним закупочную цену

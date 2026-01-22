@@ -9,6 +9,7 @@ namespace OnlineCashRmk.Services
 {
     public interface ISynchService
     {
+        public Task SynchGoods();
         public void AppendDoc(DocSynch docSynch);
         public Task<List<Supplier>> SynchSuppliersAsync();
     }

@@ -1020,8 +1020,15 @@ public partial class Form1 : Form
         {
             await _documentSenderServer.SendDocuments();
         }
-        catch { };
+        catch { }
+        ;
         отправитьДокументыНаСерверToolStripMenuItem.BackColor = Color.LightGreen;
+    }
+
+    private void переоценкаToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        var formarrival = serviceProvider.GetRequiredService<FormRevaluation>();
+        formarrival.Show();
     }
 }
 

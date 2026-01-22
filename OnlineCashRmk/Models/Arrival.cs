@@ -32,10 +32,10 @@ namespace OnlineCashRmk.Models
         public Arrival Arrival { get; set; }
         public int GoodId { get; set; }
         public Good Good { get; set; }
-        public decimal Price { get; set; }
+        public decimal PriceArrival { get; set; }
+        public decimal PriceSell { get; set; }
         public decimal Count { get; set; }
         public string Nds { get; set; } = "Без ндс";
-        public decimal Sum { get => Price * Count; }
         public DateTime? ExpiresDate { get; set; }
     }
 }

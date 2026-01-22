@@ -16,12 +16,13 @@ public static class CreateArrivalCommand
         var uuids = body.Positions.Select(x => x.Uuid);
         var goods = (await db.QueryAsync<Item>("SELECT id, price, uuid FROM Goods WHERE Uuid IN @Uuids",
             new { Uuids = uuids })).ToList();
+        /*
         foreach(var item in body.Positions)
         {
             var price = goods.Where(x => x.uuid == item.Uuid).First().price;
             item.PriceSell = price;
         }
-
+        */
         var sumArrival = body.Positions.Sum(x=>x.PriceArrival * x.Count);
         var sumSell = body.Positions.Sum(x=>x.PriceSell * x.Count);
         var arrivalId = await db.QuerySingleAsync<int>(@"INSERT INTO arrivals 

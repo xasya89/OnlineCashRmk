@@ -159,8 +159,8 @@ namespace OnlineCashRmk.Services
                 Positions = arrival.ArrivalGoods.Select(x => new CreateArrivalPositionTransportModel
                 {
                     Uuid = x.Good.Uuid,
-                    PriceArrival = x.Price,
-                    PriceSell=0,
+                    PriceArrival = x.PriceArrival,
+                    PriceSell=x.PriceSell,
                     Count = x.Count,
                     Nds = x.Nds,
                 })

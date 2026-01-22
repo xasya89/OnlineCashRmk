@@ -77,9 +77,10 @@ namespace OnlineCashRmk
             историяДокументовToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            отправитьДокументыНаСерверToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
             findTextBox = new System.Windows.Forms.TextBox();
-            отправитьДокументыНаСерверToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            переоценкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -473,7 +474,7 @@ namespace OnlineCashRmk
             // 
             // toolStripDropDownButton1
             // 
-            toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { списанияToolStripMenuItem, приходыToolStripMenuItem, инверторизацияToolStripMenuItem, toolStripMenuItem1, выдачаДенегToolStripMenuItem1, внесениеДенегToolStripMenuItem1, историяДокументовToolStripMenuItem, toolStripSeparator2, toolStripSeparator1, отправитьДокументыНаСерверToolStripMenuItem });
+            toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { списанияToolStripMenuItem, приходыToolStripMenuItem, переоценкаToolStripMenuItem, инверторизацияToolStripMenuItem, toolStripMenuItem1, выдачаДенегToolStripMenuItem1, внесениеДенегToolStripMenuItem1, историяДокументовToolStripMenuItem, toolStripSeparator2, toolStripSeparator1, отправитьДокументыНаСерверToolStripMenuItem });
             toolStripDropDownButton1.Image = (System.Drawing.Image)resources.GetObject("toolStripDropDownButton1.Image");
             toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -537,6 +538,13 @@ namespace OnlineCashRmk
             toolStripSeparator1.Name = "toolStripSeparator1";
             toolStripSeparator1.Size = new System.Drawing.Size(250, 6);
             // 
+            // отправитьДокументыНаСерверToolStripMenuItem
+            // 
+            отправитьДокументыНаСерверToolStripMenuItem.Name = "отправитьДокументыНаСерверToolStripMenuItem";
+            отправитьДокументыНаСерверToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
+            отправитьДокументыНаСерверToolStripMenuItem.Text = "Отправить документы на сервер";
+            отправитьДокументыНаСерверToolStripMenuItem.Click += отправитьДокументыНаСерверToolStripMenuItem_Click;
+            // 
             // toolStripStatusLabelScannerIsOpen
             // 
             toolStripStatusLabelScannerIsOpen.Name = "toolStripStatusLabelScannerIsOpen";
@@ -554,12 +562,12 @@ namespace OnlineCashRmk
             findTextBox.TextChanged += findTextBox_TextChanged;
             findTextBox.KeyDown += findTextBox_KeyDown;
             // 
-            // отправитьДокументыНаСерверToolStripMenuItem
+            // переоценкаToolStripMenuItem
             // 
-            отправитьДокументыНаСерверToolStripMenuItem.Name = "отправитьДокументыНаСерверToolStripMenuItem";
-            отправитьДокументыНаСерверToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
-            отправитьДокументыНаСерверToolStripMenuItem.Text = "Отправить документы на сервер";
-            отправитьДокументыНаСерверToolStripMenuItem.Click += отправитьДокументыНаСерверToolStripMenuItem_Click;
+            переоценкаToolStripMenuItem.Name = "переоценкаToolStripMenuItem";
+            переоценкаToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
+            переоценкаToolStripMenuItem.Text = "Переоценка";
+            переоценкаToolStripMenuItem.Click += переоценкаToolStripMenuItem_Click;
             // 
             // Form1
             // 
@@ -644,6 +652,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem отправитьДокументыНаСерверToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem переоценкаToolStripMenuItem;
     }
 }
 

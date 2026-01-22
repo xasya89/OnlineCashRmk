@@ -77,8 +77,8 @@ namespace OnlineCashRmk
                 {
                     GoodName = arrivalGood.Good.Name,
                     Unit=arrivalGood.Good.Unit,
-                    PriceArrival=arrivalGood.Price,
-                    PriceSell=priceSell,
+                    PriceArrival=arrivalGood.PriceArrival,
+                    PriceSell= arrivalGood.PriceSell,
                     NdsPercent=arrivalGood.Nds,
                     Count=arrivalGood.Count,
                     ExpiresDate=arrivalGood.ExpiresDate
@@ -243,6 +243,7 @@ namespace OnlineCashRmk
 
         private void RenderRevaluation(int docId)
         {
+            /*
             var revaluation = _db.Revaluations.Include(r=>r.RevaluationGoods).ThenInclude(r=>r.Good).Where(r => r.Id == docId).FirstOrDefault();
             richTextBox1.Text = $@"Переоценка товара от {revaluation.Create.ToString("dd.MM.yy")}
 
@@ -280,6 +281,7 @@ namespace OnlineCashRmk
                                 break;
                         };
             richTextBox1.Rtf = richTextBox1.Rtf.Replace("@@@", table.ToString());
+            */
         }
     }
 

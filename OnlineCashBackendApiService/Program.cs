@@ -75,6 +75,7 @@ namespace OnlineCashBackendApiService
             group.MapGet("/manuals/goods", ManualGoodsQuery.Handler);
             group.MapGet("/manuals/suppliers", ManualSupplierQuery.Query);
             group.MapPost("/create-arrival", CreateArrivalCommand.Handler).WithName("create-arrival").WithOpenApi();
+            group.MapPost("/create-revaluation", CreateRevaluationCommand.Handler).WithName("create-revaluation").WithOpenApi();
             group.MapPost("/create-writeof", CreateWriteOfCommand.Handler).WithName("create-writeof").WithOpenApi();
             group.MapPost("/create-stocktacking", CreateStockTackingCommand.Handler).WithName("create-stocktacking").WithOpenApi();
             group.MapPost("/create-cashmoney", CreateCashMoneyCommand.Handler).WithName("create-cashmoney").WithOpenApi();
