@@ -10,6 +10,7 @@ namespace OnlineCashRmk.Models
     {
         public string GoodName { get => Good?.Name; }
         public string GoodUnit { get => Good.Unit.GetDisplay(); }
+        public decimal? PromotionQuantity { get; set; }
         private decimal discount;
         public decimal Discount
         {

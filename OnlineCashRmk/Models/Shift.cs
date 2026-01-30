@@ -20,6 +20,7 @@ namespace OnlineCashRmk.Models
         public decimal SumOutcome { get; set; } = 0;
         public decimal SumCredit { get; set; } = 0;
         public decimal SumAll { get; set; } = 0;
+        public decimal PromotionSum { get; set; }
         public int ShopId { get; set; }
         public int CashierId { get; set; }
         public bool isSynch { get; set; } = false;

@@ -10,7 +10,8 @@ namespace OnlineCashRmk.Models
     public class CheckGood
     {
         public int Id { get; set; }
-        public double Count { get; set; }
+        public decimal Count { get; set; }
+        public decimal PromotionQuantity { get; set; }
         public decimal Cost { get; set; }
         public int GoodId { get; set; }
         public Guid? Uuid { get => Good?.Uuid; }

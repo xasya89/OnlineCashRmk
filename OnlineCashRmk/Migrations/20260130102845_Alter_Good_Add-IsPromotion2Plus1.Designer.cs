@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCashRmk;
 
@@ -10,9 +11,11 @@ using OnlineCashRmk;
 namespace OnlineCashRmk.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260130102845_Alter_Good_Add-IsPromotion2Plus1")]
+    partial class Alter_Good_AddIsPromotion2Plus1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
@@ -175,14 +178,11 @@ namespace OnlineCashRmk.Migrations
                     b.Property<decimal>("Cost")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Count")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Count")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("GoodId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PromotionQuantity")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -756,9 +756,6 @@ namespace OnlineCashRmk.Migrations
 
                     b.Property<int>("CashierId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PromotionSum")
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("ShopId")
                         .HasColumnType("INTEGER");

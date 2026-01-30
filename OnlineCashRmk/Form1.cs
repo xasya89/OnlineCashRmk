@@ -93,7 +93,7 @@ public partial class Form1 : Form
             using var db = form.dbContextFactory.CreateDbContext();
             var barcode = await db.BarCodes.Include(b => b.Good).Where(b => b.Code == code)
             .AsNoTracking().FirstOrDefaultAsync();
-            Action<Good, double> addGood = form.AddGood;
+            Action<Good, decimal> addGood = form.AddGood;
             if (barcode != null && barcode.Good.IsDeleted == false)
                 Task.Run(() => form.Invoke(addGood, barcode.Good, 1));
         }
@@ -131,7 +131,6 @@ public partial class Form1 : Form
             cashierName = configuration.GetSection("cashierName").Value;
             cashierInn = configuration.GetSection("cashierInn").Value;
             Guid uuidGoodPackage = Guid.Empty;
-            //DataContext db = new DataContext();
             Guid.TryParse(configuration.GetSection("BuyGoodPackage").Value, out uuidGoodPackage);
             if (uuidGoodPackage != Guid.Empty)
                 using (var db = dbContextFactory.CreateDbContext())
@@ -191,6 +190,7 @@ public partial class Form1 : Form
             ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
             ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
             ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
+            ColumnPromotionQuantity.DataPropertyName = nameof(CheckGoodModel.PromotionQuantity);
             ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
             ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
             ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
@@ -202,68 +202,11 @@ public partial class Form1 : Form
                 formScreenForBuyer = new FormScreenForBuyer(checkGoods);
                 formScreenForBuyer.Show();
             }
-            //Сначала загрузим список покупателей
-            //GetBuyers();
-            /*
-            HubConnection hub = new HubConnectionBuilder().WithUrl("https://localhost:44394/discount_and_buyer_hub")
-                .WithAutomaticReconnect()
-                .Build();
-            hub.On<Buyer>("buyer", async b =>
-            {
-                Action changeBuyer = () =>
-                {
-                    var buyer = db.Buyers.Where(x => x.Uuid == b.Uuid).FirstOrDefault();
-                    if (buyer == null)
-                    {
-                        buyer = b;
-                        buyer.Id = 0;
-                        db.Buyers.Add(buyer);
-                    }
-                    buyer.DiscountSum = b.DiscountSum;
-                    buyer.SpecialPercent = b.SpecialPercent;
-                    buyer.TemporyPercent = b.TemporyPercent;
-                    db.SaveChanges();
-                };
-                Invoke(changeBuyer);
-            });
-            BuyerHubConnected(hub);
-            */
         }
         catch (Exception ex)
         {
             logger.LogError("Form 1 error init \n" + ex.StackTrace + "\n" + ex.Message);
             Close();
-        }
-    }
-
-    private void GetBuyers()
-    {
-        try
-        {
-            var buyers = httpClient.GetFromJsonAsync<List<Buyer>>("/api/onlinecash/buyers").Result;
-            using var db = dbContextFactory.CreateDbContext();
-            var buyersDb = db.Buyers.AsNoTracking().ToList();
-            foreach (var buyerDb in buyersDb)
-            {
-                var buyer = buyers.Where(x => x.Uuid == buyerDb.Uuid).FirstOrDefault();
-                if (buyer == null)
-                {
-                    buyer.Id = 0;
-                    db.Buyers.Add(buyer);
-                }
-                else
-                    if (buyerDb.DiscountSum != buyer.DiscountSum || buyerDb.SpecialPercent != buyer.SpecialPercent || buyerDb.TemporyPercent != buyer.TemporyPercent)
-                {
-                    buyerDb.DiscountSum = buyer.DiscountSum;
-                    buyerDb.SpecialPercent = buyer.SpecialPercent;
-                    buyerDb.TemporyPercent = buyer.TemporyPercent;
-                }
-            }
-            db.SaveChanges();
-        }
-        catch (SystemException ex)
-        {
-
         }
     }
 
@@ -290,13 +233,26 @@ public partial class Form1 : Form
         if (MessageBox.Show("Вы точно хотите закрыть смену?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             var shift = db.Shifts.Where(s => s.Stop == null)
-                .Include(x => x.CheckSells).FirstOrDefault();
+                .Include(x => x.CheckSells)
+                .ThenInclude(x=>x.CheckGoods)
+                .AsNoTracking().FirstOrDefault();
             shift.Stop = DateTime.Now;
-            shift.SumNoElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash);
-            shift.SumElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumElectron);
-            shift.SumSell = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
-            shift.SummReturn = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
-            shift.SumAll = shift.SumSell - shift.SummReturn;
+            var sumNoElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash);
+            var sumElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumElectron);
+            var sumSell = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
+            var sumReturn = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
+            var sumAll = shift.SumSell - shift.SummReturn;
+            var sumPromotion = shift.CheckSells.SelectMany(x => x.CheckGoods)
+                .Sum(x => x.PromotionQuantity * x.Cost);
+            db.Shifts.ExecuteUpdateAsync(x =>
+                x.SetProperty(x => x.Stop, DateTime.Now)
+                .SetProperty(x=>x.SumNoElectron, sumNoElectron)
+                .SetProperty(x=>x.SumElectron, sumElectron)
+                .SetProperty(x=>x.SumSell, sumSell)
+                .SetProperty(x=>x.SummReturn, sumReturn)
+                .SetProperty(x=>x.SumAll, sumAll)
+                .SetProperty(x=>x.PromotionSum, sumPromotion)
+            );
             db.SaveChanges();
             synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
             buttonShift.Text = "Открыть смену";
@@ -304,7 +260,15 @@ public partial class Form1 : Form
             labelStatusShift.BackColor = Color.LightPink;
             _cashService.CloseShift();
             //Вывод итогов смены
-            MessageBox.Show($"Итоги смены:\n ---------------- \nНаличные:\t{shift.SumNoElectron} \nБезналичные:\t{shift.SumElectron}  \nПродажи за сегодня:\t{shift.SumSell}\n ---------------- \nВозвраты:\t{shift.SummReturn}");
+            MessageBox.Show(@$"Итоги смены:
+---------------- 
+Наличные:   {sumNoElectron} 
+Безналичные:    {sumElectron}  
+Продажи за сегодня: {sumSell}
+---------------- 
+Возвраты:   {sumReturn}
+---------------- 
+Акция 2+1:  {sumPromotion}");
         }
     }
 
@@ -496,7 +460,7 @@ public partial class Form1 : Form
             buttonDiscountCard_Click(buttonDiscountCard, null);
     }
 
-    void AddGood(Good good, double count = 1)
+    void AddGood(Good good, decimal count = 1)
     {
         if (good != null && good.IsDeleted == false)
         {
@@ -509,7 +473,7 @@ public partial class Form1 : Form
                     frCountEdit.textBoxCount.SelectionStart = "0,".Length;
                 }
                 if (frCountEdit.ShowDialog() == DialogResult.OK)
-                    count = frCountEdit.textBoxCount.Text.ToDouble();
+                    count = frCountEdit.textBoxCount.Text.ToDecimal();
                 else
                     return;
             }
@@ -519,22 +483,34 @@ public partial class Form1 : Form
                 if (frBuy.ShowDialog() == DialogResult.OK)
                 {
                     var goodButtle = (Good)frBuy.BottleListBox.SelectedItem;
-                    double.TryParse(frBuy.CountTextBox.Text, out count);
+                    count = frBuy.CountTextBox.Text.ToDecimal();
                     AddGood(goodButtle, count);
-                    count = Math.Round((goodButtle.VPackage == null ? 0 : (double)goodButtle.VPackage) * count, 2);
+                    count = Math.Round((goodButtle.VPackage == null ? 0 : Convert.ToDecimal(goodButtle.VPackage)) * count, 2);
                 }
                 else
                     return;
             }
+
             if (checkGoods.Count(g => g.GoodId == good.Id) == 0)
-                checkGoods.Add(new CheckGoodModel { GoodId = good.Id, Good = good, Count = count, Cost = good.Price });
+                checkGoods.Add(
+                    new CheckGoodModel { 
+                        GoodId = good.Id, 
+                        Good = good, 
+                        Count = count, 
+                        PromotionQuantity = 
+                            good.IsPromotion2Plus1 && Math.Truncate(count / 2) > 0 ?
+                            Math.Truncate(count / 2) : null,
+                        Cost = good.Price 
+                    });
             else
             {
                 var checkgood = checkGoods.FirstOrDefault(g => g.GoodId == good.Id);
-                if (good.Unit == Units.PCE || good.SpecialType == SpecialTypes.Beer)
-                    checkgood.Count += count;
-                else
-                    checkgood.Count = count;
+                checkgood.Count = 
+                    good.Unit == Units.PCE || good.SpecialType == SpecialTypes.Beer ?
+                    checkgood.Count + count : checkgood.Count;
+                checkgood.PromotionQuantity =
+                    good.IsPromotion2Plus1 && Math.Truncate(checkgood.Count / 2) > 0 ?
+                    Math.Truncate(checkgood.Count / 2) : null;
                 CalcSumBuy();
             }
         }
@@ -550,9 +526,10 @@ public partial class Form1 : Form
             fr.labelGoodName.Text = checkGood.Good.Name;
             if (fr.ShowDialog() == DialogResult.OK)
             {
-                double count = 0;
-                double.TryParse(fr.textBoxCount.Text.Replace(".", ","), out count);
-                checkGood.Count = count;
+                checkGood.Count = fr.textBoxCount.Text.ToDecimal();
+                checkGood.PromotionQuantity =
+                    checkGood.Good.IsPromotion2Plus1 && Math.Truncate(checkGood.Count / 2) > 0 ?
+                    Math.Truncate(checkGood.Count / 2) : null;
                 CalcSumBuy();
             }
         }
@@ -614,59 +591,6 @@ public partial class Form1 : Form
 
     public async Task CheckPrint(decimal sumDiscount, decimal sumElectron, decimal sumCash)
     {
-        /*
-        using var db = dbContextFactory.CreateDbContext();
-        var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
-        if (shift == null)
-            MessageBox.Show("Смена не открыта", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        else
-        if (checkGoods.Count > 0)
-        {
-            var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
-            CheckSell checkSell = new CheckSell
-            {
-                Buyer = SelectedBuyer,
-                IsElectron=isElectron,
-                DateCreate = DateTime.Now,
-                TypeSell=IsReturn==false ? TypeSell.Sell : TypeSell.Return,
-                Shift = shift,
-                Sum = sumBuy,
-                SumDiscont = sumDiscount,
-                SumAll = sumBuy - sumDiscount
-            };
-            db.CheckSells.Add(checkSell);
-
-            foreach (var payment in payments)
-                db.CheckPayments.Add(new CheckPayment
-                {
-                    CheckSell=checkSell,
-                    TypePayment=payment.TypePayment,
-                    Income=payment.Income,
-                    Sum=payment.Sum,
-                    Retturn=payment.Income - payment.Sum
-                });
-
-            var chgoods = new List<CheckGood>();
-            foreach (var chgood in checkGoods)
-            {
-                var check = new CheckGood
-                {
-                    CheckSell = checkSell,
-                    Good = db.Goods.Where(g => g.Id == chgood.GoodId).FirstOrDefault(),
-                    Count = chgood.Count,
-                    Cost = chgood.Cost
-                };
-                db.CheckGoods.Add(check);
-                chgoods.Add(check);
-            };
-            if(SelectedBuyer!=null)
-            {
-                SelectedBuyer.DiscountSum -= sumDiscount;
-            }
-            db.SaveChanges();
-            db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
-            db.SaveChanges();
-        */
         using var db = dbContextFactory.CreateDbContext();
         var error = await DbCashFormExtensions.CheckPrint(db, checkGoods.ToList(), null, 0, IsReturn, sumElectron, sumCash);
         if (error == "")
@@ -947,72 +871,6 @@ public partial class Form1 : Form
         }
     }
 
-    /// <summary>
-    /// Загрузить товары
-    /// </summary>
-    private void загрузитьТоварыToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-        Task.Run(async () =>
-        {
-            using var db = dbContextFactory.CreateDbContext();
-            try
-            {
-                var str = await new HttpClient().GetAsync($"{serverName}/api/Goodssynchnew/{idShop}").Result.Content.ReadAsStringAsync();
-                List<GoodSynchDataModel> goods = JsonSerializer.Deserialize<List<GoodSynchDataModel>>(str);
-                foreach (var good in goods)
-                {
-                    var goodDb = db.Goods.Include(g => g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
-                    if (goodDb == null)
-                    {
-                        var newgood = new Good
-                        {
-                            Uuid = good.Uuid,
-                            Name = good.Name,
-                            Article = good.Name,
-                            Unit = good.Unit,
-                            Price = good.Price,
-                            SpecialType = good.SpecialType,
-                            VPackage = good.VPackage,
-                            IsDeleted = good.IsDeleted
-                        };
-                        db.Goods.Add(newgood);
-                        //добавление штрих кодов
-                        foreach (string barcode in good.Barcodes)
-                            db.BarCodes.Add(new BarCode
-                            {
-                                Good = newgood,
-                                Code = barcode
-                            });
-                    }
-                    else
-                    {
-                        goodDb.Name = good.Name;
-                        goodDb.Unit = good.Unit;
-                        goodDb.Price = good.Price;
-                        goodDb.SpecialType = good.SpecialType;
-                        goodDb.VPackage = good.VPackage;
-                        goodDb.IsDeleted = good.IsDeleted;
-                        //добавление новых или измененных штрих кодов
-                        foreach (string barcode in good.Barcodes)
-                            if (goodDb.BarCodes.Count(b => b.Code == barcode) == 0)
-                                db.BarCodes.Add(new BarCode { Good = goodDb, Code = barcode });
-                        //Удаление не зарегестрированных на сервере штрихкодов
-                        foreach (var barcodeDb in goodDb.BarCodes)
-                            if (good.Barcodes.Count(b => b == barcodeDb.Code) == 0)
-                                db.BarCodes.Remove(barcodeDb);
-                    }
-                }
-                ;
-                await db.SaveChangesAsync();
-                MessageBox.Show("Загрузка успешно завершена", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (SystemException ex)
-            {
-                MessageBox.Show("Ошибка загрузки товаров", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        });
-    }
-
     private async void отправитьДокументыНаСерверToolStripMenuItem_Click(object sender, EventArgs e)
     {
         отправитьДокументыНаСерверToolStripMenuItem.BackColor = Color.LightBlue;
@@ -1053,7 +911,8 @@ static class DbCashFormExtensions
                     Price = good.Price,
                     SpecialType = good.SpecialType,
                     VPackage = good.VPackage,
-                    IsDeleted = good.IsDeleted
+                    IsDeleted = good.IsDeleted,
+                    IsPromotion2Plus1 = good.IsPromotion2Plus1
                 };
                 context.Goods.Add(newgood);
                 //добавление штрих кодов
@@ -1073,6 +932,7 @@ static class DbCashFormExtensions
                 goodDb.SpecialType = good.SpecialType;
                 goodDb.VPackage = good.VPackage;
                 goodDb.IsDeleted = good.IsDeleted;
+                goodDb.IsPromotion2Plus1=good.IsPromotion2Plus1;
                 //добавление новых или измененных штрих кодов
                 foreach (string barcode in good.Barcodes)
                     if (goodDb.BarCodes.Count(b => b.Code == barcode) == 0)
@@ -1110,6 +970,7 @@ static class DbCashFormExtensions
                 {
                     GoodId = c.GoodId,
                     Count = c.Count,
+                    PromotionQuantity = c.PromotionQuantity ?? 0,
                     Cost = c.Cost
                 }).ToList()
             };

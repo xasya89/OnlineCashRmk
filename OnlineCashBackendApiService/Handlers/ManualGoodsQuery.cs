@@ -10,7 +10,8 @@ public static class ManualGoodsQuery
     public static async Task<IEnumerable<GoodsResponseTransportModel>> Handler(IDbContextFactory dbContextFactory)
     {
         using var db = dbContextFactory.CreateDbContext();
-        var goods = await db.QueryAsync<Good>("SELECT * FROM goods");
+        var goods = await db.QueryAsync<Good>(@"SELECT g.*, gr.name AS GroupName
+            FROM goods g INNER JOIN goodGroups gr ON g.goodGroupId=gr.id");
         var barcodes = await db.QueryAsync<GoodIdBarcode>("SELECT goodId, code FROM barcodes");
         foreach(var good in goods)
         {
@@ -27,12 +28,14 @@ public static class ManualGoodsQuery
             Price = x.Price,
             IsDeleted = x.IsDeleted,
             Barcodes = x.Barcodes,
+            IsPromotion2Plus1 = x.GroupName.ToLower()=="акция 2+1"
         });
     }
 
     private class Good
     {
         public int Id { get; set; }
+        public string GroupName { get; set; }
         public Guid Uuid { get; set; }
         public string Name { get; set; }
         public Units Unit { get; set; }

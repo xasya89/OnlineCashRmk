@@ -36,7 +36,8 @@ public static class CreateCheck
         await db.ExecuteAsync(@"UPDATE shifts SET 
             SumAll=SumAll + @SumAll, SumSell=SumSell + @SumSell, 
             SumElectron=SumElectron+@SumElectron, SumNoElectron=SumNoElectron + @SumNoElectron, 
-            SumReturnCash=SumReturnCash + @SumReturnCash, SumReturnElectron=SumReturnElectron + @SumReturnElectron
+            SumReturnCash=SumReturnCash + @SumReturnCash, SumReturnElectron=SumReturnElectron + @SumReturnElectron,
+            SumPromotion=SumPromotion + @SumPromotion
             WHERE Id=@Id",
             new
             {
@@ -47,18 +48,20 @@ public static class CreateCheck
                 SumNoElectron = body.TypeSell == TypeSell.Sell ? body.SumCash : 0,
                 SumReturnElectron = body.TypeSell == TypeSell.Return ? body.SumElectron : 0,
                 SumReturnCash = body.TypeSell == TypeSell.Return ? body.SumCash : 0,
+                SumPromotion = body.Positions.Sum(x=>x.PromotionQuantity * x.Price),
             });
         var uuids = body.Positions.Select(x => x.Uuid);
         var goods = await db.QueryAsync<GoodIdUuid>("SELECT id, uuid FROM goods WHERE uuid IN @uuids",
             new { Uuids = uuids });
         foreach (var item in body.Positions)
-            await db.ExecuteAsync(@"INSERT INTO checkgoods (CheckSellId, GoodId, Count, Price) 
-                VALUES (@CheckSellId, @GoodId, @Count, @Price)", new
+            await db.ExecuteAsync(@"INSERT INTO checkgoods (CheckSellId, GoodId, Count, Price, PromotionCount) 
+                VALUES (@CheckSellId, @GoodId, @Count, @Price, @PromotionCount)", new
             {
                 CheckSellId=checkId,
                 GoodId= goods.Where(x=>x.uuid==item.Uuid).First().id,
                 Count=item.Quantity,
-                Price=item.Price
+                Price=item.Price,
+                PromotionCount = item.PromotionQuantity,
             });
         await tran.CommitAsync();
         return Results.Ok();

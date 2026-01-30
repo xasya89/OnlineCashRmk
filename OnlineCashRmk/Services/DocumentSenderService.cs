@@ -230,7 +230,8 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             {
                 Uuid = x.Good.Uuid,
                 Price = x.Cost,
-                Quantity = x.Count
+                Quantity = x.Count,
+                PromotionQuantity = x.PromotionQuantity,
             })
         };
 

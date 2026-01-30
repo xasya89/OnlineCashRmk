@@ -21,6 +21,7 @@ public class CreateCheckTransportModel
 public class CreateCheckPositionTransportModel
 {
     public Guid Uuid { get; set; }
-    public double Quantity { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal PromotionQuantity { get; set; }
     public decimal Price { get; set; }
 }

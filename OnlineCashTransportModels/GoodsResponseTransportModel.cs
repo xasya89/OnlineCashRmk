@@ -18,4 +18,5 @@ public class GoodsResponseTransportModel
     public IEnumerable<string> Barcodes { get; set; }
     public decimal Price { get; set; }
     public bool IsDeleted { get; set; }
+    public bool IsPromotion2Plus1 { get; set; }
 }

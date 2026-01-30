@@ -32,6 +32,7 @@ namespace OnlineCashRmk.Models
         public double? VPackage { get; set; }
         [JsonPropertyName("isDeleted")]
         public bool IsDeleted { get; set; }
+        public bool IsPromotion2Plus1 { get; set; }
         [JsonIgnore]
         public List<CheckGood> CheckGoods { get; set; }
         [JsonPropertyName("barCodes")]
