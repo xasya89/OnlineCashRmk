@@ -14,9 +14,10 @@ public static class CreateCheck
         using var db = factory.CreateDbContext();
         await db.OpenAsync();
         var tran = await db.BeginTransactionAsync();
-        var shiftId = await db.QuerySingleAsync<int?>("SELECT MAX(id) FROM shifts WHERE stop IS NULL");
+        var shiftId = await db.QuerySingleAsync<int?>("SELECT Max(id) FROM shifts WHERE uuid=@Uuid AND stop IS NULL",
+            new { Uuid = body.ShiftUuid });
         if (!shiftId.HasValue)
-            return Results.BadRequest<string>("Смена не открыта");
+            return Results.BadRequest<string>("Смена не найдена");
         var checkId = await db.QuerySingleAsync<int>(@"INSERT INTO checksells 
             (ShiftId, DateCreate, IsElectron, SumAll, Sum, SumDiscont, TypeSell,SumCash, SumElectron)
             VALUES

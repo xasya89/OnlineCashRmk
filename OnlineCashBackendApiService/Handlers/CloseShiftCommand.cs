@@ -15,9 +15,10 @@ public static class CloseShiftCommand
         using var db = dbContextFactory.CreateDbContext();
         await db.OpenAsync();
         var tran = await db.BeginTransactionAsync();
-        var shiftId = await db.QuerySingleAsync<int?>("SELECT MAX(id) FROM shifts WHERE stop IS NULL");
+        var shiftId = await db.QuerySingleAsync<int?>("SELECT MAX(id) FROM shifts WHERE Uuid=@Uuid AND Stop IS NULL",
+            new { Uuid=body.uuid });
         if (!shiftId.HasValue)
-            return Results.BadRequest<string>("Смена не открыта");
+            return Results.BadRequest<string>("Смена не найдена");
         var checks = await db.QueryAsync<CheckSell>("SELECT id, TypeSell, SumAll, SumCash, SumElectron FROM checksells WHERE ShiftId="+shiftId);
         decimal sumAll = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumAll) - checks.Where(x => x.TypeSell == 1).Sum(x => x.SumAll);
         decimal sumCash = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumCash);

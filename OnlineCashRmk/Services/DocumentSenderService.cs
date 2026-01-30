@@ -75,6 +75,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
                     doc.Synch = DateTime.Now;
                     await db.SaveChangesAsync();
                 }
+                await Task.Delay(300);
             }
 
             await SynchSuppliers(httpClient, db);
@@ -96,10 +97,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("open-shift", new OpenShiftTransportModel(shift.Start, shift.Uuid));
-
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки открытия смены");
     }
 
     private async Task<HttpRequestMessage> SendCloseShift(HttpClient httpClient, DataContext db, int shiftId)
@@ -114,9 +111,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("close-shift", new CloseShiftTransportModel(shiftclose.Stop.Value, shiftclose.Uuid));
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки закрытия смены");
     }
 
     private async Task<HttpRequestMessage> SendWriteOf(HttpClient httpClient, DataContext db, int writeOfId)
@@ -144,9 +138,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("create-writeof", body);
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки");
     }
 
     private async Task<HttpRequestMessage> SendArrival(HttpClient httpClient, DataContext db, DocSynch docSynch)
@@ -213,6 +204,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
     public async Task<HttpRequestMessage> SendCheckSell(HttpClient httpClient, DataContext db, int docId)
     {
         var sell = db.CheckSells
+            .Include(s=>s.Shift)
             .Include(s => s.CheckGoods).ThenInclude(g => g.Good)
             .Include(s => s.CheckPayments)
             .Include(s => s.Buyer)
@@ -221,6 +213,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
         var shiftbuy = db.Shifts.Where(s => s.Id == sell.ShiftId).FirstOrDefault();
         var body = new CreateCheckTransportModel
         {
+            ShiftUuid=sell.Shift.Uuid,
             DateCreate = sell.DateCreate,
             TypeSell = sell.TypeSell,
             SumDiscont = sell.SumDiscont,
@@ -242,9 +235,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("create-check", body);
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки чека\n" + result.StatusCode);
     }
 
     public async Task<HttpRequestMessage> SendStocktacking(HttpClient httpClient, DataContext db, DocSynch docSynch)
@@ -278,9 +268,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = await httpClient.PostAsJsonAsync("create-stocktacking", body);
-        if (!result.IsSuccessStatusCode)
-            throw new SystemException("Ошибка отправки");
     }
 
     public async Task<HttpRequestMessage> SendCashMoney(HttpClient httpClient, DataContext db, int docId)
@@ -304,9 +291,6 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             Encoding.UTF8,
             "application/json")
         };
-        var result = httpClient.PostAsJsonAsync("create-cashmoney", body);
-        if (!result.IsCompletedSuccessfully)
-            throw new Exception("Ошибка отправки CashMoney");
     }
 
     public async Task SynchSuppliers(HttpClient httpClient, DataContext db)

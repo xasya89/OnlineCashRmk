@@ -10,6 +10,7 @@ namespace OnlineCashTransportModels;
 
 public class CreateCheckTransportModel
 {
+    public Guid ShiftUuid { get; set; }
     public DateTime DateCreate { get; set; }
     public TypeSell TypeSell { get; set; }
     public decimal SumDiscont { get; set; }
