@@ -14,7 +14,7 @@ public static class CreateCheck
         using var db = factory.CreateDbContext();
         await db.OpenAsync();
         var tran = await db.BeginTransactionAsync();
-        var shiftId = await db.QuerySingleAsync<int?>("SELECT Max(id) FROM shifts WHERE uuid=@Uuid AND stop IS NULL",
+        var shiftId = await db.QuerySingleAsync<int?>("SELECT Max(id) FROM shifts WHERE uuid=@Uuid",
             new { Uuid = body.ShiftUuid });
         if (!shiftId.HasValue)
             return Results.BadRequest<string>("Смена не найдена");
@@ -62,7 +62,7 @@ public static class CreateCheck
                 GoodId= goods.Where(x=>x.uuid==item.Uuid).First().id,
                 Count=item.Quantity,
                 Price=item.Price,
-                PromotionCount = item.PromotionQuantity,
+                PromotionCount = item.PromotionQuantity ?? 0,
             });
         await tran.CommitAsync();
         return Results.Ok();

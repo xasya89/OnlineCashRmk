@@ -190,7 +190,6 @@ public partial class Form1 : Form
             ColumnName.DataPropertyName = nameof(CheckGoodModel.GoodName);
             ColumnUnit.DataPropertyName = nameof(CheckGoodModel.GoodUnit);
             ColumnCount.DataPropertyName = nameof(CheckGoodModel.Count);
-            ColumnPromotionQuantity.DataPropertyName = nameof(CheckGoodModel.PromotionQuantity);
             ColumnDiscount.DataPropertyName = nameof(CheckGoodModel.Discount);
             ColumnPrice.DataPropertyName = nameof(CheckGoodModel.Cost);
             ColumnSum.DataPropertyName = nameof(CheckGoodModel.Sum);
@@ -497,9 +496,11 @@ public partial class Form1 : Form
                         GoodId = good.Id, 
                         Good = good, 
                         Count = count, 
-                        PromotionQuantity = 
+                        PromotionQuantity = good.IsPromotion2Plus1 ? Math.Floor(count / 3m) : 0
+                        /*
                             good.IsPromotion2Plus1 && Math.Truncate(count / 2) > 0 ?
-                            Math.Truncate(count / 2) : null,
+                            Math.Truncate(count / 2) : 0
+                        */,
                         Cost = good.Price 
                     });
             else
@@ -509,8 +510,7 @@ public partial class Form1 : Form
                     good.Unit == Units.PCE || good.SpecialType == SpecialTypes.Beer ?
                     checkgood.Count + count : checkgood.Count;
                 checkgood.PromotionQuantity =
-                    good.IsPromotion2Plus1 && Math.Truncate(checkgood.Count / 2) > 0 ?
-                    Math.Truncate(checkgood.Count / 2) : null;
+                    good.IsPromotion2Plus1 ? Math.Floor(count / 3) : 0;
                 CalcSumBuy();
             }
         }
@@ -528,8 +528,7 @@ public partial class Form1 : Form
             {
                 checkGood.Count = fr.textBoxCount.Text.ToDecimal();
                 checkGood.PromotionQuantity =
-                    checkGood.Good.IsPromotion2Plus1 && Math.Truncate(checkGood.Count / 2) > 0 ?
-                    Math.Truncate(checkGood.Count / 2) : null;
+                    checkGood.Good.IsPromotion2Plus1 ? Math.Floor(checkGood.Count / 3m) : 0;
                 CalcSumBuy();
             }
         }
@@ -969,8 +968,8 @@ static class DbCashFormExtensions
                 CheckGoods = checkGoods.Select(c=>new CheckGood
                 {
                     GoodId = c.GoodId,
-                    Count = c.Count,
-                    PromotionQuantity = c.PromotionQuantity ?? 0,
+                    Count = c.Count - c.PromotionQuantity,
+                    PromotionQuantity = c.PromotionQuantity,
                     Cost = c.Cost
                 }).ToList()
             };

@@ -78,7 +78,6 @@ namespace OnlineCashRmk
             ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnPromotionQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -340,7 +339,7 @@ namespace OnlineCashRmk
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { ColumnId, ColumnName, ColumnUnit, ColumnCount, ColumnPromotionQuantity, ColumnDiscount, ColumnPrice, ColumnSum });
+            dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { ColumnId, ColumnName, ColumnUnit, ColumnCount, ColumnDiscount, ColumnPrice, ColumnSum });
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -548,13 +547,6 @@ namespace OnlineCashRmk
             ColumnCount.HeaderText = "Кол-во";
             ColumnCount.Name = "ColumnCount";
             // 
-            // ColumnPromotionQuantity
-            // 
-            ColumnPromotionQuantity.FillWeight = 50F;
-            ColumnPromotionQuantity.HeaderText = "Акция";
-            ColumnPromotionQuantity.Name = "ColumnPromotionQuantity";
-            ColumnPromotionQuantity.ReadOnly = true;
-            // 
             // ColumnDiscount
             // 
             dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(192, 255, 255);
@@ -658,7 +650,6 @@ namespace OnlineCashRmk
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnName;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnUnit;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPromotionQuantity;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDiscount;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPrice;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnSum;

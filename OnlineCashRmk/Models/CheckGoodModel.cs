@@ -10,7 +10,8 @@ namespace OnlineCashRmk.Models
     {
         public string GoodName { get => Good?.Name; }
         public string GoodUnit { get => Good.Unit.GetDisplay(); }
-        public decimal? PromotionQuantity { get; set; }
+        public decimal PromotionQuantity { get; set; }
+
         private decimal discount;
         public decimal Discount
         {
@@ -21,6 +22,6 @@ namespace OnlineCashRmk.Models
                 Cost = Cost - Cost * discount / 100;
             }
         }
-        public decimal Sum { get => Math.Round( (decimal)Count * Cost,2, MidpointRounding.AwayFromZero); }
+        public decimal Sum { get => Math.Round( (Count - PromotionQuantity) * Cost,2, MidpointRounding.AwayFromZero); }
     }
 }

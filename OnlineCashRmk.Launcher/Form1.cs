@@ -14,17 +14,17 @@ namespace OnlineCashRmk.Launcher
 
         private async void Form1_Load(object sender, EventArgs e)
         {
+            var config = LoadingConfig.LoadConfig();
+
+            labelStatus.Text = "Проверка обновлений...";
+            var appPath = Path.Combine(Application.StartupPath, "online-cash", config.AppName);
+            if (!File.Exists(appPath))
+            {
+                labelStatus.Text = $"Основное приложение не найдено: {appPath}";
+                Application.Exit();
+            }
             try
             {
-                var config = LoadingConfig.LoadConfig();
-
-                labelStatus.Text = "Проверка обновлений...";
-                var appPath = Path.Combine(Application.StartupPath, "online-cash", config.AppName);
-                if (!File.Exists(appPath))
-                {
-                    throw new FileNotFoundException($"Основное приложение не найдено: {appPath}");
-                }
-
                 var currentVersion = GetLocalVersion(appPath);
                 var serverVersion = await FetchServerVersionAsync(config.VersionUrl);
 
@@ -53,13 +53,15 @@ namespace OnlineCashRmk.Launcher
                 labelStatus.Text = "Установка...";
                 ReplaceAppFiles(tempExtract, Path.Combine(Application.StartupPath, CashFolderName), skipFiles: new[] { "Updater.exe", "appsettings.json" });
 
-                labelStatus.Text = "Запуск приложения...";
-                LaunchAppAndExit(appPath);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка: {ex.Message}", "Updater", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Application.Exit();
+            }
+            finally
+            {
+                labelStatus.Text = "Запуск приложения...";
+                LaunchAppAndExit(appPath);
             }
         }
 
