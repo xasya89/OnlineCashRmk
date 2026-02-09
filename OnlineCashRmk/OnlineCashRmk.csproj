@@ -5,7 +5,7 @@
     <TargetFramework>net8.0-windows7.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>cashier2_118191.ico</ApplicationIcon>
-    <FileVersion>3.0.0</FileVersion>
+    <FileVersion>3.0.3</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

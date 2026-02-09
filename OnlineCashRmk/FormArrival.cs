@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OnlineCashRmk.DataModels;
+using OnlineCashRmk.Extenisions;
 using OnlineCashRmk.Models;
 using OnlineCashRmk.Services;
 using System;
@@ -179,15 +180,16 @@ namespace OnlineCashRmk
                 {
                     case Keys.Enter:
                         var good = (Good)findListBox.SelectedItem;
-                            AddGood(good);
-                        if(int.TryParse(findTextBox.Text, out var _))
+                        var _str = findTextBox.Text.Trim();
+                        if (good==null && DigitValidationExtension.IsDigitsOnly(_str.AsSpan()))
                         {
                             using var db= _dbFactory.CreateDbContext();
                             var barcode = await db.BarCodes.Include(g => g.Good)
-                                .Where(b => b.Code == findTextBox.Text & !b.Good.IsDeleted)
+                                .Where(b => b.Code == _str & !b.Good.IsDeleted)
                                 .AsNoTracking().FirstOrDefaultAsync();
-                            AddGood(barcode?.Good);
+                            good = barcode?.Good;
                         }
+                        AddGood(good);
                         findTextBox.Clear();
                         findGoods.Clear();
                         break;
@@ -343,12 +345,13 @@ namespace OnlineCashRmk
                 };
                 //Сохраним закупочную цену
                 var goodIdsWithPrice = ArrivalPositions.Select(x => new { GoodId = x.GoodId, PriceArrival = x.PriceArrival })
-                    .ToDictionary(x=>x.GoodId);
+                    .GroupBy(x=>x.GoodId)
+                    .ToDictionary(x=>x.Key);
                 var ids = ArrivalPositions.Select(x => x.GoodId).ToArray();
                 var goods = await db.Goods.Where(x => ids.Contains(x.Id))
                     .ToListAsync();
                 foreach(var good in goods)
-                    good.PriceArrival = goodIdsWithPrice[good.Id].PriceArrival;
+                    good.PriceArrival = goodIdsWithPrice[good.Id].First().PriceArrival;
 
                 await db.SaveChangesAsync();
                 var doc = new DocSynch { DocId = arrival.Id, Create = DateTime.Now, TypeDoc = TypeDocs.Arrival };

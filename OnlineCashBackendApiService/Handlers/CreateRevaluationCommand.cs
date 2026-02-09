@@ -15,7 +15,7 @@ public static class CreateRevaluationCommand
         var tran = await db.BeginTransactionAsync();
         var _sumOld = body.Items.Sum(x=>x.Quantity * x.PriceOld);
         var _sumNew = body.Items.Sum(x => x.Quantity * x.PriceNew);
-        var id = await db.QuerySingleAsync<int>(@"INSERT INTO revaluations (`Create`, Status, SumNew, SumOld, Uuid)
+        var id = await db.QuerySingleAsync<int>(@"INSERT INTO revaluations (`Create`, Status, SumOld, SumNew, Uuid)
             VALUES (@Create, 2, @SumOld, @SumNew, @Uuid);
             SELECT LAST_INSERT_ID();",
             new { Create = body.Create, SumOld=_sumOld, SumNew=_sumNew, Uuid=body.Uuid });
