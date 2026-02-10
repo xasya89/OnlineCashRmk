@@ -148,9 +148,12 @@
             Controls.Add(revaluationDataGridView);
             Controls.Add(toolStrip1);
             Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 204);
+            KeyPreview = true;
             Margin = new System.Windows.Forms.Padding(4);
             Name = "FormRevaluation";
             Text = "FormRevaluation";
+            KeyDown += FormRevaluation_KeyDown;
+            PreviewKeyDown += FormRevaluation_PreviewKeyDown;
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)revaluationDataGridView).EndInit();

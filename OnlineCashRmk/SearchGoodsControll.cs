@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
+using OnlineCashRmk.Extenisions;
 using OnlineCashRmk.Models;
 using System;
 using System.Collections.Generic;
@@ -90,9 +92,15 @@ namespace OnlineCashRmk
 
         }
 
+        public void Focus()
+        {
+            searchTextBox.Focus();
+        }
+
         private async void searchTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            bool isBarCode = int.TryParse(searchTextBox.Text, out int code);
+            string _searchText = searchTextBox.Text.Trim();
+            bool isBarCode = DigitValidationExtension.IsDigitsOnly(_searchText.AsSpan());
             if (goodsListBox.Items.Count == 0 & !isBarCode) return;
 
             int currentIndex = goodsListBox.SelectedIndex;
@@ -121,7 +129,7 @@ namespace OnlineCashRmk
                     {
                         using var db = _dbContextFactory.CreateDbContext();
                         var barcode = await db.BarCodes.Include(x => x.Good)
-                            .Where(x => x.Code == code.ToString())
+                            .Where(x => x.Code == _searchText)
                             .AsNoTracking().FirstOrDefaultAsync();
                         _good = barcode?.Good;
                     }

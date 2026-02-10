@@ -22,14 +22,15 @@ namespace OnlineCashRmk
         private readonly IDbContextFactory<DataContext> _dbContextFactory;
         private readonly BindingList<RevaluationPosition> _positions;
         private readonly IServiceProvider _servicePrivider;
+        private readonly SearchGoodsControll _searchControll;
         public FormRevaluation(IDbContextFactory<DataContext> dbContextFactory, IServiceProvider serviceProvider)
         {
             _dbContextFactory = dbContextFactory;
             _positions = new BindingList<RevaluationPosition>();
             _servicePrivider = serviceProvider;
             InitializeComponent();
-            var searchControll = new SearchGoodsControll(_dbContextFactory);
-            searchControll.ProductSelected += (g) =>
+            _searchControll = new SearchGoodsControll(_dbContextFactory);
+            _searchControll.ProductSelected += (g) =>
             {
                 if (g == null) return;
                 if (_positions.Where(x => x.GoodId == g.Id).Any())
@@ -44,8 +45,8 @@ namespace OnlineCashRmk
                     Quantity = null
                 });
             };
-            searchControll.Dock = DockStyle.Fill;
-            searchPanel.Controls.Add(searchControll);
+            _searchControll.Dock = DockStyle.Fill;
+            searchPanel.Controls.Add(_searchControll);
             SetupUI();
 
             revaluationDataGridView.CellParsing += revaluationDataGridView_CellParsing;
@@ -340,6 +341,16 @@ namespace OnlineCashRmk
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void FormRevaluation_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+        }
+
+        private void FormRevaluation_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F4)
+                _searchControll.Focus();
         }
     }
 }
