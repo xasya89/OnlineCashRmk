@@ -51,6 +51,7 @@ namespace OnlineCashBackendApiService
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddTransient<IDbContextFactory, DbContextFactory>();
+            builder.Services.AddSingleton<RevaluationCalculateBalanceService>();
 
             var app = builder.Build();
 

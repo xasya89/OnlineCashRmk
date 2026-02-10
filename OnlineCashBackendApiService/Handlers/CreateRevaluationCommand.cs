@@ -8,7 +8,9 @@ namespace OnlineCashBackendApiService.Handlers;
 
 public static class CreateRevaluationCommand
 {
-    public static async Task<IResult> Handler([FromBody] CreateRevaluationTransportModel body, IDbContextFactory factory)
+    public static async Task<IResult> Handler(
+        [FromBody] CreateRevaluationTransportModel body, IDbContextFactory factory, RevaluationCalculateBalanceService calculaionService
+        )
     {
         using var db = factory.CreateDbContext();
         await db.OpenAsync();
@@ -39,6 +41,9 @@ public static class CreateRevaluationCommand
         };
         await db.ExecuteAsync(sql, p);
         await tran.CommitAsync();
+        //Добавим в очередь на расчет баланса
+        calculaionService.EnqueueTask(factory.TenantName, id);
+        
         return Results . Ok();
     }
 

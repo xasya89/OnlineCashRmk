@@ -5,7 +5,9 @@ namespace OnlineCashBackendApiService.Services;
 
 public interface IDbContextFactory
 {
+    string TenantName { get; }
     MySqlConnection CreateDbContext();
+    MySqlConnection CreateDbContext(string tenantName);
 }
 
 public class DbContextFactory : IDbContextFactory
@@ -18,7 +20,8 @@ public class DbContextFactory : IDbContextFactory
         _configuration = configuration;
         contextAccessor = accessor;
     }
-
+    public string TenantName=> contextAccessor.HttpContext?
+            .Request.Headers["X-ShopDbName"].FirstOrDefault() ?? string.Empty;
     public MySqlConnection CreateDbContext()
     {
 
@@ -28,6 +31,11 @@ public class DbContextFactory : IDbContextFactory
         if (string.IsNullOrWhiteSpace(tenantName))
             throw new InvalidOperationException("Заголовок X-shopDbName не указан.");
 
+        var connectionString = BuildConnectionString(tenantName);
+        return new MySqlConnection(connectionString);
+    }
+    public MySqlConnection CreateDbContext(string tenantName)
+    {
         var connectionString = BuildConnectionString(tenantName);
         return new MySqlConnection(connectionString);
     }
