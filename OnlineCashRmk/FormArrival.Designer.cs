@@ -29,10 +29,10 @@ namespace OnlineCashRmk
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             SupplierComboBox = new System.Windows.Forms.ComboBox();
             label1 = new System.Windows.Forms.Label();
             arrivalNum = new System.Windows.Forms.TextBox();
@@ -60,19 +60,12 @@ namespace OnlineCashRmk
             Column_SumArrival = new System.Windows.Forms.DataGridViewTextBoxColumn();
             Column_SumSell = new System.Windows.Forms.DataGridViewTextBoxColumn();
             Column_ExpiresDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            panel2 = new System.Windows.Forms.Panel();
             buttonCancel = new System.Windows.Forms.Button();
             buttonSave = new System.Windows.Forms.Button();
-            panel3 = new System.Windows.Forms.Panel();
-            groupBox1 = new System.Windows.Forms.GroupBox();
-            findListBox = new System.Windows.Forms.ListBox();
-            findTextBox = new System.Windows.Forms.TextBox();
+            searchPanel = new System.Windows.Forms.Panel();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPositions).BeginInit();
-            panel2.SuspendLayout();
-            panel3.SuspendLayout();
-            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // SupplierComboBox
@@ -127,6 +120,8 @@ namespace OnlineCashRmk
             // 
             // panel1
             // 
+            panel1.Controls.Add(buttonSave);
+            panel1.Controls.Add(buttonCancel);
             panel1.Controls.Add(panel4);
             panel1.Controls.Add(button1);
             panel1.Controls.Add(arrivalNum);
@@ -250,10 +245,10 @@ namespace OnlineCashRmk
             // 
             // Column_PriceArrival
             // 
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.Black;
-            Column_PriceArrival.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.Color.Black;
+            Column_PriceArrival.DefaultCellStyle = dataGridViewCellStyle5;
             Column_PriceArrival.HeaderText = "Цена";
             Column_PriceArrival.Name = "Column_PriceArrival";
             // 
@@ -270,19 +265,19 @@ namespace OnlineCashRmk
             // 
             // Column_Count
             // 
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
-            Column_Count.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.Black;
+            Column_Count.DefaultCellStyle = dataGridViewCellStyle6;
             Column_Count.HeaderText = "Кол-во";
             Column_Count.Name = "Column_Count";
             // 
             // Column_NdsPercent
             // 
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.Black;
-            Column_NdsPercent.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(128, 255, 128);
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.Black;
+            Column_NdsPercent.DefaultCellStyle = dataGridViewCellStyle7;
             Column_NdsPercent.HeaderText = "% НДС";
             Column_NdsPercent.Items.AddRange(new object[] { "20%", "10%", "0%", "Без ндс" });
             Column_NdsPercent.Name = "Column_NdsPercent";
@@ -309,27 +304,17 @@ namespace OnlineCashRmk
             // 
             // Column_ExpiresDate
             // 
-            dataGridViewCellStyle4.Format = "d";
-            dataGridViewCellStyle4.NullValue = null;
-            Column_ExpiresDate.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.Format = "d";
+            dataGridViewCellStyle8.NullValue = null;
+            Column_ExpiresDate.DefaultCellStyle = dataGridViewCellStyle8;
             Column_ExpiresDate.HeaderText = "Срок годности";
             Column_ExpiresDate.Name = "Column_ExpiresDate";
-            // 
-            // panel2
-            // 
-            panel2.Controls.Add(buttonCancel);
-            panel2.Controls.Add(buttonSave);
-            panel2.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panel2.Location = new System.Drawing.Point(0, 597);
-            panel2.Name = "panel2";
-            panel2.Size = new System.Drawing.Size(1041, 44);
-            panel2.TabIndex = 8;
             // 
             // buttonCancel
             // 
             buttonCancel.BackColor = System.Drawing.Color.Salmon;
             buttonCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            buttonCancel.Location = new System.Drawing.Point(613, 6);
+            buttonCancel.Location = new System.Drawing.Point(784, 4);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new System.Drawing.Size(112, 31);
             buttonCancel.TabIndex = 0;
@@ -341,7 +326,7 @@ namespace OnlineCashRmk
             // 
             buttonSave.BackColor = System.Drawing.Color.LightGreen;
             buttonSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            buttonSave.Location = new System.Drawing.Point(797, 6);
+            buttonSave.Location = new System.Drawing.Point(917, 4);
             buttonSave.Name = "buttonSave";
             buttonSave.Size = new System.Drawing.Size(112, 31);
             buttonSave.TabIndex = 0;
@@ -349,49 +334,13 @@ namespace OnlineCashRmk
             buttonSave.UseVisualStyleBackColor = false;
             buttonSave.Click += buttonSave_Click;
             // 
-            // panel3
+            // searchPanel
             // 
-            panel3.Controls.Add(groupBox1);
-            panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panel3.Location = new System.Drawing.Point(0, 417);
-            panel3.Name = "panel3";
-            panel3.Size = new System.Drawing.Size(1041, 180);
-            panel3.TabIndex = 9;
-            // 
-            // groupBox1
-            // 
-            groupBox1.Controls.Add(findListBox);
-            groupBox1.Controls.Add(findTextBox);
-            groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            groupBox1.Location = new System.Drawing.Point(0, 0);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(1041, 180);
-            groupBox1.TabIndex = 1;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Поиск товара (F4)";
-            // 
-            // findListBox
-            // 
-            findListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            findListBox.Font = new System.Drawing.Font("Segoe UI", 12F);
-            findListBox.FormattingEnabled = true;
-            findListBox.ItemHeight = 21;
-            findListBox.Location = new System.Drawing.Point(3, 52);
-            findListBox.Name = "findListBox";
-            findListBox.Size = new System.Drawing.Size(1035, 125);
-            findListBox.TabIndex = 1;
-            findListBox.DoubleClick += findListBox_DoubleClick;
-            // 
-            // findTextBox
-            // 
-            findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
-            findTextBox.Font = new System.Drawing.Font("Segoe UI", 14.25F);
-            findTextBox.Location = new System.Drawing.Point(3, 19);
-            findTextBox.Name = "findTextBox";
-            findTextBox.Size = new System.Drawing.Size(1035, 33);
-            findTextBox.TabIndex = 5;
-            findTextBox.TextChanged += findTextBox_TextChanged;
-            findTextBox.KeyDown += findTextBox_KeyDown;
+            searchPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            searchPanel.Location = new System.Drawing.Point(0, 417);
+            searchPanel.Name = "searchPanel";
+            searchPanel.Size = new System.Drawing.Size(1041, 224);
+            searchPanel.TabIndex = 9;
             // 
             // FormArrival
             // 
@@ -399,8 +348,7 @@ namespace OnlineCashRmk
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1041, 641);
             Controls.Add(dataGridViewPositions);
-            Controls.Add(panel3);
-            Controls.Add(panel2);
+            Controls.Add(searchPanel);
             Controls.Add(panel1);
             KeyPreview = true;
             Name = "FormArrival";
@@ -412,10 +360,6 @@ namespace OnlineCashRmk
             panel4.ResumeLayout(false);
             panel4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPositions).EndInit();
-            panel2.ResumeLayout(false);
-            panel3.ResumeLayout(false);
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
             ResumeLayout(false);
 
         }
@@ -431,11 +375,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.DataGridView dataGridViewPositions;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ListBox findListBox;
-        private System.Windows.Forms.TextBox findTextBox;
+        private System.Windows.Forms.Panel searchPanel;
         private System.Windows.Forms.Button buttonSave;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Label labelSumSell;

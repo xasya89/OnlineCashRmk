@@ -54,6 +54,13 @@ namespace OnlineCashRmk
             button2 = new System.Windows.Forms.Button();
             button1 = new System.Windows.Forms.Button();
             dataGridView1 = new System.Windows.Forms.DataGridView();
+            ColumnId = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
             groupBox1 = new System.Windows.Forms.GroupBox();
             findListBox = new System.Windows.Forms.ListBox();
@@ -73,14 +80,9 @@ namespace OnlineCashRmk
             toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             отправитьДокументыНаСерверToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            toolStripStatusLabelShiftAmount = new System.Windows.Forms.ToolStripStatusLabel();
             findTextBox = new System.Windows.Forms.TextBox();
-            ColumnId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnDiscount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -361,6 +363,52 @@ namespace OnlineCashRmk
             dataGridView1.SelectionChanged += dataGridView1_SelectionChanged;
             dataGridView1.DoubleClick += dataGridView1_DoubleClick;
             // 
+            // ColumnId
+            // 
+            ColumnId.HeaderText = "id";
+            ColumnId.Name = "ColumnId";
+            ColumnId.Visible = false;
+            // 
+            // ColumnName
+            // 
+            ColumnName.HeaderText = "Наименование";
+            ColumnName.Name = "ColumnName";
+            ColumnName.ReadOnly = true;
+            ColumnName.Width = 400;
+            // 
+            // ColumnUnit
+            // 
+            ColumnUnit.HeaderText = "Ед";
+            ColumnUnit.Name = "ColumnUnit";
+            ColumnUnit.ReadOnly = true;
+            // 
+            // ColumnCount
+            // 
+            ColumnCount.HeaderText = "Кол-во";
+            ColumnCount.Name = "ColumnCount";
+            // 
+            // ColumnDiscount
+            // 
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(192, 255, 255);
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.MenuHighlight;
+            ColumnDiscount.DefaultCellStyle = dataGridViewCellStyle2;
+            ColumnDiscount.HeaderText = "Скидка";
+            ColumnDiscount.Name = "ColumnDiscount";
+            ColumnDiscount.ReadOnly = true;
+            ColumnDiscount.Width = 80;
+            // 
+            // ColumnPrice
+            // 
+            ColumnPrice.HeaderText = "Цена";
+            ColumnPrice.Name = "ColumnPrice";
+            ColumnPrice.ReadOnly = true;
+            // 
+            // ColumnSum
+            // 
+            ColumnSum.HeaderText = "Сумма";
+            ColumnSum.Name = "ColumnSum";
+            ColumnSum.ReadOnly = true;
+            // 
             // splitContainer1
             // 
             splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -407,7 +455,7 @@ namespace OnlineCashRmk
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripStatusLabel1, labelStatusShift, toolStripDropDownButton1, toolStripStatusLabelScannerIsOpen });
+            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripStatusLabel1, labelStatusShift, toolStripDropDownButton1, toolStripStatusLabelScannerIsOpen, toolStripStatusLabel2, toolStripStatusLabelShiftAmount });
             statusStrip1.Location = new System.Drawing.Point(3, 233);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new System.Drawing.Size(1032, 22);
@@ -512,6 +560,19 @@ namespace OnlineCashRmk
             toolStripStatusLabelScannerIsOpen.Size = new System.Drawing.Size(47, 17);
             toolStripStatusLabelScannerIsOpen.Text = "Сканер";
             // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new System.Drawing.Size(92, 17);
+            toolStripStatusLabel2.Text = "  Итоги смены: ";
+            // 
+            // toolStripStatusLabelShiftAmount
+            // 
+            toolStripStatusLabelShiftAmount.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 204);
+            toolStripStatusLabelShiftAmount.Name = "toolStripStatusLabelShiftAmount";
+            toolStripStatusLabelShiftAmount.Size = new System.Drawing.Size(121, 17);
+            toolStripStatusLabelShiftAmount.Text = "toolStripStatusLabel3";
+            // 
             // findTextBox
             // 
             findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
@@ -522,52 +583,6 @@ namespace OnlineCashRmk
             findTextBox.TabIndex = 0;
             findTextBox.TextChanged += findTextBox_TextChanged;
             findTextBox.KeyDown += findTextBox_KeyDown;
-            // 
-            // ColumnId
-            // 
-            ColumnId.HeaderText = "id";
-            ColumnId.Name = "ColumnId";
-            ColumnId.Visible = false;
-            // 
-            // ColumnName
-            // 
-            ColumnName.HeaderText = "Наименование";
-            ColumnName.Name = "ColumnName";
-            ColumnName.ReadOnly = true;
-            ColumnName.Width = 400;
-            // 
-            // ColumnUnit
-            // 
-            ColumnUnit.HeaderText = "Ед";
-            ColumnUnit.Name = "ColumnUnit";
-            ColumnUnit.ReadOnly = true;
-            // 
-            // ColumnCount
-            // 
-            ColumnCount.HeaderText = "Кол-во";
-            ColumnCount.Name = "ColumnCount";
-            // 
-            // ColumnDiscount
-            // 
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(192, 255, 255);
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.MenuHighlight;
-            ColumnDiscount.DefaultCellStyle = dataGridViewCellStyle2;
-            ColumnDiscount.HeaderText = "Скидка";
-            ColumnDiscount.Name = "ColumnDiscount";
-            ColumnDiscount.ReadOnly = true;
-            ColumnDiscount.Width = 80;
-            // 
-            // ColumnPrice
-            // 
-            ColumnPrice.HeaderText = "Цена";
-            ColumnPrice.Name = "ColumnPrice";
-            ColumnPrice.ReadOnly = true;
-            // 
-            // ColumnSum
-            // 
-            ColumnSum.HeaderText = "Сумма";
-            ColumnSum.Name = "ColumnSum";
-            ColumnSum.ReadOnly = true;
             // 
             // Form1
             // 
@@ -653,6 +668,8 @@ namespace OnlineCashRmk
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnDiscount;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnPrice;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnSum;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelShiftAmount;
     }
 }
 

@@ -24,8 +24,8 @@ namespace OnlineCashRmk
         private int stockTackingId=0;
         ObservableCollection<GroupItem> groupItems = new();
         ObservableCollection<GoodItem> goodItems = new();
+        private readonly SearchGoodsControll _searchControll;
 
-        ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
         BindingSource bindingGroups;
         BindingSource bindingGoods;
 
@@ -105,12 +105,14 @@ namespace OnlineCashRmk
             };
             listBoxGroups.SelectedItem = null;
 
-            BindingSource bindingFind = new BindingSource();
-            bindingFind.DataSource = findGoods;
-            listBoxFind.DataSource = bindingFind;
-            listBoxFind.DisplayMember = nameof(Good.Name);
-            findGoods.CollectionChanged += (s, e) => { bindingFind.ResetBindings(false); };
-
+            _searchControll = new SearchGoodsControll(dbFactory);
+            _searchControll.ProductSelected += (g) =>
+            {
+                if (g == null) return;
+                AddGood(g);
+            };
+            _searchControll.Dock = DockStyle.Fill;
+            searchPanel.Controls.Add(_searchControll);
 
             LoadStockTacking();
         }
@@ -203,14 +205,12 @@ namespace OnlineCashRmk
                 dataGridViewGoods.FirstDisplayedScrollingRowIndex = goodItems.Count - 1;
                 await RecalcAoumnt();
             }
-            textBoxFind.Text = "";
-            findGoods.Clear();
         }
 
         private async void FormStocktaking_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.F4)
-                textBoxFind.Select();
+                _searchControll.Focus();
             if(e.KeyCode==Keys.F2 && dataGridViewGoods.SelectedCells.Count>0)
             {
                 var item = goodItems[dataGridViewGoods.SelectedCells[0].RowIndex];
@@ -242,88 +242,7 @@ namespace OnlineCashRmk
             }
         }
 
-        #region Поиск
-        private void textBoxFind_Enter(object sender, EventArgs e)
-        {
-            textBoxFind.BackColor = Color.LightGreen;
-        }
-
-        private void textBoxFind_Leave(object sender, EventArgs e)
-        {
-            textBoxFind.BackColor = SystemColors.Control;
-        }
-
-        private async void textBoxFind_TextChanged(object sender, EventArgs e)
-        {
-            if (textBoxFind.Text != "")
-                if (textBoxFind.Text.Length >= 2)
-                {
-                    findGoods.Clear();
-                    using var db = _dbFactory.CreateDbContext();
-                    var term = textBoxFind.Text.ToLowerInvariant();
-                    var goods = await db.Goods
-                        .Where(g => g.NameLower.Contains(term) && !g.IsDeleted)
-                        .OrderBy(g => g.Name)
-                        .Take(20)
-                        .AsNoTracking()
-                        .ToListAsync();
-                    foreach (var good in goods)
-                        findGoods.Add(good);
-                    var barcode = await db.BarCodes.Include(g => g.Good).Where(b => b.Code == textBoxFind.Text).FirstOrDefaultAsync();
-                    if(barcode != null)
-                        findGoods.Add(barcode?.Good);
-                }
-        }
-
-        private void textBoxFind_KeyDown(object sender, KeyEventArgs e)
-        {
-
-            if (textBoxFind.Text != "")
-                switch (e.KeyCode)
-                {
-                    case Keys.Back:
-                        textBoxFind.Text = "";
-                        findGoods.Clear();
-                        break;
-                    case Keys.Enter:
-                        var good = (Good)listBoxFind.SelectedItem;
-                        if (good != null)
-                            AddGood(good);
-                        break;
-                    case Keys.Down:
-                        int cursor = listBoxFind.SelectedIndex;
-                        int itemcount = listBoxFind.Items.Count;
-                        if (cursor + 1 < itemcount)
-                            listBoxFind.SelectedIndex = cursor + 1;
-                        else
-                            listBoxFind.SelectedIndex = 0;
-                        break;
-                    case Keys.Up:
-                        int cursor1 = listBoxFind.SelectedIndex;
-                        int itemcount1 = listBoxFind.Items.Count;
-                        if (cursor1 == 0)
-                            listBoxFind.SelectedIndex = itemcount1 - 1;
-                        else
-                            listBoxFind.SelectedIndex = cursor1 - 1;
-                        break;
-                }
-        }
-
-        private void listBoxFind_DoubleClick(object sender, EventArgs e)
-        {
-            if (listBoxFind.SelectedItems.Count > 0)
-            {
-                var good = (Good)listBoxFind.SelectedItem;
-                AddGood(good);
-            }
-        }
-        #endregion
-
         private void dataGridViewGoods_KeyDown(object sender, KeyEventArgs e)
-        {
-        }
-
-        private async void button3_Click(object sender, EventArgs e)
         {
         }
 

@@ -23,10 +23,9 @@ namespace OnlineCashRmk
     {
         ObservableCollection<Supplier> Suppliers { get; set; } = new ObservableCollection<Supplier>();
         ObservableCollection<ArrivalPositionDataModel> ArrivalPositions { get; set; } = new ObservableCollection<ArrivalPositionDataModel>();
-        ObservableCollection<Good> findGoods = new ObservableCollection<Good>();
-        ISynchService synch;
+        private readonly ISynchService synch;
         private readonly IDbContextFactory<DataContext> _dbFactory;
-        IServiceProvider _provider;
+        private readonly SearchGoodsControll _searchControll;
         private List<Good> _goods {  get; set; }
 
         SerialDataReceivedEventHandler serialDataReceivedEventHandler = new SerialDataReceivedEventHandler(async (s, e) =>
@@ -54,7 +53,6 @@ namespace OnlineCashRmk
         {
             this.synch = synch;
             _dbFactory = dbFactory;
-            _provider = provider;
             InitializeComponent();
             CalcSumAll();
 
@@ -93,14 +91,15 @@ namespace OnlineCashRmk
                     else
                         e.CellStyle.BackColor = Color.LightPink;
             };
-            BindingSource binding = new BindingSource();
-            findGoods.CollectionChanged += (sender, e) =>
+
+            _searchControll = new SearchGoodsControll(_dbFactory);
+            _searchControll.ProductSelected += (g) =>
             {
-                binding.ResetBindings(false);
+                if (g == null) return;
+                AddGood(g);
             };
-            binding.DataSource = findGoods;
-            findListBox.DataSource = binding;
-            findListBox.DisplayMember = nameof(Good.Name);
+            _searchControll.Dock = DockStyle.Fill;
+            searchPanel.Controls.Add(_searchControll);
         }
 
         private async void GetSuupliers()
@@ -115,52 +114,6 @@ namespace OnlineCashRmk
             SupplierComboBox.ValueMember = nameof(Supplier.Id);
         }
 
-        private CancellationTokenSource _searchCts;
-        private async void findTextBox_TextChanged(object sender, EventArgs e)
-        {
-            // Отменяем предыдущий запрос (если он ещё не завершился)
-            _searchCts?.Cancel();
-            _searchCts = new CancellationTokenSource();
-
-            var currentText = findTextBox.Text.Trim();
-            if (string.IsNullOrEmpty(currentText))
-            {
-                // Очистить таблицу или скрыть результаты
-                findGoods.Clear();
-                return;
-            }
-
-            try
-            {
-                // Ждём паузу ввода (debounce)
-                await Task.Delay(400, _searchCts.Token); // 400 мс — хороший баланс
-                findGoods.Clear();
-                // Выполняем запрос к БД асинхронноif (findTextBox.Text != "")
-                if (findTextBox.Text.Length >= 2)
-                {
-                    findGoods.Clear();
-                    var db = _dbFactory.CreateDbContext();
-                    var term = findTextBox.Text.ToLowerInvariant();
-
-                    var goods = await db.Goods
-                        .Where(g => g.NameLower.Contains(term) && !g.IsDeleted)
-                        .OrderBy(g => g.Name)
-                        .Take(20)
-                        .AsNoTracking()
-                        .ToListAsync();
-                    foreach (var good in goods)
-                        findGoods.Add(good);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception)
-            {
-            }
-            
-        }
-
         void AddGood(Good good, decimal count = 1)
         {
             if (good != null /*&& ArrivalPositions.FirstOrDefault(p => p.GoodId == good.Id) == null*/)
@@ -172,145 +125,25 @@ namespace OnlineCashRmk
             }
 
         }
-
-        private async void findTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (findTextBox.Text != "")
-                switch (e.KeyCode)
-                {
-                    case Keys.Enter:
-                        var good = (Good)findListBox.SelectedItem;
-                        var _str = findTextBox.Text.Trim();
-                        if (good==null && DigitValidationExtension.IsDigitsOnly(_str.AsSpan()))
-                        {
-                            using var db= _dbFactory.CreateDbContext();
-                            var barcode = await db.BarCodes.Include(g => g.Good)
-                                .Where(b => b.Code == _str & !b.Good.IsDeleted)
-                                .AsNoTracking().FirstOrDefaultAsync();
-                            good = barcode?.Good;
-                        }
-                        AddGood(good);
-                        findTextBox.Clear();
-                        findGoods.Clear();
-                        break;
-                    case Keys.Down:
-                        int cursor = findListBox.SelectedIndex;
-                        int itemcount = findListBox.Items.Count;
-                        if (cursor + 1 < itemcount)
-                            findListBox.SelectedIndex = cursor + 1;
-                        else
-                            findListBox.SelectedIndex = 0;
-                        break;
-                    case Keys.Up:
-                        int cursor1 = findListBox.SelectedIndex;
-                        int itemcount1 = findListBox.Items.Count;
-                        if (cursor1 == 0)
-                            findListBox.SelectedIndex = itemcount1 - 1;
-                        else
-                            findListBox.SelectedIndex = cursor1 - 1;
-                        break;
-                }
-        }
-
-        private void findListBox_DoubleClick(object sender, EventArgs e)
-        {
-            if (findListBox.SelectedItems.Count > 0)
-            {
-                var good = (Good)findListBox.SelectedItem;
-                AddGood(good);
-                /*
-                findGoods.Clear();
-                findTextBox.Text = "";
-                */
-            }
-        }
-
-        string barcodeScan = "";
         private async void FormArrival_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!findTextBox.Focused)
-            {
-                switch (e.KeyCode)
+            if (e.KeyCode == Keys.Delete)
+                if ((dataGridViewPositions.Focused & dataGridViewPositions.SelectedCells.Count > 0) && dataGridViewPositions.Columns[dataGridViewPositions.SelectedCells[0].ColumnIndex].Name == Column_ExpiresDate.Name)
                 {
-                    case Keys.NumPad0:
-                    case Keys.D0:
-                        barcodeScan = barcodeScan + "0";
-                        break;
-                    case Keys.NumPad1:
-                    case Keys.D1:
-                        barcodeScan = barcodeScan + "1";
-                        break;
-                    case Keys.NumPad2:
-                    case Keys.D2:
-                        barcodeScan = barcodeScan + "2";
-                        break;
-                    case Keys.NumPad3:
-                    case Keys.D3:
-                        barcodeScan = barcodeScan + "3";
-                        break;
-                    case Keys.NumPad4:
-                    case Keys.D4:
-                        barcodeScan = barcodeScan + "4";
-                        break;
-                    case Keys.NumPad5:
-                    case Keys.D5:
-                        barcodeScan = barcodeScan + "5";
-                        break;
-                    case Keys.NumPad6:
-                    case Keys.D6:
-                        barcodeScan = barcodeScan + "6";
-                        break;
-                    case Keys.NumPad7:
-                    case Keys.D7:
-                        barcodeScan = barcodeScan + "7";
-                        break;
-                    case Keys.NumPad8:
-                    case Keys.D8:
-                        barcodeScan = barcodeScan + "8";
-                        break;
-                    case Keys.NumPad9:
-                    case Keys.D9:
-                        barcodeScan = barcodeScan + "9";
-                        break;
-                }
-                if (e.KeyCode == Keys.Enter)
-                {
-                    using var db = _dbFactory.CreateDbContext();
-                    var barcode = await db.BarCodes
-                        .Include(b => b.Good)
-                        .Where(b => b.Code == barcodeScan & b.Good.IsDeleted == false)
-                        .AsNoTracking().FirstOrDefaultAsync();
-                    AddGood(barcode?.Good);
-                    barcodeScan = "";
-                }
-                if (e.KeyCode == Keys.Delete)
-                    if ((dataGridViewPositions.Focused & dataGridViewPositions.SelectedCells.Count > 0) && dataGridViewPositions.Columns[dataGridViewPositions.SelectedCells[0].ColumnIndex].Name == Column_ExpiresDate.Name)
-                    {
-                        var position = ArrivalPositions[dataGridViewPositions.SelectedCells[0].RowIndex];
-                        position.ExpiresDate = null;
-                        dtp.Visible = false;
-                    }
-                    else
-                        button1_Click(null, null);
-            }
-            ;
-            if (e.KeyCode == Keys.F4 & !e.Alt)
-                if (!findTextBox.Focused)
-                {
-                    findTextBox.Focus();
-                    findTextBox.BackColor = Color.LightBlue;
+                    var position = ArrivalPositions[dataGridViewPositions.SelectedCells[0].RowIndex];
+                    position.ExpiresDate = null;
+                    dtp.Visible = false;
                 }
                 else
-                {
-                    dataGridViewPositions.Select();
-                    findTextBox.BackColor = SystemColors.Window;
-                }
+                    button1_Click(null, null);
+
+            if (e.KeyCode == Keys.F4 & !e.Alt)
+                _searchControll.Focus();
         }
 
         private void SupplierComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             dataGridViewPositions.Select();
-            findTextBox.BackColor = SystemColors.Window;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -321,7 +154,6 @@ namespace OnlineCashRmk
                 ArrivalPositions.RemoveAt(pos);
             }
             dataGridViewPositions.Select();
-            findTextBox.BackColor = SystemColors.Window;
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -408,13 +240,6 @@ namespace OnlineCashRmk
         void dtp_CloseUp(object sender, EventArgs e)
         {
             dtp.Visible = false;
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            var fr = (FormNewGood)_provider.GetService(typeof(FormNewGood));
-            AddGood(fr.Show());
-            fr.Dispose();
         }
 
         /// <summary>

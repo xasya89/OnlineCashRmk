@@ -39,15 +39,12 @@ namespace OnlineCashRmk
             textBoxGroupAdd = new System.Windows.Forms.TextBox();
             label1 = new System.Windows.Forms.Label();
             dataGridViewGoods = new System.Windows.Forms.DataGridView();
-            panel3 = new System.Windows.Forms.Panel();
-            listBoxFind = new System.Windows.Forms.ListBox();
-            textBoxFind = new System.Windows.Forms.TextBox();
-            label2 = new System.Windows.Forms.Label();
             ColumnGoodName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnCountFact = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ColumnSum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            searchPanel = new System.Windows.Forms.Panel();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -55,7 +52,6 @@ namespace OnlineCashRmk
             splitContainer1.SuspendLayout();
             panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewGoods).BeginInit();
-            panel3.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -104,7 +100,7 @@ namespace OnlineCashRmk
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(dataGridViewGoods);
-            splitContainer1.Panel2.Controls.Add(panel3);
+            splitContainer1.Panel2.Controls.Add(searchPanel);
             splitContainer1.Size = new System.Drawing.Size(1112, 581);
             splitContainer1.SplitterDistance = 199;
             splitContainer1.TabIndex = 2;
@@ -173,51 +169,6 @@ namespace OnlineCashRmk
             dataGridViewGoods.TabIndex = 1;
             dataGridViewGoods.KeyDown += dataGridViewGoods_KeyDown;
             // 
-            // panel3
-            // 
-            panel3.Controls.Add(listBoxFind);
-            panel3.Controls.Add(textBoxFind);
-            panel3.Controls.Add(label2);
-            panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panel3.Location = new System.Drawing.Point(0, 383);
-            panel3.Name = "panel3";
-            panel3.Size = new System.Drawing.Size(909, 198);
-            panel3.TabIndex = 0;
-            // 
-            // listBoxFind
-            // 
-            listBoxFind.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            listBoxFind.Dock = System.Windows.Forms.DockStyle.Fill;
-            listBoxFind.FormattingEnabled = true;
-            listBoxFind.ItemHeight = 21;
-            listBoxFind.Location = new System.Drawing.Point(0, 29);
-            listBoxFind.Name = "listBoxFind";
-            listBoxFind.Size = new System.Drawing.Size(909, 169);
-            listBoxFind.TabIndex = 2;
-            listBoxFind.DoubleClick += listBoxFind_DoubleClick;
-            // 
-            // textBoxFind
-            // 
-            textBoxFind.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            textBoxFind.Dock = System.Windows.Forms.DockStyle.Top;
-            textBoxFind.Location = new System.Drawing.Point(0, 0);
-            textBoxFind.Name = "textBoxFind";
-            textBoxFind.Size = new System.Drawing.Size(909, 29);
-            textBoxFind.TabIndex = 1;
-            textBoxFind.TextChanged += textBoxFind_TextChanged;
-            textBoxFind.Enter += textBoxFind_Enter;
-            textBoxFind.KeyDown += textBoxFind_KeyDown;
-            textBoxFind.Leave += textBoxFind_Leave;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(66, 40);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(52, 21);
-            label2.TabIndex = 0;
-            label2.Text = "label2";
-            // 
             // ColumnGoodName
             // 
             ColumnGoodName.HeaderText = "Наименование";
@@ -250,6 +201,14 @@ namespace OnlineCashRmk
             ColumnSum.Name = "ColumnSum";
             ColumnSum.ReadOnly = true;
             // 
+            // searchPanel
+            // 
+            searchPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            searchPanel.Location = new System.Drawing.Point(0, 383);
+            searchPanel.Name = "searchPanel";
+            searchPanel.Size = new System.Drawing.Size(909, 198);
+            searchPanel.TabIndex = 0;
+            // 
             // FormStocktaking
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
@@ -273,8 +232,6 @@ namespace OnlineCashRmk
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewGoods).EndInit();
-            panel3.ResumeLayout(false);
-            panel3.PerformLayout();
             ResumeLayout(false);
 
         }
@@ -289,10 +246,7 @@ namespace OnlineCashRmk
         private System.Windows.Forms.TextBox textBoxGroupAdd;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridView dataGridViewGoods;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.ListBox listBoxFind;
-        private System.Windows.Forms.TextBox textBoxFind;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Panel searchPanel;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnGoodName;

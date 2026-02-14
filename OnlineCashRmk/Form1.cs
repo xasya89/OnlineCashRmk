@@ -42,7 +42,6 @@ public partial class Form1 : Form
 {
     IServiceProvider serviceProvider;
     private readonly HttpClient httpClient;
-    ISynchService synchService;
     ICashRegisterService _cashService;
     private readonly IDbContextFactory<DataContext> dbContextFactory;
     private readonly IDocumentSenderService _documentSenderServer;
@@ -106,7 +105,6 @@ public partial class Form1 : Form
         ILogger<Form1> logger,
         IDbContextFactory<DataContext> _dbFactory,
         IHttpClientFactory httpClientFactory,
-        ISynchService synchService,
         BarCodeScanner barCodeScanner,
         ICashRegisterService cashService,
         IHttpClientFactory clientFactory)
@@ -121,7 +119,6 @@ public partial class Form1 : Form
             dbContextFactory = _dbFactory;
             _logger = logger;
             httpClient = httpClientFactory.CreateClient(Program.HttpClientName);
-            this.synchService = synchService;
             var builder = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(AppContext.BaseDirectory))
             .AddJsonFile("appsettings.json", optional: true);
@@ -149,8 +146,7 @@ public partial class Form1 : Form
                     toolStripStatusLabelScannerIsOpen.BackColor = Color.Red;
                 }
 
-            }
-            ;
+            };
 
             if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
             {
@@ -214,15 +210,16 @@ public partial class Form1 : Form
         throw new NotImplementedException();
     }
 
-    private void button1_Click(object sender, EventArgs e)
+    private async void button1_Click(object sender, EventArgs e)
     {
         using var db = dbContextFactory.CreateDbContext();
         if (db.Shifts.Where(s => s.Stop == null).Count() == 0)
         {
             var shift = new Shift { Uuid = Guid.NewGuid(), Start = DateTime.Now, ShopId = idShop };
             db.Shifts.Add(shift);
-            db.SaveChanges();
-            synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.OpenShift, DocId = shift.Id });
+            await db.SaveChangesAsync();
+            db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.OpenShift, DocId = shift.Id });
+            await db.SaveChangesAsync();
             buttonShift.Text = "Закрыть смену";
             labelStatusShift.Text = "Открыта";
             labelStatusShift.BackColor = Color.LightGreen;
@@ -239,21 +236,24 @@ public partial class Form1 : Form
             var sumNoElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash);
             var sumElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumElectron);
             var sumSell = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
-            var sumReturn = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumCash + x.SumElectron);
-            var sumAll = shift.SumSell - shift.SummReturn;
+            var sumReturnElectron = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumElectron);
+            var sumReturnCash = shift.CheckSells.Where(x => x.IsReturn).Sum(x => x.SumCash);
+            var sumAll = sumElectron + sumNoElectron - sumReturnCash - sumReturnElectron;
+
             var sumPromotion = shift.CheckSells.SelectMany(x => x.CheckGoods)
                 .Sum(x => x.PromotionQuantity * x.Cost);
-            db.Shifts.ExecuteUpdateAsync(x =>
+            await db.Shifts.Where(x=>x.Id==shift.Id).ExecuteUpdateAsync(x =>
                 x.SetProperty(x => x.Stop, DateTime.Now)
                 .SetProperty(x=>x.SumNoElectron, sumNoElectron)
                 .SetProperty(x=>x.SumElectron, sumElectron)
                 .SetProperty(x=>x.SumSell, sumSell)
-                .SetProperty(x=>x.SummReturn, sumReturn)
+                .SetProperty(x=>x.SumReturnCash, sumReturnCash)
+                .SetProperty(x => x.SumReturnElectron, sumReturnElectron)
                 .SetProperty(x=>x.SumAll, sumAll)
                 .SetProperty(x=>x.PromotionSum, sumPromotion)
             );
-            db.SaveChanges();
-            synchService.AppendDoc(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
+            db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
+            await db.SaveChangesAsync();
             buttonShift.Text = "Открыть смену";
             labelStatusShift.Text = "Закрыта";
             labelStatusShift.BackColor = Color.LightPink;
@@ -265,28 +265,30 @@ public partial class Form1 : Form
 Безналичные:    {sumElectron}  
 Продажи за сегодня: {sumSell}
 ---------------- 
-Возвраты:   {sumReturn}
+Возвраты:   {sumReturnCash + sumReturnElectron}
 ---------------- 
 Акция 2+1:  {sumPromotion}");
         }
     }
 
-    private void Form1_Load(object sender, EventArgs e)
+    private async void Form1_Load(object sender, EventArgs e)
     {
         Task.Delay(TimeSpan.FromSeconds(1.5)).Wait();
         using var db = dbContextFactory.CreateDbContext();
-        var isShiftOpen = db.Shifts.Where(s => s.Stop == null).Any();
-        if (isShiftOpen)
+        var shift =await db.Shifts.Where(s => s.Stop == null).AsNoTracking().FirstOrDefaultAsync();
+        if (shift != null)
         {
             buttonShift.Text = "Закрыть смену";
             labelStatusShift.Text = "Открыта";
             labelStatusShift.BackColor = Color.LightGreen;
+            toolStripStatusLabelShiftAmount.Text = shift.SumAll.ToSellFormat();
         }
         else
         {
             buttonShift.Text = "Открыть смену";
             labelStatusShift.Text = "Закрыта";
             labelStatusShift.BackColor = Color.LightPink;
+            toolStripStatusLabelShiftAmount.Text = "";
         }
         LoadGoods();
     }
@@ -591,15 +593,16 @@ public partial class Form1 : Form
     public async Task CheckPrint(decimal sumDiscount, decimal sumElectron, decimal sumCash)
     {
         using var db = dbContextFactory.CreateDbContext();
-        var error = await DbCashFormExtensions.CheckPrint(db, checkGoods.ToList(), null, 0, IsReturn, sumElectron, sumCash);
-        if (error == "")
+        (string error, decimal sumAll) result = await DbCashFormExtensions.CheckPrint(db, checkGoods.ToList(), null, 0, IsReturn, sumElectron, sumCash);
+        if (result.error == "")
         {
             checkGoods.Clear();
             ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
             SelectedBuyer = null;
+            toolStripStatusLabelShiftAmount.Text = result.sumAll.ToSellFormat();
         }
         else
-            MessageBox.Show(error, "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(result.error, "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     /// <summary>
@@ -945,11 +948,11 @@ static class DbCashFormExtensions
         await context.SaveChangesAsync();
     }
 
-    public static async Task<string> CheckPrint(DataContext db, IEnumerable<CheckGoodModel> checkGoods, Buyer? buyer, decimal sumDiscount, bool isReturn, decimal sumElectron, decimal sumCash)
+    public static async Task<(string error, decimal sumAll)> CheckPrint(DataContext db, IEnumerable<CheckGoodModel> checkGoods, Buyer? buyer, decimal sumDiscount, bool isReturn, decimal sumElectron, decimal sumCash)
     {
-        var shift = db.Shifts.Where(s => s.Stop == null).FirstOrDefault();
+        var shift =await db.Shifts.Where(s => s.Stop == null).FirstOrDefaultAsync();
         if (shift == null)
-            return "Смена не открыта";
+            return ("Смена не открыта", 0);
         if (checkGoods.Count() > 0)
         {
             var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
@@ -974,10 +977,18 @@ static class DbCashFormExtensions
                 }).ToList()
             };
             db.CheckSells.Add(checkSell);
+            shift.SumAll += (!isReturn ? 1 : -1) * (sumElectron + sumCash) - sumDiscount;
+            shift.SumSell += !isReturn ? sumElectron : sumCash;
+            shift.SumNoElectron += !isReturn ? sumCash : 0;
+            shift.SumElectron += !isReturn ? sumElectron : 0;
+            shift.SumReturnCash += isReturn ? sumCash : 0;
+            shift.SumReturnElectron += isReturn ? sumElectron : 0;
+            
             await db.SaveChangesAsync();
+
             db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
             await db.SaveChangesAsync();
         }
-        return "";
+        return ("",shift.SumAll);
     }
 }

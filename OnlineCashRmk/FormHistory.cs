@@ -75,7 +75,7 @@ namespace OnlineCashRmk
 Безналичные:    {shift.SumElectron}  
 Продажи за сегодня:\t{shift.SumSell}
 ---------------- 
-Возвраты:   {shift.SummReturn}
+Возвраты:   {shift.SumReturnCash + shift.SumReturnElectron}
 ---------------- 
 Акция 2+1: {shift.PromotionSum}";
         }

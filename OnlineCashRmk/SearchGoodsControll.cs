@@ -144,6 +144,7 @@ namespace OnlineCashRmk
                 case Keys.Back:
                     Clear();
                     e.Handled = true;
+                    goodsListBox.DataSource = null;
                     break;
             }
         }
@@ -157,7 +158,7 @@ namespace OnlineCashRmk
         public void Clear()
         {
             searchTextBox.Clear();
-            goodsListBox.DataSource = null;
+            //goodsListBox.DataSource = null;
             searchTextBox.Focus();
         }
 

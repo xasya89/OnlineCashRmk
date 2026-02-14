@@ -15,7 +15,8 @@ namespace OnlineCashRmk.Models
         public decimal SumNoElectron { get; set; } = 0;
         public decimal SumElectron { get; set; } = 0;
         public decimal SumSell { get; set; } = 0;
-        public decimal SummReturn { get; set; } = 0;
+        public decimal SumReturnElectron { get; set; }
+        public decimal SumReturnCash { get; set; }
         public decimal SumIncome { get; set; } = 0;
         public decimal SumOutcome { get; set; } = 0;
         public decimal SumCredit { get; set; } = 0;
