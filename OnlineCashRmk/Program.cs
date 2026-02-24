@@ -63,7 +63,7 @@ namespace OnlineCashRmk
                 //.AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))
                 .AddDbContextFactory<DataContext>(opt => opt.UseSqlite("Data Source=app.db;"))
                 .AddLogging(configure => { configure.AddSerilog(); configure.SetMinimumLevel(LogLevel.Error | LogLevel.Warning); })
-                
+
                 .AddSingleton<BarCodeScanner>()
                 .AddTransient<ISynchService, SynchService>()
                 .AddSingleton<IDocumentSenderService, DocumentSenderService>()
@@ -81,6 +81,7 @@ namespace OnlineCashRmk
                 .AddTransient<FormRevaluation>()
                 .AddSingleton<ICashRegisterService, CashRgisterService>()
                 .AddHostedService<SynchBackgroundService>()
+                .AddHostedService<ApplicationStatusSenderBackgroundService>()
                 .AddHostedService<ApplicationBackgroundService>();
              })
              .ConfigureLogging(logging =>

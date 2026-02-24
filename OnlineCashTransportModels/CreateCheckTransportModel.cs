@@ -13,6 +13,7 @@ public class CreateCheckTransportModel
     public Guid ShiftUuid { get; set; }
     public DateTime DateCreate { get; set; }
     public TypeSell TypeSell { get; set; }
+    public string? PhoneNumber { get; set; }
     public decimal SumDiscont { get; set; }
     public decimal SumElectron { get; set; }
     public decimal SumCash { get; set; }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineCashRmk.Models;
 using OnlineCashTransportModels;
+using OnlineCashTransportModels.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,6 +80,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             }
 
             await SynchSuppliers(httpClient, db);
+            await SynchBuyers(httpClient, db);
         }
         finally
         {
@@ -219,6 +221,7 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
             SumDiscont = sell.SumDiscont,
             SumCash = sell.SumCash,
             SumElectron = sell.SumElectron,
+            PhoneNumber = sell.Buyer?.Phone,
             Positions = sell.CheckGoods.Select(x => new CreateCheckPositionTransportModel
             {
                 Uuid = x.Good.Uuid,
@@ -303,6 +306,72 @@ public class DocumentSenderService(IHttpClientFactory httpClientFactory, IDbCont
                 db.Suppliers.Add(new Supplier { Id = supplier.Id, Name = supplier.Name, Inn = "", Kpp = "" });
 
         }
+        await db.SaveChangesAsync();
+    }
+
+    public async Task SynchBuyers(HttpClient httpClient, DataContext db)
+    {
+        // 1. Получаем данные от внешнего сервера
+        var buyersFromServer = await httpClient.GetFromJsonAsync<IEnumerable<GetBuyerItemTransportModel>>("buyers");
+
+        if (buyersFromServer == null || !buyersFromServer.Any())
+            return;
+
+        var buyersList = buyersFromServer.ToList();
+
+        // 2. Собираем список Uuid для поиска (используем HashSet для производительности)
+        var uuids = buyersList.Select(b => b.Uuid).ToHashSet();
+
+        // 3. Загружаем из БД ТОЛЬКО те записи, которые есть в запросе (фильтрация по Uuid)
+        var existingBuyersDict = await db.Buyers
+            .Where(b => uuids.Contains(b.Uuid))
+            .ToDictionaryAsync(b => b.Uuid);
+
+        var buyersToAdd = new List<Buyer>();
+        var buyersToUpdate = new List<Buyer>();
+
+        // 4. Сравниваем и распределяем на добавление/обновление
+        foreach (var dto in buyersList)
+        {
+            if (existingBuyersDict.TryGetValue(dto.Uuid, out var existingBuyer))
+            {
+                // Проверка на изменения (обновляем только если данные отличаются)
+                if (existingBuyer.SpecialPercent != dto.SpecialDiscount ||
+                    existingBuyer.Phone != dto.PhoneNumber)
+                {
+                    existingBuyer.SpecialPercent = dto.SpecialDiscount;
+                    existingBuyer.Phone = dto.PhoneNumber;
+                    // existingBuyer.Name = dto.PhoneNumber; // Раскомментируйте при необходимости
+                    buyersToUpdate.Add(existingBuyer);
+                }
+            }
+            else
+            {
+                // Создаем новую сущность
+                buyersToAdd.Add(new Buyer
+                {
+                    Uuid = dto.Uuid,
+                    Phone = dto.PhoneNumber,
+                    Name = dto.PhoneNumber, // Или другое поле для имени
+                    SpecialPercent = dto.SpecialDiscount,
+                    CheckSells = new List<CheckSell>()
+                });
+            }
+        }
+
+        // 5. Пакетное добавление новых
+        if (buyersToAdd.Any())
+        {
+            await db.Buyers.AddRangeAsync(buyersToAdd);
+        }
+
+        // 6. Явное обновление измененных
+        if (buyersToUpdate.Any())
+        {
+            db.Buyers.UpdateRange(buyersToUpdate);
+        }
+
+        // 7. Сохраняем все изменения в одной транзакции
         await db.SaveChangesAsync();
     }
 }

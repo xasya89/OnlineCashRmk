@@ -10,11 +10,14 @@ using OnlineCashRmk.DataModels;
 using OnlineCashRmk.Models;
 using OnlineCashRmk.Services;
 using OnlineCashRmk.ViewModels;
+using OnlineCashTransportModels;
+using OnlineCashTransportModels.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -22,6 +25,8 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -33,8 +38,6 @@ using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
 using ToastNotifications.Position;
 using Tulpep.NotificationWindow;
-using OnlineCashTransportModels.Shared;
-using OnlineCashTransportModels;
 
 namespace OnlineCashRmk;
 
@@ -267,6 +270,8 @@ public partial class Form1 : Form
 ---------------- 
 Возвраты:   {sumReturnCash + sumReturnElectron}
 ---------------- 
+Скидки:   {shift.SumDiscount}
+---------------- 
 Акция 2+1:  {sumPromotion}");
         }
     }
@@ -276,21 +281,34 @@ public partial class Form1 : Form
         Task.Delay(TimeSpan.FromSeconds(1.5)).Wait();
         using var db = dbContextFactory.CreateDbContext();
         var shift =await db.Shifts.Where(s => s.Stop == null).AsNoTracking().FirstOrDefaultAsync();
+        toolStripStatusLabelShiftAmountElectron.Text=shift?.SumElectron.ToSellFormat() ?? "";
+        toolStripStatusLabelShiftAmountCash.Text = shift?.SumNoElectron.ToSellFormat() ?? "";
         if (shift != null)
         {
             buttonShift.Text = "Закрыть смену";
             labelStatusShift.Text = "Открыта";
             labelStatusShift.BackColor = Color.LightGreen;
-            toolStripStatusLabelShiftAmount.Text = shift.SumAll.ToSellFormat();
         }
         else
         {
             buttonShift.Text = "Открыть смену";
             labelStatusShift.Text = "Закрыта";
             labelStatusShift.BackColor = Color.LightPink;
-            toolStripStatusLabelShiftAmount.Text = "";
+            toolStripStatusLabelShiftAmountElectron.Text = "";
         }
         LoadGoods();
+        var assembly = Assembly.GetEntryAssembly()
+               ?? Assembly.GetExecutingAssembly(); // fallback на случай null
+
+        // AssemblyVersion (для привязки зависимостей)
+        Version version = assembly.GetName().Version ?? new Version(0, 0, 0);
+
+        // AssemblyFileVersion (версия файла в свойствах Windows)
+        string fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version
+                             ?? version.ToString();
+
+        // AssemblyInformationalVersion (отображаемая версия, например "2.1.0-beta")
+        
     }
 
     private async void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -540,7 +558,8 @@ public partial class Form1 : Form
     {
         ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
         decimal discount = GetDiscountSum();
-        decimal sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+        decimal sumBuyWithoutdiscount = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+        decimal sumBuy = sumBuyWithoutdiscount - discount;
         labelDiscountSum.Text = discount.ToSellFormat();
         labelSumAll.Text = sumBuy.ToSellFormat();
     }
@@ -561,7 +580,8 @@ public partial class Form1 : Form
     private async void button1_Click_1(object sender, EventArgs e)
     {
         decimal discount = GetDiscountSum();
-        decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+        decimal sumBuyWithoutdiscount = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+        decimal sumAll = sumBuyWithoutdiscount - discount;
         FormPaymentNoElectron fr = new FormPaymentNoElectron(sumAll);
         if (fr.ShowDialog() != DialogResult.OK)
             return;
@@ -569,37 +589,21 @@ public partial class Form1 : Form
         await CheckPrint(discount, 0, sumAll);
     }
 
-    private decimal GetDiscountSum()
-    {
-        decimal discount = Math.Floor((SelectedBuyer?.TemporyPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
-        if (discount > 0)
-            return discount;
-        discount = Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * checkGoods.Sum(c => c.Sum) / 100);
-        if (discount > 0)
-            return discount;
-        var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
-        decimal sumDiscount = 0;
-        if ((SelectedBuyer?.DiscountSum ?? 0) > 0)
-        {
-            FormBuyerDiscount frDiscount = new FormBuyerDiscount((decimal)SelectedBuyer.DiscountSum, SelectedBuyer.Birthday == DateTime.Now.Date);
-            if (frDiscount.ShowDialog() == DialogResult.OK)
-                sumDiscount = (decimal)SelectedBuyer.DiscountSum;
-        }
-        if (sumDiscount > sumBuy)
-            sumDiscount = sumBuy;
-        return sumDiscount;
-    }
+    private decimal GetDiscountSum() =>
+        Math.Floor((SelectedBuyer?.SpecialPercent ?? 0) * Math.Ceiling(checkGoods.Sum(c => c.Sum)) / 100);
 
     public async Task CheckPrint(decimal sumDiscount, decimal sumElectron, decimal sumCash)
     {
         using var db = dbContextFactory.CreateDbContext();
-        (string error, decimal sumAll) result = await DbCashFormExtensions.CheckPrint(db, checkGoods.ToList(), null, 0, IsReturn, sumElectron, sumCash);
+        (string error, decimal sumElectron, decimal sumCash) result = await DbCashFormExtensions.CheckPrint(db, checkGoods.ToList(), SelectedBuyer, sumDiscount, IsReturn, sumElectron, sumCash);
         if (result.error == "")
         {
             checkGoods.Clear();
             ((BindingSource)dataGridView1.DataSource).ResetBindings(false);
             SelectedBuyer = null;
-            toolStripStatusLabelShiftAmount.Text = result.sumAll.ToSellFormat();
+            buttonDiscountCard.BackColor = SystemColors.Control;
+            toolStripStatusLabelShiftAmountElectron.Text = result.sumElectron.ToSellFormat();
+            toolStripStatusLabelShiftAmountCash.Text = result.sumCash.ToSellFormat();
         }
         else
             MessageBox.Show(result.error, "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -611,7 +615,8 @@ public partial class Form1 : Form
     private async void button2_Click_1(object sender, EventArgs e)
     {
         decimal discount = GetDiscountSum();
-        decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+        decimal sumBuyWithoutdiscount = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+        decimal sumAll = sumBuyWithoutdiscount - discount;
         FormPaymentElectron fr = new FormPaymentElectron(sumAll);
         if (fr.ShowDialog() == DialogResult.OK)
             await CheckPrint(discount, sumAll, 0);
@@ -784,7 +789,8 @@ public partial class Form1 : Form
     private async void button7_Click(object sender, EventArgs e)
     {
         decimal discount = GetDiscountSum();
-        decimal sumAll = Math.Ceiling(checkGoods.Sum(c => c.Sum) - discount);
+        decimal sumBuyWithoutdiscount = Math.Ceiling(checkGoods.Sum(c => c.Sum));
+        decimal sumAll = sumBuyWithoutdiscount - discount;
         var payFor = serviceProvider.GetRequiredService<FormPaymentCombine>();
         var payments = payFor.Show(sumAll);
         if (payments.HasValue)
@@ -844,6 +850,7 @@ public partial class Form1 : Form
     private void buttonReturn_Click(object sender, EventArgs e)
     {
         IsReturn = !IsReturn;
+        if(IsReturn) SelectedBuyer = null;
     }
 
     private void историяДокументовToolStripMenuItem_Click(object sender, EventArgs e)
@@ -857,17 +864,18 @@ public partial class Form1 : Form
     /// </summary>
     private void buttonDiscountCard_Click(object sender, EventArgs e)
     {
+        if (IsReturn) return;
         FormBuyerRegistration fr = new FormBuyerRegistration();
         if (fr.ShowDialog() == DialogResult.OK)
         {
             using var db = dbContextFactory.CreateDbContext();
-            var buyer = db.Buyers.Where(b => b.Phone == fr.phoneNumberTextBox.Text).FirstOrDefault();
+            string phoneNumber = "7" + fr.phoneNumberTextBox.Text
+                .Replace("+7", "")
+                .Replace("-", "");
+            var buyer = db.Buyers.Where(b => b.Phone == phoneNumber).FirstOrDefault();
             if (buyer == null)
-            {
-                buyer = new Buyer { Uuid = Guid.NewGuid(), Phone = fr.phoneNumberTextBox.Text };
-                db.Buyers.Add(buyer);
-                db.SaveChanges();
-            }
+                return;
+            buttonDiscountCard.BackColor = Color.LightGreen;
             SelectedBuyer = buyer;
             CalcSumBuy();
         }
@@ -948,17 +956,17 @@ static class DbCashFormExtensions
         await context.SaveChangesAsync();
     }
 
-    public static async Task<(string error, decimal sumAll)> CheckPrint(DataContext db, IEnumerable<CheckGoodModel> checkGoods, Buyer? buyer, decimal sumDiscount, bool isReturn, decimal sumElectron, decimal sumCash)
+    public static async Task<(string error, decimal sumElectron, decimal sumCash)> CheckPrint(DataContext db, IEnumerable<CheckGoodModel> checkGoods, Buyer? buyer, decimal sumDiscount, bool isReturn, decimal sumElectron, decimal sumCash)
     {
         var shift =await db.Shifts.Where(s => s.Stop == null).FirstOrDefaultAsync();
         if (shift == null)
-            return ("Смена не открыта", 0);
+            return ("Смена не открыта", 0, 0);
         if (checkGoods.Count() > 0)
         {
             var sumBuy = Math.Ceiling(checkGoods.Sum(c => c.Sum));
             CheckSell checkSell = new CheckSell
             {
-                Buyer = buyer,
+                BuyerId = buyer?.Id,
                 IsElectron = sumElectron>0 & sumCash==0,
                 DateCreate = DateTime.Now,
                 TypeSell = isReturn == false ? TypeSell.Sell : TypeSell.Return,
@@ -977,18 +985,19 @@ static class DbCashFormExtensions
                 }).ToList()
             };
             db.CheckSells.Add(checkSell);
-            shift.SumAll += (!isReturn ? 1 : -1) * (sumElectron + sumCash) - sumDiscount;
+            shift.SumAll += (!isReturn ? 1 : -1) * (sumElectron + sumCash);
             shift.SumSell += !isReturn ? sumElectron : sumCash;
             shift.SumNoElectron += !isReturn ? sumCash : 0;
             shift.SumElectron += !isReturn ? sumElectron : 0;
             shift.SumReturnCash += isReturn ? sumCash : 0;
             shift.SumReturnElectron += isReturn ? sumElectron : 0;
+            shift.SumDiscount += sumDiscount;
             
             await db.SaveChangesAsync();
 
             db.DocSynches.Add(new DocSynch { DocId = checkSell.Id, TypeDoc = TypeDocs.Buy });
             await db.SaveChangesAsync();
         }
-        return ("",shift.SumAll);
+        return ("",shift.SumElectron, shift.SumNoElectron);
     }
 }

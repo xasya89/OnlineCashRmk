@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCashBackendApiService.Handlers.Buyers;
 using OnlineCashBackendApiService.Services;
 using OnlineCashTransportModels;
 using OnlineCashTransportModels.Shared;
@@ -9,7 +10,10 @@ namespace OnlineCashBackendApiService.Handlers;
 
 public static class CreateCheck
 {
-    public static async Task<IResult> Handler([FromBody] CreateCheckTransportModel body, IDbContextFactory factory)
+    public static async Task<IResult> Handler(
+        [FromBody] CreateCheckTransportModel body, 
+        IDbContextFactory factory, 
+        DiscountService discountService)
     {
         using var db = factory.CreateDbContext();
         await db.OpenAsync();
@@ -38,7 +42,8 @@ public static class CreateCheck
             SumAll=SumAll + @SumAll, SumSell=SumSell + @SumSell, 
             SumElectron=SumElectron+@SumElectron, SumNoElectron=SumNoElectron + @SumNoElectron, 
             SumReturnCash=SumReturnCash + @SumReturnCash, SumReturnElectron=SumReturnElectron + @SumReturnElectron,
-            SumPromotion=SumPromotion + @SumPromotion
+            SumPromotion=SumPromotion + @SumPromotion,
+            SumDiscount = SumDiscount + @SumDiscount
             WHERE Id=@Id",
             new
             {
@@ -50,6 +55,7 @@ public static class CreateCheck
                 SumReturnElectron = body.TypeSell == TypeSell.Return ? body.SumElectron : 0,
                 SumReturnCash = body.TypeSell == TypeSell.Return ? body.SumCash : 0,
                 SumPromotion = body.Positions.Sum(x=>x.PromotionQuantity * x.Price),
+                SumDiscount = body.SumDiscont,
             });
         var uuids = body.Positions.Select(x => x.Uuid);
         var goods = await db.QueryAsync<GoodIdUuid>("SELECT id, uuid FROM goods WHERE uuid IN @uuids",
@@ -65,6 +71,10 @@ public static class CreateCheck
                 PromotionCount = item.PromotionQuantity ?? 0,
             });
         await tran.CommitAsync();
+
+        if (!string.IsNullOrEmpty(body.PhoneNumber))
+            await discountService.UpdateDiscountAsync(body.PhoneNumber, body.SumDiscont);
+
         return Results.Ok();
     }
 

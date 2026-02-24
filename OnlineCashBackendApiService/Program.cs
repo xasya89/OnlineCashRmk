@@ -1,6 +1,8 @@
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCashBackendApiService.Handlers;
+using OnlineCashBackendApiService.Handlers.ApplicationStatus;
+using OnlineCashBackendApiService.Handlers.Buyers;
 using OnlineCashBackendApiService.Services;
 using OnlineCashTransportModels;
 using System;
@@ -52,6 +54,8 @@ namespace OnlineCashBackendApiService
 
             builder.Services.AddTransient<IDbContextFactory, DbContextFactory>();
             builder.Services.AddSingleton<RevaluationCalculateBalanceService>();
+            builder.Services.AddSingleton<ApplicationStatusService>();
+            builder.Services.AddSingleton<DiscountService>();
 
             var app = builder.Build();
 
@@ -80,6 +84,11 @@ namespace OnlineCashBackendApiService
             group.MapPost("/create-writeof", CreateWriteOfCommand.Handler).WithName("create-writeof").WithOpenApi();
             group.MapPost("/create-stocktacking", CreateStockTackingCommand.Handler).WithName("create-stocktacking").WithOpenApi();
             group.MapPost("/create-cashmoney", CreateCashMoneyCommand.Handler).WithName("create-cashmoney").WithOpenApi();
+
+            group.MapPost("/application-status", ReciveApplicationStatus.Handler);
+            group.MapGet("/application-status", GetApplicationStates.Handler);
+
+            group.MapGet("/buyers", GetBuyers.Handler);
 
             app.Run();
         }

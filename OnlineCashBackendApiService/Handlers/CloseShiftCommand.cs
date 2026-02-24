@@ -8,7 +8,7 @@ namespace OnlineCashBackendApiService.Handlers;
 
 public static class CloseShiftCommand
 {
-    private record CheckSell(int id, int TypeSell, decimal SumAll, decimal SumCash, decimal SumElectron);
+    private record CheckSell(int id, int TypeSell, decimal SumAll, decimal SumCash, decimal SumElectron, decimal SumDiscont);
     private record CheckGood(int GoodId, Guid Uuid, decimal Price, decimal PromotionCount);
     public static async Task<IResult> Handler([FromBody] CloseShiftTransportModel body, IDbContextFactory dbContextFactory)
     {
@@ -19,12 +19,14 @@ public static class CloseShiftCommand
             new { Uuid=body.uuid });
         if (!shiftId.HasValue)
             return Results.BadRequest<string>("Смена не найдена");
-        var checks = await db.QueryAsync<CheckSell>("SELECT id, TypeSell, SumAll, SumCash, SumElectron FROM checksells WHERE ShiftId="+shiftId);
+        var checks = await db.QueryAsync<CheckSell>("SELECT id, TypeSell, SumAll, SumCash, SumElectron, SumDiscont FROM checksells WHERE ShiftId=" + shiftId);
         decimal sumAll = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumAll) - checks.Where(x => x.TypeSell == 1).Sum(x => x.SumAll);
+        decimal sumSell = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumAll);
         decimal sumCash = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumCash);
         decimal sumElectron = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumElectron);
         decimal sumReturnCash = checks.Where(x => x.TypeSell == 1).Sum(x => x.SumCash);
         decimal sumReturnElectron = checks.Where(x => x.TypeSell == 1).Sum(x => x.SumElectron);
+        decimal sumDiscount = checks.Sum(x => x.SumDiscont);
         var ids = checks.Select(x => x.id);
         var checkGoods = await db.QueryAsync<CheckGood>(@"SELECT cg.GoodId, g.Uuid, cg.Price, cg.PromotionCount 
             FROM checkgoods cg INNER JOIN goods g ON cg.goodId=g.id 
@@ -32,17 +34,20 @@ public static class CloseShiftCommand
             new { Ids = ids });
         decimal sumPromotion = checkGoods.Sum(x=>x.Price * x.PromotionCount);
         await db.ExecuteAsync(@"UPDATE shifts 
-            SET Stop=@Stop, SumAll=@SumAll, SumSell=@SumAll, SumElectron=@SumElectron, SumNoElectron=@SumNoElectron,
-            SumReturnCash=@SumReturnCash, SumReturnElectron=@SumReturnElectron, SumPromotion=@SumPromotion WHERE id=@Id",
+            SET Stop=@Stop, SumAll=@SumAll, SumSell=@SumSell, SumSell=@SumAll, SumElectron=@SumElectron, SumNoElectron=@SumNoElectron,
+            SumReturnCash=@SumReturnCash, SumReturnElectron=@SumReturnElectron, SumPromotion=@SumPromotion, SumDiscount=@SumDiscount 
+            WHERE id=@Id",
             new {
                 Id=shiftId.Value,
                 Stop=body.stop,
                 SumAll= sumAll,
+                SumSell= sumSell,
                 SumNoElectron = sumCash, 
                 SumElectron= sumElectron,
                 SumReturnCash = sumReturnCash,
                 SumReturnElectron = sumReturnElectron,
                 SumPromotion= sumPromotion,
+                SumDiscount = sumDiscount,
             });
         //Авто списание
         if (sumPromotion > 0)

@@ -24,19 +24,26 @@ namespace OnlineCashRmk.Services
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await Synch();
             PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(5));
             while (await periodicTimer.WaitForNextTickAsync() & !stoppingToken.IsCancellationRequested)
-                try
-                {
-                    await documentSenderService.SendDocuments();
-                }
-                catch(SystemException ex)
-                {
-                    logger.LogError("Ошибка обмена с сервером");
-                }
-                catch (Exception ex) {
-                    logger.LogError("Ошибка обмена с сервером");
-                }
+                await Synch();
+        }
+
+        private async Task Synch()
+        {
+            try
+            {
+                await documentSenderService.SendDocuments();
+            }
+            catch (SystemException ex)
+            {
+                logger.LogError("Ошибка обмена с сервером");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Ошибка обмена с сервером");
+            }
         }
     }
 }

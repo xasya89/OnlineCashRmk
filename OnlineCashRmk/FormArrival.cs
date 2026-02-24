@@ -4,6 +4,7 @@ using OnlineCashRmk.DataModels;
 using OnlineCashRmk.Extenisions;
 using OnlineCashRmk.Models;
 using OnlineCashRmk.Services;
+using OnlineCashTransportModels.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -74,6 +75,7 @@ namespace OnlineCashRmk
             Column_Unit.DataPropertyName = nameof(ArrivalPositionDataModel.UnitStr);
             Column_PriceArrival.DataPropertyName = nameof(ArrivalPositionDataModel.PriceArrival);
             Column_PriceSell.DataPropertyName = nameof(ArrivalPositionDataModel.PriceSell);
+            Column_PriceSell.ReadOnly = true;
             Column_PricePercent.DataPropertyName = nameof(ArrivalPositionDataModel.PricePercent);
             Column_Count.DataPropertyName = nameof(ArrivalPositionDataModel.Count);
             Column_SumArrival.DataPropertyName = nameof(ArrivalPositionDataModel.SumArrival);

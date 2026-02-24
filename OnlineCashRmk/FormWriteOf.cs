@@ -69,6 +69,7 @@ namespace OnlineCashRmk
             ColumnGoodUnit.DataPropertyName = nameof(WriteofGood.GoodUnit);
             ColumnCount.DataPropertyName = nameof(WriteofGood.Count);
             ColumnPrice.DataPropertyName = nameof(WriteofGood.Price);
+            ColumnPrice.ReadOnly = true;
             ColumnSum.DataPropertyName = nameof(WriteofGood.Sum);
 
             _searchControll = new SearchGoodsControll(dbFactory);

@@ -89,7 +89,7 @@ namespace OnlineCashRmk
                 Name = nameof(RevaluationPosition.PriceNew),
                 DataPropertyName = nameof(RevaluationPosition.PriceNew),
                 HeaderText = "Новая цена",
-                ReadOnly = false, // ← запрещено редактировать
+                ReadOnly = true, // ← запрещено редактировать
                 Width = 100,
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "N2" }
             });
