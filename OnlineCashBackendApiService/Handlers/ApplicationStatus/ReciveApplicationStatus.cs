@@ -16,10 +16,10 @@ public static class ReciveApplicationStatus
 
 public static class GetApplicationStates
 {
-    private record Response(string shopDbName, string version, string? typeDoc, string? lastSynch);
+    private record Response(string shopDbName, string lastSendStatus, string version, string? typeDoc, string? lastSynch);
     public static IResult Handler(ApplicationStatusService service, IDbContextFactory factory)
     {
-        var result = service.Get().Select(x => new Response(x.shopDbName, x.version, x.typeDoc, x.lastDocSynch?.ToString("dd.MM HH:mm:SS")));
+        var result = service.Get().Select(x => new Response(x.shopDbName, x.lastSendStatus.ToString("dd.MM HH:mm:ss"), x.version, x.typeDoc, x.lastDocSynch?.ToString("dd.MM HH:mm:SS")));
         return Results.Ok<IEnumerable<Response>>(result);
     }
 }

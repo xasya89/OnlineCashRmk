@@ -643,6 +643,10 @@ public partial class Form1 : Form
         {
             buttonMenu.BackColor = Color.Red;
         }
+        catch 
+        {
+            buttonMenu.BackColor = Color.Red;
+        }
     }
     //Отменить весь чек
     private void button5_Click(object sender, EventArgs e)

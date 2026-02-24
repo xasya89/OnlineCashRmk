@@ -20,13 +20,13 @@ public class ApplicationStatusService
         _dict.AddOrUpdate(shopDbName, model, (key, oldValue) => model);
     }
 
-    public IEnumerable<(string shopDbName, string version, string? typeDoc, DateTime? lastDocSynch)> Get()
+    public IEnumerable<(string shopDbName, DateTime lastSendStatus, string version, string? typeDoc, DateTime? lastDocSynch)> Get()
     {
-        List<(string shopDbName, string version, string? typeDoc, DateTime? lastDocSynch)> result = new();
+        List<(string shopDbName, DateTime lastSendStatus, string version, string? typeDoc, DateTime? lastDocSynch)> result = new();
         foreach(var key in _dict.Keys)
         {
             var item = _dict[key];
-            result.Add((key, item.Version, item.LastSynchTypeDoc?.GetDescription(), item.LastDocSynch));
+            result.Add((key, item.LastSendStatus, item.Version, item.LastSynchTypeDoc?.GetDescription(), item.LastDocSynch));
         }
         return result;
     }
