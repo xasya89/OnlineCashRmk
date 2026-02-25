@@ -3,12 +3,13 @@ using K4os.Hash.xxHash;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCashBackendApiService.Services;
 using OnlineCashTransportModels;
+using OnlineCashTransportModels.Shared;
 
 namespace OnlineCashBackendApiService.Handlers;
 
 public static class CloseShiftCommand
 {
-    private record CheckSell(int id, int TypeSell, decimal SumAll, decimal SumCash, decimal SumElectron, decimal SumDiscont);
+    private record CheckSell(int id, TypeSell TypeSell, decimal SumAll, decimal SumCash, decimal SumElectron, decimal SumDiscont);
     private record CheckGood(int GoodId, Guid Uuid, decimal Price, decimal PromotionCount);
     public static async Task<IResult> Handler([FromBody] CloseShiftTransportModel body, IDbContextFactory dbContextFactory)
     {
@@ -20,12 +21,12 @@ public static class CloseShiftCommand
         if (!shiftId.HasValue)
             return Results.BadRequest<string>("Смена не найдена");
         var checks = await db.QueryAsync<CheckSell>("SELECT id, TypeSell, SumAll, SumCash, SumElectron, SumDiscont FROM checksells WHERE ShiftId=" + shiftId);
-        decimal sumAll = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumAll) - checks.Where(x => x.TypeSell == 1).Sum(x => x.SumAll);
-        decimal sumSell = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumAll);
-        decimal sumCash = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumCash);
-        decimal sumElectron = checks.Where(x => x.TypeSell == 0).Sum(x => x.SumElectron);
-        decimal sumReturnCash = checks.Where(x => x.TypeSell == 1).Sum(x => x.SumCash);
-        decimal sumReturnElectron = checks.Where(x => x.TypeSell == 1).Sum(x => x.SumElectron);
+        decimal sumAll = checks.Where(x => x.TypeSell == TypeSell.Sell).Sum(x => x.SumAll) - checks.Where(x => x.TypeSell == TypeSell.Return).Sum(x => x.SumAll);
+        decimal sumSell = checks.Where(x => x.TypeSell == TypeSell.Sell).Sum(x => x.SumAll);
+        decimal sumCash = checks.Where(x => x.TypeSell == TypeSell.Sell).Sum(x => x.SumCash);
+        decimal sumElectron = checks.Where(x => x.TypeSell == TypeSell.Sell).Sum(x => x.SumElectron);
+        decimal sumReturnCash = checks.Where(x => x.TypeSell == TypeSell.Return).Sum(x => x.SumCash);
+        decimal sumReturnElectron = checks.Where(x => x.TypeSell == TypeSell.Return).Sum(x => x.SumElectron);
         decimal sumDiscount = checks.Sum(x => x.SumDiscont);
         var ids = checks.Select(x => x.id);
         var checkGoods = await db.QueryAsync<CheckGood>(@"SELECT cg.GoodId, g.Uuid, cg.Price, cg.PromotionCount 
@@ -34,7 +35,7 @@ public static class CloseShiftCommand
             new { Ids = ids });
         decimal sumPromotion = checkGoods.Sum(x=>x.Price * x.PromotionCount);
         await db.ExecuteAsync(@"UPDATE shifts 
-            SET Stop=@Stop, SumAll=@SumAll, SumSell=@SumSell, SumSell=@SumAll, SumElectron=@SumElectron, SumNoElectron=@SumNoElectron,
+            SET Stop=@Stop, SumAll=@SumAll, SumSell=@SumSell, SumElectron=@SumElectron, SumNoElectron=@SumNoElectron,
             SumReturnCash=@SumReturnCash, SumReturnElectron=@SumReturnElectron, SumPromotion=@SumPromotion, SumDiscount=@SumDiscount 
             WHERE id=@Id",
             new {
