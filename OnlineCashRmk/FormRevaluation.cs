@@ -352,5 +352,29 @@ namespace OnlineCashRmk
             if (e.KeyCode == Keys.F4)
                 _searchControll.Focus();
         }
+
+        private async void toolStripButton1_Click(object sender, EventArgs e)
+        {
+
+            using var scope = _servicePrivider.CreateScope();
+            var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DataContext>>();
+            using var db = dbContextFactory.CreateDbContext();
+            var synchService = scope.ServiceProvider.GetRequiredService<ISynchService>();
+            try
+            {
+                await synchService.SynchGoodsFromFile();
+                var ids = _positions.Select(x => x.GoodId);
+                var goods = await db.Goods.Where(x => ids.Contains(x.Id))
+                    .AsNoTracking().ToArrayAsync();
+                foreach (var p in _positions)
+                    p.PriceNew = goods.Where(x => x.Id == p.GoodId).First().Price;
+                _positions.ResetBindings();
+                toolStripSynchGoods.BackColor = Color.LightGreen;
+            }
+            catch (Exception ex)
+            {
+                toolStripSynchGoods.BackColor = Color.LightPink;
+            }
+        }
     }
 }

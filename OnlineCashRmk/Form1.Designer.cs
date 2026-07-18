@@ -82,9 +82,11 @@ namespace OnlineCashRmk
             toolStripStatusLabelScannerIsOpen = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabelShiftAmountElectron = new System.Windows.Forms.ToolStripStatusLabel();
-            findTextBox = new System.Windows.Forms.TextBox();
             toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             toolStripStatusLabelShiftAmountCash = new System.Windows.Forms.ToolStripStatusLabel();
+            findTextBox = new System.Windows.Forms.TextBox();
+            toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            загрузитьТоварыИзФайлаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -478,7 +480,7 @@ namespace OnlineCashRmk
             // 
             // toolStripDropDownButton1
             // 
-            toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { списанияToolStripMenuItem, приходыToolStripMenuItem, переоценкаToolStripMenuItem, инверторизацияToolStripMenuItem, toolStripMenuItem1, выдачаДенегToolStripMenuItem1, внесениеДенегToolStripMenuItem1, историяДокументовToolStripMenuItem, toolStripSeparator2, toolStripSeparator1, отправитьДокументыНаСерверToolStripMenuItem });
+            toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { списанияToolStripMenuItem, приходыToolStripMenuItem, переоценкаToolStripMenuItem, инверторизацияToolStripMenuItem, toolStripMenuItem1, выдачаДенегToolStripMenuItem1, внесениеДенегToolStripMenuItem1, историяДокументовToolStripMenuItem, toolStripSeparator2, отправитьДокументыНаСерверToolStripMenuItem, toolStripMenuItem2, загрузитьТоварыИзФайлаToolStripMenuItem, toolStripSeparator1 });
             toolStripDropDownButton1.Image = (System.Drawing.Image)resources.GetObject("toolStripDropDownButton1.Image");
             toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripDropDownButton1.Name = "toolStripDropDownButton1";
@@ -576,17 +578,6 @@ namespace OnlineCashRmk
             toolStripStatusLabelShiftAmountElectron.Size = new System.Drawing.Size(128, 17);
             toolStripStatusLabelShiftAmountElectron.Text = "toolStripStatusLabel3";
             // 
-            // findTextBox
-            // 
-            findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
-            findTextBox.Font = new System.Drawing.Font("Segoe UI", 14.25F);
-            findTextBox.Location = new System.Drawing.Point(3, 19);
-            findTextBox.Name = "findTextBox";
-            findTextBox.Size = new System.Drawing.Size(1032, 33);
-            findTextBox.TabIndex = 0;
-            findTextBox.TextChanged += findTextBox_TextChanged;
-            findTextBox.KeyDown += findTextBox_KeyDown;
-            // 
             // toolStripStatusLabel3
             // 
             toolStripStatusLabel3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold);
@@ -600,6 +591,29 @@ namespace OnlineCashRmk
             toolStripStatusLabelShiftAmountCash.Name = "toolStripStatusLabelShiftAmountCash";
             toolStripStatusLabelShiftAmountCash.Size = new System.Drawing.Size(128, 17);
             toolStripStatusLabelShiftAmountCash.Text = "toolStripStatusLabel4";
+            // 
+            // findTextBox
+            // 
+            findTextBox.Dock = System.Windows.Forms.DockStyle.Top;
+            findTextBox.Font = new System.Drawing.Font("Segoe UI", 14.25F);
+            findTextBox.Location = new System.Drawing.Point(3, 19);
+            findTextBox.Name = "findTextBox";
+            findTextBox.Size = new System.Drawing.Size(1032, 33);
+            findTextBox.TabIndex = 0;
+            findTextBox.TextChanged += findTextBox_TextChanged;
+            findTextBox.KeyDown += findTextBox_KeyDown;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new System.Drawing.Size(250, 6);
+            // 
+            // загрузитьТоварыИзФайлаToolStripMenuItem
+            // 
+            загрузитьТоварыИзФайлаToolStripMenuItem.Name = "загрузитьТоварыИзФайлаToolStripMenuItem";
+            загрузитьТоварыИзФайлаToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
+            загрузитьТоварыИзФайлаToolStripMenuItem.Text = "Загрузить товары из файла";
+            загрузитьТоварыИзФайлаToolStripMenuItem.Click += загрузитьТоварыИзФайлаToolStripMenuItem_Click;
             // 
             // Form1
             // 
@@ -689,6 +703,8 @@ namespace OnlineCashRmk
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelShiftAmountElectron;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelShiftAmountCash;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem загрузитьТоварыИзФайлаToolStripMenuItem;
     }
 }
 

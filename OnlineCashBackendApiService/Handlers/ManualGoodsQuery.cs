@@ -20,6 +20,7 @@ public static class ManualGoodsQuery
         };
         return goods.Select(x => new GoodsResponseTransportModel
         {
+            Id=x.Id,
             Uuid = x.Uuid,
             Unit = x.Unit,
             SpecialType = x.SpecialType,

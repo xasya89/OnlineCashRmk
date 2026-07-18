@@ -39,13 +39,15 @@
             toolStripLabelAmount = new System.Windows.Forms.ToolStripLabel();
             revaluationDataGridView = new System.Windows.Forms.DataGridView();
             searchPanel = new System.Windows.Forms.Panel();
+            toolStripButton1 = new System.Windows.Forms.ToolStripButton();
+            toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)revaluationDataGridView).BeginInit();
             SuspendLayout();
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolButtonDeleteRow, toolStripButton2, toolStripButton3, toolStripSeparator1, toolStripSynchGoods, toolStripSeparator2, toolStripLabelAmount });
+            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolButtonDeleteRow, toolStripButton2, toolStripButton3, toolStripSeparator1, toolStripSynchGoods, toolStripSeparator3, toolStripButton1, toolStripSeparator2, toolStripLabelAmount });
             toolStrip1.Location = new System.Drawing.Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(1029, 28);
@@ -139,6 +141,21 @@
             searchPanel.Size = new System.Drawing.Size(1029, 277);
             searchPanel.TabIndex = 2;
             // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            toolStripButton1.Image = (System.Drawing.Image)resources.GetObject("toolStripButton1.Image");
+            toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new System.Drawing.Size(150, 25);
+            toolStripButton1.Text = "Обновить цены из файла";
+            toolStripButton1.Click += toolStripButton1_Click;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new System.Drawing.Size(6, 28);
+            // 
             // FormRevaluation
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
@@ -173,5 +190,7 @@
         private System.Windows.Forms.ToolStripButton toolStripSynchGoods;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripLabel toolStripLabelAmount;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripButton toolStripButton1;
     }
 }

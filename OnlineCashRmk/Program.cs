@@ -14,6 +14,9 @@ using Serilog.Events;
 using Microsoft.Extensions.Hosting;
 using OnlineCashRmk.Services;
 using Microsoft.EntityFrameworkCore.Internal;
+using System.Net.Http;
+using System.Net;
+using OnlineCashRmk.UpdatePrograms;
 
 namespace OnlineCashRmk
 {
@@ -28,10 +31,16 @@ namespace OnlineCashRmk
         {
             if (InstanceCheck())
             {
+                CheckAppsettings_ServerApi_ProxyUrl.CheckAndUpdate();
+
                 var config = new ConfigurationBuilder()
     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory) // важно для WinForms!
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .Build();
+
+                var proxyType = config.GetValue<string>("ProxySettings:Type");
+                var proxyUrl = config.GetValue<string>("ProxySettings:Url");
+
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -58,6 +67,35 @@ namespace OnlineCashRmk
                      client.BaseAddress = new Uri(serverApi);
                      var shopDbName = _config.GetSection("ShopDbName").Value;
                      client.DefaultRequestHeaders.Add("X-ShopDbName", shopDbName);
+                 })
+                 .ConfigurePrimaryHttpMessageHandler(() =>
+                 {
+                     switch (proxyType)
+                     {
+                         case "system":
+                             return new HttpClientHandler
+                             {
+                                 UseProxy = true,
+                                 Proxy = WebRequest.GetSystemWebProxy(),
+                                 UseDefaultCredentials = true,
+                             };
+                         case "url":
+                             return new SocketsHttpHandler
+                             {
+                                 UseProxy = true,
+                                 Proxy = new WebProxy(proxyUrl),
+                             };
+                         default:
+                             return new SocketsHttpHandler
+                             {
+                                 UseProxy = false,
+                                 Proxy = null,
+                             };
+                     }
+                 })
+                 .ConfigureHttpClient(client =>
+                 {
+                     client.DefaultRequestVersion = HttpVersion.Version11;
                  });
                  services.AddHttpClient()
                 //.AddDbContextFactory<DataContext>(opt=>opt.UseSqlite("Data Source=CustomerDB.db;"))

@@ -57,6 +57,17 @@ namespace OnlineCashBackendApiService
             builder.Services.AddSingleton<ApplicationStatusService>();
             builder.Services.AddSingleton<DiscountService>();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000", "https://admin.beermag31.ru")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -67,6 +78,8 @@ namespace OnlineCashBackendApiService
             }
 
             //app.UseHttpsRedirection();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthorization();
             app.UseMiddleware<IdempotencyMiddleware>();

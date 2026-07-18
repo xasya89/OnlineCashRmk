@@ -33,6 +33,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using ToastNotifications;
 using ToastNotifications.Lifetime;
 using ToastNotifications.Messages;
@@ -48,8 +49,8 @@ public partial class Form1 : Form
     ICashRegisterService _cashService;
     private readonly IDbContextFactory<DataContext> dbContextFactory;
     private readonly IDocumentSenderService _documentSenderServer;
+    private readonly ILogger<Form1> _logger;
     //DataContext db;
-    ILogger<Form1> _logger;
     ObservableCollection<CheckGoodModel> checkGoods = new ObservableCollection<CheckGoodModel>();
     Buyer SelectedBuyer = null;
     bool __isReturn = false;
@@ -149,7 +150,8 @@ public partial class Form1 : Form
                     toolStripStatusLabelScannerIsOpen.BackColor = Color.Red;
                 }
 
-            };
+            }
+            ;
 
             if (configuration.GetSection("buttonDiscountVisible").Value?.ToLower() == "true")
             {
@@ -233,7 +235,7 @@ public partial class Form1 : Form
         {
             var shift = db.Shifts.Where(s => s.Stop == null)
                 .Include(x => x.CheckSells)
-                .ThenInclude(x=>x.CheckGoods)
+                .ThenInclude(x => x.CheckGoods)
                 .AsNoTracking().FirstOrDefault();
             shift.Stop = DateTime.Now;
             var sumNoElectron = shift.CheckSells.Where(x => !x.IsReturn).Sum(x => x.SumCash);
@@ -245,15 +247,15 @@ public partial class Form1 : Form
 
             var sumPromotion = shift.CheckSells.SelectMany(x => x.CheckGoods)
                 .Sum(x => x.PromotionQuantity * x.Cost);
-            await db.Shifts.Where(x=>x.Id==shift.Id).ExecuteUpdateAsync(x =>
+            await db.Shifts.Where(x => x.Id == shift.Id).ExecuteUpdateAsync(x =>
                 x.SetProperty(x => x.Stop, DateTime.Now)
-                .SetProperty(x=>x.SumNoElectron, sumNoElectron)
-                .SetProperty(x=>x.SumElectron, sumElectron)
-                .SetProperty(x=>x.SumSell, sumSell)
-                .SetProperty(x=>x.SumReturnCash, sumReturnCash)
+                .SetProperty(x => x.SumNoElectron, sumNoElectron)
+                .SetProperty(x => x.SumElectron, sumElectron)
+                .SetProperty(x => x.SumSell, sumSell)
+                .SetProperty(x => x.SumReturnCash, sumReturnCash)
                 .SetProperty(x => x.SumReturnElectron, sumReturnElectron)
-                .SetProperty(x=>x.SumAll, sumAll)
-                .SetProperty(x=>x.PromotionSum, sumPromotion)
+                .SetProperty(x => x.SumAll, sumAll)
+                .SetProperty(x => x.PromotionSum, sumPromotion)
             );
             db.DocSynches.Add(new DocSynch { TypeDoc = TypeDocs.CloseShift, DocId = shift.Id });
             await db.SaveChangesAsync();
@@ -280,8 +282,8 @@ public partial class Form1 : Form
     {
         Task.Delay(TimeSpan.FromSeconds(1.5)).Wait();
         using var db = dbContextFactory.CreateDbContext();
-        var shift =await db.Shifts.Where(s => s.Stop == null).AsNoTracking().FirstOrDefaultAsync();
-        toolStripStatusLabelShiftAmountElectron.Text=shift?.SumElectron.ToSellFormat() ?? "";
+        var shift = await db.Shifts.Where(s => s.Stop == null).AsNoTracking().FirstOrDefaultAsync();
+        toolStripStatusLabelShiftAmountElectron.Text = shift?.SumElectron.ToSellFormat() ?? "";
         toolStripStatusLabelShiftAmountCash.Text = shift?.SumNoElectron.ToSellFormat() ?? "";
         if (shift != null)
         {
@@ -308,7 +310,7 @@ public partial class Form1 : Form
                              ?? version.ToString();
 
         // AssemblyInformationalVersion (отображаемая версия, например "2.1.0-beta")
-        
+
     }
 
     private async void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -512,21 +514,22 @@ public partial class Form1 : Form
 
             if (checkGoods.Count(g => g.GoodId == good.Id) == 0)
                 checkGoods.Add(
-                    new CheckGoodModel { 
-                        GoodId = good.Id, 
-                        Good = good, 
-                        Count = count, 
+                    new CheckGoodModel
+                    {
+                        GoodId = good.Id,
+                        Good = good,
+                        Count = count,
                         PromotionQuantity = good.IsPromotion2Plus1 ? Math.Floor(count / 3) : 0
                         /*
                             good.IsPromotion2Plus1 && Math.Truncate(count / 2) > 0 ?
                             Math.Truncate(count / 2) : 0
                         */,
-                        Cost = good.Price 
+                        Cost = good.Price
                     });
             else
             {
                 var checkgood = checkGoods.FirstOrDefault(g => g.GoodId == good.Id);
-                checkgood.Count = 
+                checkgood.Count =
                     good.Unit == Units.PCE || good.SpecialType == SpecialTypes.Beer ?
                     checkgood.Count + count : count;
                 checkgood.PromotionQuantity =
@@ -634,16 +637,34 @@ public partial class Form1 : Form
         try
         {
             using var db = await dbContextFactory.CreateDbContextAsync();
-            await DbCashFormExtensions.SynchGoods(db, httpClient);
+            await DbCashFormExtensions.SynchFromServer(db, httpClient);
             await db.SaveChangesAsync();
             GoodList = await db.Goods.Where(g => g.IsDeleted == false).AsNoTracking().ToListAsync();
             buttonMenu.BackColor = Color.LightGreen;
         }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError($"=== ОШИБКА HTTP ===");
+            _logger.LogError($"Сообщение: {ex.Message}");
+
+            if (ex.InnerException != null)
+            {
+                _logger.LogError($"Внутренняя ошибка: {ex.InnerException.Message}");
+
+                if (ex.InnerException is System.Net.Sockets.SocketException sockEx)
+                {
+                    _logger.LogError($"Код ошибки сокета: {sockEx.SocketErrorCode}");
+                    _logger.LogError($"NativeErrorCode: {sockEx.NativeErrorCode}");
+                }
+            }
+            buttonMenu.BackColor = Color.Red;
+        }
         catch (SystemException ex)
         {
             buttonMenu.BackColor = Color.Red;
+            _logger.LogError(ex.Message);
         }
-        catch 
+        catch (Exception ex)
         {
             buttonMenu.BackColor = Color.Red;
         }
@@ -854,7 +875,7 @@ public partial class Form1 : Form
     private void buttonReturn_Click(object sender, EventArgs e)
     {
         IsReturn = !IsReturn;
-        if(IsReturn) SelectedBuyer = null;
+        if (IsReturn) SelectedBuyer = null;
     }
 
     private void историяДокументовToolStripMenuItem_Click(object sender, EventArgs e)
@@ -902,14 +923,94 @@ public partial class Form1 : Form
         var formarrival = serviceProvider.GetRequiredService<FormRevaluation>();
         formarrival.Show();
     }
+
+    private async void загрузитьТоварыИзФайлаToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        загрузитьТоварыИзФайлаToolStripMenuItem.BackColor = Color.Yellow;
+
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var synchService = scope.ServiceProvider.GetRequiredService<ISynchService>();
+            await synchService.SynchGoodsFromFile();
+
+            using var db = await dbContextFactory.CreateDbContextAsync();
+            GoodList = await db.Goods.Where(g => g.IsDeleted == false).AsNoTracking().ToListAsync();
+            загрузитьТоварыИзФайлаToolStripMenuItem.BackColor = Color.LightGreen;
+        }
+        catch (SystemException ex)
+        {
+            загрузитьТоварыИзФайлаToolStripMenuItem.BackColor = Color.Red;
+            _logger.LogError(ex, "Ошибка системы");
+        }
+        catch (Exception ex)
+        {
+            загрузитьТоварыИзФайлаToolStripMenuItem.BackColor = Color.Red;
+            _logger.LogError(ex, "Ошибка загрузки");
+        }
+    }
 }
 
 
 static class DbCashFormExtensions
 {
-    public static async Task SynchGoods(DataContext context, HttpClient httpClient)
+    public static async Task SynchFromServer(DataContext context, HttpClient httpClient)
     {
         var goods = await httpClient.GetFromJsonAsync<IEnumerable<GoodsResponseTransportModel>>($"manuals/goods");
+        await SynchGoods(context, goods);
+    }
+
+    private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(GoodsResponse));
+
+    public static async Task SynchFromFile(DataContext context)
+    {
+
+        string fileName = Path.Combine("input", "goods.xml");
+        if (!Directory.Exists("input"))
+        {
+            MessageBox.Show("Не найден файл в каталоге", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Directory.CreateDirectory("input");
+            return;
+        }
+        try
+        {
+            GoodsResponse result;
+
+            // Читаем файл через FileStream
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                result = (GoodsResponse)Serializer.Deserialize(fileStream);
+            }
+
+            var goods = result.Items.Select(x => new GoodsResponseTransportModel
+            {
+                Id = x.Id,
+                Uuid = x.Uuid,
+                Name = x.Name,
+                Unit = x.Unit,
+                Price = x.Price,
+                SpecialType = x.SpecialType,
+                VPackage = x.VPackage,
+                IsDeleted = x.IsDeleted,
+                IsPromotion2Plus1 = x.IsPromotion2Plus1,
+                Barcodes = x.Barcodes,
+            });
+            await SynchGoods(context, goods);
+
+            MessageBox.Show($"Успешно загружено {result.Items.Count} товаров!", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show($"Ошибка формата XML:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Произошла ошибка при чтении файла:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static async Task SynchGoods(DataContext context, IEnumerable<GoodsResponseTransportModel> goods)
+    {
         foreach (var good in goods)
         {
             var goodDb = context.Goods.Include(g => g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
@@ -1005,3 +1106,4 @@ static class DbCashFormExtensions
         return ("",shift.SumElectron, shift.SumNoElectron);
     }
 }
+
