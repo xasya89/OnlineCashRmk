@@ -72,6 +72,7 @@ namespace OnlineCashRmk
             label3.Size = new System.Drawing.Size(52, 21);
             label3.TabIndex = 1;
             label3.Text = "label3";
+            label3.Visible = false;
             // 
             // button2
             // 
