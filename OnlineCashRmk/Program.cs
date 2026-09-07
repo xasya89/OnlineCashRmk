@@ -31,7 +31,7 @@ namespace OnlineCashRmk
         {
             if (InstanceCheck())
             {
-                CheckAppsettings_ServerApi_ProxyUrl.CheckAndUpdate();
+                //CheckAppsettings_ServerApi_ProxyUrl.CheckAndUpdate();
 
                 var config = new ConfigurationBuilder()
     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory) // важно для WinForms!

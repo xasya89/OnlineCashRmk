@@ -50,6 +50,25 @@ namespace OnlineCashRmk
             SetupUI();
 
             revaluationDataGridView.CellParsing += revaluationDataGridView_CellParsing;
+            GenerateRevaluationPrositions();
+        }
+
+        private void GenerateRevaluationPrositions()
+        {
+            using var db = _dbContextFactory.CreateDbContext();
+            var positions = db.Goods.Where(x => x.PriceOld != null && x.PriceOld != x.Price)
+                .OrderBy(x => x.Name)
+                .Select(x => new RevaluationPosition
+                {
+                    GoodId = x.Id,
+                    GoodName = x.Name,
+                    PriceOld = x.PriceOld ?? 0,
+                    PriceNew = x.Price,
+                    Unit = x.Unit,
+                })
+                .ToList();
+            foreach (var item in positions)
+                _positions.Add(item);
         }
 
         private void SetupUI()
@@ -303,7 +322,7 @@ namespace OnlineCashRmk
             {
                 using var db = _dbContextFactory.CreateDbContext();
                 var ids = _positions.Select(x => x.GoodId);
-                var goods = await db.Goods.Where(x => ids.Contains(x.Id)).AsNoTracking().ToArrayAsync();
+                var goods = await db.Goods.Where(x => ids.Contains(x.Id)).ToArrayAsync();
                 var revaluation = new Revaluation
                 {
                     Create = DateTime.Now,
@@ -320,9 +339,14 @@ namespace OnlineCashRmk
                     }).ToArray()
                 };
                 db.Revaluations.Add(revaluation);
+
+                foreach (var good in goods)
+                    good.UpdatePriceAfterRevaluation();
+
                 await db.SaveChangesAsync();
                 var doc = new DocSynch { TypeDoc = TypeDocs.Revaluation, DocId = revaluation.Id };
                 db.DocSynches.Add(doc);
+
                 await db.SaveChangesAsync();
                 Close();
             }
@@ -375,6 +399,19 @@ namespace OnlineCashRmk
             {
                 toolStripSynchGoods.BackColor = Color.LightPink;
             }
+        }
+        // Переоценка не нужна
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+            var dialogResult = MessageBox.Show("Вы точно хотите отказать от переоценки?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dialogResult == DialogResult.No) return; 
+            using var db = _dbContextFactory.CreateDbContext();
+            var goods = db.Goods.Where(x => x.PriceOld != null && x.PriceOld != x.Price)
+                .ToList();
+            foreach (var good in goods)
+                good.UpdatePriceAfterRevaluation();
+            db.SaveChanges();
+            Close();
         }
     }
 }

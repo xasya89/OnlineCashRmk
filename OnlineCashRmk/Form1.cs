@@ -637,10 +637,19 @@ public partial class Form1 : Form
         try
         {
             using var db = await dbContextFactory.CreateDbContextAsync();
-            await DbCashFormExtensions.SynchFromServer(db, httpClient);
+            bool flagChangePrice = await DbCashFormExtensions.SynchFromServer(db, httpClient);
             await db.SaveChangesAsync();
             GoodList = await db.Goods.Where(g => g.IsDeleted == false).AsNoTracking().ToListAsync();
             buttonMenu.BackColor = Color.LightGreen;
+            if (flagChangePrice)
+            {
+                var dialogResult = MessageBox.Show("Цены изменились. Создать документ переоценки сейчас?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    var formarrival = serviceProvider.GetRequiredService<FormRevaluation>();
+                    formarrival.Show();
+                }
+            }
         }
         catch (HttpRequestException ex)
         {
@@ -954,23 +963,23 @@ public partial class Form1 : Form
 
 static class DbCashFormExtensions
 {
-    public static async Task SynchFromServer(DataContext context, HttpClient httpClient)
+    public static async Task<bool> SynchFromServer(DataContext context, HttpClient httpClient)
     {
         var goods = await httpClient.GetFromJsonAsync<IEnumerable<GoodsResponseTransportModel>>($"manuals/goods");
-        await SynchGoods(context, goods);
+        return await SynchGoods(context, goods);
     }
 
     private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(GoodsResponse));
 
-    public static async Task SynchFromFile(DataContext context)
+    public static async Task<bool> SynchFromFile(DataContext context)
     {
-
+        bool flagChangePrice = false;
         string fileName = Path.Combine("input", "goods.xml");
         if (!Directory.Exists("input"))
         {
             MessageBox.Show("Не найден файл в каталоге", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Directory.CreateDirectory("input");
-            return;
+            return false;
         }
         try
         {
@@ -995,7 +1004,7 @@ static class DbCashFormExtensions
                 IsPromotion2Plus1 = x.IsPromotion2Plus1,
                 Barcodes = x.Barcodes,
             });
-            await SynchGoods(context, goods);
+            flagChangePrice = await SynchGoods(context, goods);
 
             MessageBox.Show($"Успешно загружено {result.Items.Count} товаров!", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -1007,10 +1016,19 @@ static class DbCashFormExtensions
         {
             MessageBox.Show($"Произошла ошибка при чтении файла:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+        return flagChangePrice;
     }
 
-    private static async Task SynchGoods(DataContext context, IEnumerable<GoodsResponseTransportModel> goods)
+
+    /// <summary>
+    /// Обновление в бд
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="goods"></param>
+    /// <returns>True - если изменилась цена у какого нибудь товара</returns>
+    private static async Task<bool> SynchGoods(DataContext context, IEnumerable<GoodsResponseTransportModel> goods)
     {
+        bool flagChangePrices = false;
         foreach (var good in goods)
         {
             var goodDb = context.Goods.Include(g => g.BarCodes).Where(g => g.Uuid == good.Uuid).FirstOrDefault();
@@ -1043,7 +1061,8 @@ static class DbCashFormExtensions
                 goodDb.Name = good.Name;
                 goodDb.NameLower = good.Name.Trim().ToLower();
                 goodDb.Unit = good.Unit;
-                goodDb.Price = good.Price;
+                var _flagChangePrice = goodDb.UpdatePrice(good.Price);
+                flagChangePrices = flagChangePrices ? true : _flagChangePrice;
                 goodDb.SpecialType = good.SpecialType;
                 goodDb.VPackage = good.VPackage;
                 goodDb.IsDeleted = good.IsDeleted;
@@ -1059,6 +1078,7 @@ static class DbCashFormExtensions
             }
         };
         await context.SaveChangesAsync();
+        return flagChangePrices;
     }
 
     public static async Task<(string error, decimal sumElectron, decimal sumCash)> CheckPrint(DataContext db, IEnumerable<CheckGoodModel> checkGoods, Buyer? buyer, decimal sumDiscount, bool isReturn, decimal sumElectron, decimal sumCash)

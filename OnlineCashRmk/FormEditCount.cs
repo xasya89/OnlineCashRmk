@@ -27,6 +27,8 @@ namespace OnlineCashRmk
             switch (e.KeyCode)
             {
                 case Keys.Enter:
+                    if (textBoxCount.Text.ToDecimal() > 9000)
+                        break;
                     DialogResult = DialogResult.OK;
                     break;
                 case Keys.Escape:

@@ -26,6 +26,8 @@ namespace OnlineCashRmk.Models
         public decimal PriceArrival { get; set; } = 0;
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
+        public decimal? PriceOld { get; set; } = null;
+        public DateTime? PriceChangedDate { get; set; }
         [JsonPropertyName("specialType")]
         public SpecialTypes SpecialType { get; set; } = SpecialTypes.None;
         [JsonPropertyName("vPackage")]
@@ -33,6 +35,30 @@ namespace OnlineCashRmk.Models
         [JsonPropertyName("isDeleted")]
         public bool IsDeleted { get; set; }
         public bool IsPromotion2Plus1 { get; set; }
+
+        /// <summary>
+        /// Изменение цены
+        /// </summary>
+        /// <param name="currentPrice"></param>
+        /// <returns>True - если цена изменилась</returns>
+        public bool UpdatePrice(decimal currentPrice)
+        {
+            if (Price != currentPrice)
+            {
+                PriceOld = Price;
+                PriceChangedDate = DateTime.Now;
+                Price = currentPrice;
+                return true;
+            }
+            Price = currentPrice;
+            return false;
+        }
+
+        public void UpdatePriceAfterRevaluation()
+        {
+            PriceOld = Price;
+        }
+
         [JsonIgnore]
         public List<CheckGood> CheckGoods { get; set; }
         [JsonPropertyName("barCodes")]

@@ -26,8 +26,8 @@ public static class CreateArrivalCommand
         var sumArrival = body.Positions.Sum(x=>x.PriceArrival * x.Count);
         var sumSell = body.Positions.Sum(x=>x.PriceSell * x.Count);
         var arrivalId = await db.QuerySingleAsync<int>(@"INSERT INTO arrivals 
-            (Num, DateArrival, SupplierId, ShopId, isSuccess, SumPayments, SumArrival, SumNds, SumSell, Status)
-            VALUES (@Num, @DateArrival, @SupplierId, 1, 1, @SumArrival, @SumArrival, @SumArrival, @SumSell, 2);
+            (Num, DateArrival, SupplierId, ShopId, isSuccess, SumPayments, SumArrival, SumNds, SumSell, Status, Created_At)
+            VALUES (@Num, @DateArrival, @SupplierId, 1, 1, @SumArrival, @SumArrival, @SumArrival, @SumSell, 2, NOW());
             SELECT LAST_INSERT_ID();",
             new {
                 Num=body.Num,

@@ -28,7 +28,7 @@ namespace OnlineCashBackendApiService
             {
                 var logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash.log");
                 var ex = e.ExceptionObject as Exception;
-                var message = $"[{DateTime.Now}] Unhandled exception:\n{ex?.ToString()}\n";
+                var message = $"\n\n\n[{DateTime.Now}] Unhandled exception:\n{ex?.ToString()}\n";
                 File.AppendAllText(logFile, message);
             };
 

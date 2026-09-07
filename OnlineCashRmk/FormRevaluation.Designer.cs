@@ -35,19 +35,20 @@
             toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             toolStripSynchGoods = new System.Windows.Forms.ToolStripButton();
+            toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             toolStripLabelAmount = new System.Windows.Forms.ToolStripLabel();
             revaluationDataGridView = new System.Windows.Forms.DataGridView();
             searchPanel = new System.Windows.Forms.Panel();
-            toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)revaluationDataGridView).BeginInit();
             SuspendLayout();
             // 
             // toolStrip1
             // 
-            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolButtonDeleteRow, toolStripButton2, toolStripButton3, toolStripSeparator1, toolStripSynchGoods, toolStripSeparator3, toolStripButton1, toolStripSeparator2, toolStripLabelAmount });
+            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolButtonDeleteRow, toolStripButton2, toolStripButton3, toolStripSeparator1, toolStripSynchGoods, toolStripSeparator3, toolStripButton1, toolStripSeparator2, toolStripLabelAmount, toolStripButton4 });
             toolStrip1.Location = new System.Drawing.Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(1029, 28);
@@ -108,6 +109,21 @@
             toolStripSynchGoods.Text = "Обновить цены";
             toolStripSynchGoods.Click += toolStripSynchGoods_Click;
             // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new System.Drawing.Size(6, 28);
+            // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            toolStripButton1.Image = (System.Drawing.Image)resources.GetObject("toolStripButton1.Image");
+            toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new System.Drawing.Size(150, 25);
+            toolStripButton1.Text = "Обновить цены из файла";
+            toolStripButton1.Click += toolStripButton1_Click;
+            // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
@@ -141,20 +157,16 @@
             searchPanel.Size = new System.Drawing.Size(1029, 277);
             searchPanel.TabIndex = 2;
             // 
-            // toolStripButton1
+            // toolStripButton4
             // 
-            toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            toolStripButton1.Image = (System.Drawing.Image)resources.GetObject("toolStripButton1.Image");
-            toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            toolStripButton1.Name = "toolStripButton1";
-            toolStripButton1.Size = new System.Drawing.Size(150, 25);
-            toolStripButton1.Text = "Обновить цены из файла";
-            toolStripButton1.Click += toolStripButton1_Click;
-            // 
-            // toolStripSeparator3
-            // 
-            toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new System.Drawing.Size(6, 28);
+            toolStripButton4.BackColor = System.Drawing.Color.FromArgb(255, 192, 192);
+            toolStripButton4.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            toolStripButton4.Image = (System.Drawing.Image)resources.GetObject("toolStripButton4.Image");
+            toolStripButton4.ImageTransparentColor = System.Drawing.Color.Magenta;
+            toolStripButton4.Name = "toolStripButton4";
+            toolStripButton4.Size = new System.Drawing.Size(132, 25);
+            toolStripButton4.Text = "Переоценка не нужна";
+            toolStripButton4.Click += toolStripButton4_Click;
             // 
             // FormRevaluation
             // 
@@ -192,5 +204,6 @@
         private System.Windows.Forms.ToolStripLabel toolStripLabelAmount;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
+        private System.Windows.Forms.ToolStripButton toolStripButton4;
     }
 }
